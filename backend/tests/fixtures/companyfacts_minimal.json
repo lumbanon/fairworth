@@ -1,0 +1,28 @@
+{
+  "fixture_note": "Synthetic SEC-shaped data for offline tests; not real company financial information.",
+  "cik": 1,
+  "entityName": "Synthetic Fixture Company",
+  "facts": {
+    "us-gaap": {
+      "RevenueFromContractWithCustomerExcludingAssessedTax": {
+        "units": {
+          "USD": [
+            {"start": "2023-07-01", "end": "2024-06-30", "val": 1000000000, "accn": "0000000001-24-000001", "fy": 2024, "fp": "FY", "form": "10-K", "filed": "2024-08-01", "frame": "CY2024"},
+            {"start": "2023-07-01", "end": "2024-06-30", "val": 1100000000, "accn": "0000000001-25-000001", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-08-01", "frame": "CY2024"},
+            {"start": "2024-07-01", "end": "2025-06-30", "val": 1200000000, "accn": "0000000001-25-000001", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-08-01", "frame": "CY2025"}
+          ]
+        }
+      },
+      "EarningsPerShareDiluted": {
+        "units": {
+          "USD/shares": [{"start": "2024-07-01", "end": "2025-06-30", "val": 2.5, "accn": "0000000001-25-000001", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-08-01", "frame": "CY2025"}]
+        }
+      },
+      "WeightedAverageNumberOfDilutedSharesOutstanding": {
+        "units": {
+          "shares": [{"start": "2024-07-01", "end": "2025-06-30", "val": 50000000, "accn": "0000000001-25-000001", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-08-01", "frame": "CY2025"}]
+        }
+      }
+    }
+  }
+}
