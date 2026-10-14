@@ -448,3 +448,61 @@ def test_roe_supports_consecutive_noncalendar_52_week_years():
         {"fiscal_year": 2024, "fiscal_period": "FY", "start_date": "2023-09-30", "end_date": "2024-09-27", "metrics": {"net_income": 10, "shareholders_equity": 80}},
     ]
     assert calculate_metrics(periods)["periods"][0]["metrics"]["return_on_equity"] == pytest.approx(20 / 90)
+
+
+def test_reported_productive_asset_capex_retains_scope_and_fcf_provenance():
+    result = normalize_company_facts(payload({
+        'NetCashProvidedByUsedInOperatingActivities': ('USD',[observation(100)]),
+        'PaymentsToAcquireProductiveAssets': ('USD',[observation(20)]),
+    }))
+    period = result['annual'][0]
+    assert period['metrics']['capital_expenditures'] == 20
+    assert period['metrics']['free_cash_flow'] == 80
+    assert any(warning['code']=='capital_expenditure_scope' for warning in result['warnings'])
+    assert {source['concept']:source['coefficient'] for source in period['provenance']['free_cash_flow']} == {
+        'NetCashProvidedByUsedInOperatingActivities':1, 'PaymentsToAcquireProductiveAssets':-1}
+
+
+def test_commercial_paper_and_reported_total_debt_do_not_double_count():
+    concepts = {
+        'Revenues':('USD',[observation(100)]),
+        'CommercialPaper':('USD',[observation(5,None)]),
+        'LongTermDebtCurrent':('USD',[observation(10,None)]),
+        'LongTermDebtNoncurrent':('USD',[observation(80,None)]),
+    }
+    assert normalize_company_facts(payload(concepts))['annual'][0]['metrics']['total_debt'] == 95
+    concepts['DebtLongtermAndShorttermCombinedAmount'] = ('USD',[observation(96,None)])
+    period = normalize_company_facts(payload(concepts))['annual'][0]
+    assert period['metrics']['total_debt'] == 96
+    assert len(period['provenance']['total_debt']) == 1
+
+
+def test_liability_derivation_uses_total_equity_including_nci_and_same_filing():
+    concepts = {
+        'Revenues':('USD',[observation(100)]),
+        'LiabilitiesAndStockholdersEquity':('USD',[observation(1000,None)]),
+        'StockholdersEquity':('USD',[observation(250,None)]),
+        'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest':('USD',[observation(300,None)]),
+    }
+    period = normalize_company_facts(payload(concepts))['annual'][0]
+    assert period['metrics']['shareholders_equity'] == 250
+    assert period['metrics']['total_liabilities'] == 700
+    concepts.pop('StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest')
+    assert normalize_company_facts(payload(concepts))['annual'][0]['metrics']['total_liabilities'] is None
+
+
+def test_new_fiscal_year_quarter_follows_completed_annual_boundary():
+    raw = payload({'Revenues':('USD',[
+        observation(1000,'2025-06-01','2026-05-31',fy=2026,filed='2026-06-22',accn='0000000001-26-000001'),
+        observation(250,'2026-06-01','2026-08-31',fy=2026,fp='Q1',form='10-Q',filed='2026-09-11',accn='0000000001-26-000002'),
+    ])})
+    period = normalize_company_facts(raw)['quarterly'][0]
+    assert (period['fiscal_year'],period['fiscal_period']) == (2027,'Q1')
+    assert period['metrics']['revenue'] == 250
+    assert period['provenance']['revenue'][0]['fy'] == 2026
+
+
+def test_derived_quarter_fcf_coefficients_compose_ytd_and_capex_subtraction():
+    period = period_by_fp(normalize_company_facts(cash_flow_payload()),'Q2')
+    terms = {(source['concept'],source['start'],source['end'],source['value'],source['coefficient']) for source in period['provenance']['free_cash_flow']}
+    assert sum(value*coefficient for _,_,_,value,coefficient in terms) == 95

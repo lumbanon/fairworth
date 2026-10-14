@@ -8,6 +8,7 @@ https://site.financialmodelingprep.com/developer/docs/quickstart
 from __future__ import annotations
 
 import math
+import asyncio
 import time
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
@@ -84,25 +85,41 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         retries: int = 2,
         timeout: float = 20,
         stale_price_seconds: int = 259200,
+        access_denial_ttl_seconds: int = 3600,
     ) -> None:
         super().__init__(client, min_interval=min_interval, retries=retries, timeout=timeout)
         self.api_key = api_key.strip()
         self.enabled = bool(self.api_key)
         self.stale_price_seconds = max(60, stale_price_seconds)
+        self.access_denial_ttl_seconds = max(60, access_denial_ttl_seconds)
         self._profiles: dict[str, tuple[float, dict]] = {}
+        self._access_denials = {}
+        self._endpoint_locks = {}
 
     async def _records(self, endpoint: str, ticker: str) -> list[dict]:
         if not self.enabled:
             raise ProviderError("provider_disabled", "The market provider API key is not configured.", 503)
         symbol = _market_symbol(ticker)
-        # endpoint is an internal constant; no user-controlled URL is accepted.
-        payload = await self._json(
-            f"{self.ORIGIN}/{endpoint}", params={"symbol": symbol, "apikey": self.api_key}
-        )
-        if isinstance(payload, dict) and ("Error Message" in payload or "error" in payload):
-            raise ProviderError(
-                "provider_access_denied", "The market provider could not fulfill this request. Check access permissions.", 503
-            )
+        key = (endpoint, symbol)
+        # Access can differ by symbol. Do not let an ORCL restriction disable AAPL.
+        async with self._endpoint_locks.setdefault(key, asyncio.Lock()):
+            denial = self._access_denials.get(key)
+            if denial and time.monotonic() - denial[0] < self.access_denial_ttl_seconds:
+                raise ProviderError(denial[1], denial[2], 503)
+            try:
+                # endpoint is an internal constant; no user-controlled URL is accepted.
+                payload = await self._json(
+                    f"{self.ORIGIN}/{endpoint}", params={"symbol": symbol, "apikey": self.api_key}
+                )
+                if isinstance(payload, dict) and ("Error Message" in payload or "error" in payload):
+                    raise ProviderError(
+                        "provider_access_denied", "The market provider could not fulfill this request. Check access permissions.", 503
+                    )
+            except ProviderError as error:
+                if error.code in {"provider_subscription_required", "provider_access_denied"}:
+                    self._access_denials[key] = (time.monotonic(), error.code, error.message)
+                raise
+            self._access_denials.pop(key, None)
         if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
             raise ProviderError("invalid_provider_response", "The market provider returned an unexpected response.", 502)
         return payload
@@ -192,7 +209,10 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
     async def historical_prices(self, ticker: str, limit: int = 365) -> list[dict]:
         symbol = _market_symbol(ticker)
         rows = await self._records("historical-price-eod/full", symbol)
-        profile = await self.profile(symbol)
+        try:
+            profile = await self.profile(symbol)
+        except ProviderError:
+            profile = {}  # Preserve entitled history even if optional profile metadata is unavailable.
         result = []
         for row in rows:
             if row.get("symbol", symbol) != symbol:
@@ -220,7 +240,10 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
     async def dividends(self, ticker: str, limit: int = 100) -> list[dict]:
         symbol = _market_symbol(ticker)
         rows = await self._records("dividends", symbol)
-        profile = await self.profile(symbol)
+        try:
+            profile = await self.profile(symbol)
+        except ProviderError:
+            profile = {}
         result = []
         for row in rows:
             amount = _number(row.get("dividend"))

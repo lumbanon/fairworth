@@ -76,6 +76,17 @@ test("missing and incompatible earnings shares cannot be replaced by market shar
   );
 });
 
+test("reported EPS rounding is allowed while materially different common earnings stay unavailable", () => {
+  const data = providerFixture();
+  data.annual.periods[0].metrics.net_income = 17087000000;
+  data.annual.periods[0].metrics.weighted_average_diluted_shares = 2914000000;
+  data.annual.periods[0].metrics.diluted_eps = 5.83;
+  const incompatible = adaptProviderStock(data);
+  assert.ok(incompatible.modelCompatibility.pe);
+  data.annual.periods[0].metrics.diluted_eps = 5.86;
+  assert.equal(adaptProviderStock(data).modelCompatibility.pe, undefined);
+});
+
 test("missing market prices, unknown classifications and currency incompatibility remain explicit", () => {
   const data = providerFixture();
   data.profile.market = null;

@@ -2,7 +2,7 @@ from app.providers.base import ProviderError
 from app.services.cache_service import CachedResult
 from app.services.company_service import combined_status, warning
 from app.services.metrics import calculate_metrics
-from app.services.normalization import extract_observations, normalize_company_facts
+from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
 
 
 class FinancialService:
@@ -21,7 +21,7 @@ class FinancialService:
             self.repository.save_financials(company_id, extract_observations(raw.payload), normalized)
             return CachedResult(normalized, raw.status, raw.retrieved_at, raw.warnings)
 
-        result = await self.cache.get_or_load(f"sec:financials:{company['cik']}:{company['ticker']}", self.settings.sec_cache_ttl_seconds,
+        result = await self.cache.get_or_load(f"sec:financials:{company['cik']}:{company['ticker']}:v{NORMALIZATION_VERSION}", self.settings.sec_cache_ttl_seconds,
                                              "sec-edgar", load)
         warnings = list(result.payload.get("warnings", [])) + list(company.get("warnings", [])) + identity.warnings + result.warnings
         status = combined_status(identity.status, result.status, "partial" if warnings else "fresh")

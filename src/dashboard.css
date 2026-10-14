@@ -1032,6 +1032,7 @@
   color: #444444;
   font-size: 14px;
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 .research-quality-notice p {
   margin-top: 8px;

@@ -215,7 +215,7 @@ export function adaptProviderStock({
     for (const id of ["pe", "peg", "graham"]) modelCompatibility[id] = message;
   } else if (
     Math.abs(latest.netIncome / latest.shares - latest.eps) >
-    Math.max(0.02, Math.abs(latest.eps) * 0.01)
+    0.02
   ) {
     const message =
       "Reported diluted EPS does not reconcile with net income divided by diluted weighted shares. The Phase 2 earnings formulas are unavailable for this reporting basis.";

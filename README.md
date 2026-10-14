@@ -253,6 +253,8 @@ Tickers are validated before any provider request. Share-class dot/hyphen aliase
 
 ## Backend tests and integration verification
 
+The subsequent [live verification report](docs/live-data-verification.md) records successful SEC checks for AAPL, MSFT, NVDA, and ORCL; actual PostgreSQL persistence; and desktop/mobile Provider-mode verification. FMP profiles work for all four, while quotes/history/dividends work for AAPL/MSFT/NVDA and return subscription restrictions for ORCL. The original Phase 3 verification notes below describe the earlier mocked run.
+
 The default suite uses synthetic SEC fixtures, mocked HTTP transports, and isolated SQLite persistence. It never calls external financial APIs and needs no credentials.
 
 ```bash

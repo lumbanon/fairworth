@@ -321,3 +321,18 @@ test("stale provider search suggestions disclose their directory status and sour
     "Cached directory results",
   );
 });
+
+test("expanded SEC concept notices fit the viewport without horizontal page overflow", async ({ page }) => {
+  const fixture = providerFixture();
+  fixture.annual.warnings = [{
+    field: "shareholders_equity",
+    code: "unverified_ownership_basis",
+    message: "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest cannot substitute for parent equity.",
+  }];
+  await mockApi(page, fixture);
+  await chooseProvider(page);
+  await expect(page.getByRole("heading", { name: "API Fixture Corporation (MSFT)" })).toBeVisible();
+  await page.locator(".research-quality-notice summary").click();
+  await expect(page.getByText(/cannot substitute for parent equity/)).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize().width + 1);
+});

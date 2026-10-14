@@ -125,6 +125,12 @@ class JsonHttpProvider:
                 status = response.status_code
                 if status == 404:
                     raise ProviderError("not_found", "The requested provider data was not found.", 404)
+                if status == 402:
+                    raise ProviderError(
+                        "provider_subscription_required",
+                        "This provider endpoint is not available for this ticker under the configured subscription.",
+                        503,
+                    )
                 if status in (401, 403):
                     raise ProviderError(
                         "provider_access_denied",
