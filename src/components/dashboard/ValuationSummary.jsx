@@ -16,7 +16,7 @@ export default function ValuationSummary({ company, valuation }) {
         <h2 id="summary-title">Valuation overview</h2>
         <span className="research-caption">
           {activeScenario[0].toUpperCase() + activeScenario.slice(1)} scenario ·
-          calculated locally
+          {valuation.providerMode ? "calculated by Python" : "calculated locally"}
         </span>
       </div>
       <div className="research-metrics">
@@ -24,24 +24,24 @@ export default function ValuationSummary({ company, valuation }) {
           <span>Market price</span>
           <strong>
             {dollars(
-              company.price,
+              valuation.providerMode ? valuation.comparisonPrice : company.price,
               company.dataMode === "provider"
-                ? (company.market?.currency ?? null)
+                ? (valuation.market?.currency ?? company.currency ?? null)
                 : "USD",
             )}
           </strong>
           <small>
             {company.dataMode === "provider"
-              ? company.price == null
+              ? valuation.comparisonPrice == null
                 ? "Market provider price unavailable"
-                : "Provider price · timestamp above"
+                : valuation.market?.label || "Provider price · timestamp above"
               : "Fictional reference price"}
           </small>
         </div>
         <div>
           <span>Weighted fair value</span>
           <strong data-testid="weighted-fair-value" className="research-accent">
-            {dollars(summary.fairValue)}
+            {dollars(summary.fairValue, valuation.providerMode ? company.currency : "USD")}
           </strong>
           <small>
             {enabledCount} enabled · {summary.count} contributing
@@ -70,7 +70,7 @@ export default function ValuationSummary({ company, valuation }) {
           Bear / bull fair values{" "}
           <strong>
             {finiteRange
-              ? `${dollars(range[0])} / ${dollars(range[1])}`
+              ? `${dollars(range[0], valuation.providerMode ? company.currency : "USD")} / ${dollars(range[1], valuation.providerMode ? company.currency : "USD")}`
               : "Unavailable"}
           </strong>
         </span>

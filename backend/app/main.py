@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from app.api.routes import financials, health, stocks
+from app.api.routes import financials, health, stocks, valuation
 from app.core.config import get_settings
 from app.core.database import build_engine, build_session_factory
 from app.core.exceptions import ApiError
@@ -22,6 +22,7 @@ from app.schemas.common import ErrorDetail, ErrorResponse
 from app.services.cache_service import CacheService
 from app.services.company_service import CompanyService
 from app.services.financial_service import FinancialService
+from app.services.valuation_service import ValuationService
 
 
 def error_response(code, message, status_code, details=None):
@@ -57,20 +58,22 @@ def create_app(settings=None, engine=None, providers=None):
             company_service = CompanyService(sec, market, cache, repository, settings)
             application.state.company_service = company_service
             application.state.financial_service = FinancialService(company_service, sec, cache, repository, settings)
+            application.state.valuation_service = ValuationService(company_service, application.state.financial_service, settings)
             yield
         engine.dispose()
 
-    application = FastAPI(title="Fairworth Financial Data API", version="0.3.0", lifespan=lifespan,
-                          description="Provider-backed data and provenance. Phase 3 does not perform production valuations.",
+    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.4.0", lifespan=lifespan,
+                          description="Sourced financial data and transparent, bounded Python valuations for Provider mode.",
                           responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse},
                                      502: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})
     application.state.settings = settings
     application.state.session_factory = session_factory
     application.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=False,
-                               allow_methods=["GET"], allow_headers=["Accept", "Content-Type"])
+                               allow_methods=["GET", "POST"], allow_headers=["Accept", "Content-Type"])
     application.include_router(health.router, prefix="/api")
     application.include_router(stocks.router, prefix="/api")
     application.include_router(financials.router, prefix="/api")
+    application.include_router(valuation.router, prefix="/api")
 
     @application.exception_handler(ProviderError)
     async def provider_error_handler(_request: Request, error: ProviderError):

@@ -543,6 +543,36 @@
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+.assumption-field select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--body-foreground);
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.provider-advanced-assumptions {
+  margin-top: 20px;
+}
+
+.provider-advanced-assumptions summary {
+  cursor: pointer;
+  color: #444444;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.provider-advanced-assumptions p,
+.provider-confidence p,
+.provider-calculation-details p,
+.provider-reverse-details p,
+.assumption-explanation {
+  overflow-wrap: anywhere;
+}
 .research-body-copy {
   font-size: 14px;
   line-height: 1.8;

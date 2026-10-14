@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     historical_cache_ttl_seconds: int = Field(default=3600, ge=1)
     market_max_age_seconds: int = Field(default=172800, ge=1)
     api_history_limit: int = Field(default=365, ge=1, le=2000)
+    valuation_input_cache_seconds: int = Field(default=60, ge=1, le=300)
+    valuation_calculation_timeout_seconds: float = Field(default=8, ge=1, le=30)
+    valuation_forecast_years: int = Field(default=5, ge=1, le=20)
+    valuation_terminal_growth: float = Field(default=0.02, ge=-0.05, le=0.05)
+    valuation_benchmark_cost_of_equity: float = Field(default=0.10, gt=0, le=0.5)
+    valuation_allow_benchmark_cost_of_equity: bool = True
 
     @field_validator("cors_origins")
     @classmethod

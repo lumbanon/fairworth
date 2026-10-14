@@ -14,7 +14,7 @@ export class ApiError extends Error {
 
 export async function fetchJson(
   path,
-  { signal, fetcher = fetch, timeoutMs = 20000 } = {},
+  { signal, fetcher = fetch, timeoutMs = 20000, method = "GET", body: requestBody } = {},
 ) {
   let response;
   const controller = new AbortController();
@@ -30,7 +30,12 @@ export async function fetchJson(
     try {
       response = await fetcher(`${apiBaseUrl}/api${path}`, {
         signal: controller.signal,
-        headers: { Accept: "application/json" },
+        method,
+        headers: {
+          Accept: "application/json",
+          ...(requestBody === undefined ? {} : { "Content-Type": "application/json" }),
+        },
+        ...(requestBody === undefined ? {} : { body: JSON.stringify(requestBody) }),
       });
     } catch (error) {
       if (timedOut)
@@ -75,6 +80,26 @@ export async function fetchJson(
     clearTimeout(timer);
     signal?.removeEventListener("abort", cancel);
   }
+}
+
+export function loadValuationDefaults(ticker, options) {
+  return fetchJson(`/stocks/${encodeURIComponent(ticker)}/valuation/defaults`, options);
+}
+
+export function calculateValuation(ticker, request, options) {
+  return fetchJson(`/stocks/${encodeURIComponent(ticker)}/valuation/calculate`, {
+    ...options,
+    method: "POST",
+    body: request,
+  });
+}
+
+export function loadValuationSensitivity(ticker, request, options) {
+  return fetchJson(`/stocks/${encodeURIComponent(ticker)}/valuation/sensitivity`, {
+    ...options,
+    method: "POST",
+    body: request,
+  });
 }
 
 export function searchStocks(query, options) {

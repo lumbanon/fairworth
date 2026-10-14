@@ -1,6 +1,8 @@
-# Fairworth — Phase 3
+# Fairworth — Phase 4
 
-A React/JavaScript stock research dashboard with a FastAPI financial data service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. The Phase 1 landing page and Phase 2 JavaScript valuation formulas are preserved. Financial data modes are explicit: demonstration datasets are fictional; provider mode retrieves sourced data through FastAPI and never silently falls back to demonstrations.
+A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
+
+The [Phase 4 implementation and verification report](docs/phase4-valuation-engine.md) documents the architecture, eleven valuation models, reverse DCF, mathematical tests, API contracts, assumption sources, real four-company verification, and remaining data limitations. Target multiples and unsupported financial facts are not invented, so untouched defaults can remain unavailable until the required analyst inputs are supplied.
 
 ## Run locally
 
@@ -30,7 +32,7 @@ npm test
 
 `npm test` runs calculation and provider-compatibility tests using Node's built-in test runner, followed by Playwright tests across desktop Chromium and Chromium with mobile viewport/touch emulation. They can also be run separately with `npm run test:unit` and `npm run test:e2e`. Provider browser tests mock API responses and need no financial credentials.
 
-Calculation tests verify independently calculated results for all 11 models, reverse DCF, normalized weighting, upside versus margin of safety, scenario isolation, eligibility, unavailable inputs, and statement reconciliation across all 10 demonstration datasets. Browser tests cover search and routes, assumptions and reset, model weights, scenarios, sensitivity, statements, landing interactions, and runtime errors. Phase 3 adds loading, structured errors, explicit mode switching, stale sources, unavailable prices/shares, reported periods, and assumption-driven provider valuations.
+Independent Python model tests verify all 11 models, financial contracts, source/period compatibility, assumptions, weighting, scenarios, sensitivity, reverse DCF, missing inputs, and API persistence boundaries. JavaScript tests preserve Demo formulas and verify Provider transport/presentation without independent Provider arithmetic. Browser tests cover the existing landing/dashboard functionality plus Python authority, resets, manual prices, failures, stale-response protection, and desktop/mobile layout. Browser concurrency is bounded to two workers.
 
 Responsive checks cover widths of 320, 390, 768, 1024, and 1440 pixels. Financial tables scroll within their containers. Desktop and mobile dashboard screenshots were visually reviewed, and sampled rendered text was checked for WCAG AA contrast. The shared text colors remain headings `#111111`, body `#333333`, labels `#444444`, and captions `#525252`.
 
@@ -229,11 +231,11 @@ Raw SEC facts are cached by CIK, while normalized persistence is tracked per tic
 
 ## Provider valuation compatibility
 
-Reported facts and forward assumptions are separate. Provider scenarios begin without invented growth rates, discount rates, forecast horizons, or target multiples; enter the needed assumptions explicitly. Required annual share counts are taken only from reported diluted weighted shares. Missing classifications and incompatible net-income/EPS bases leave affected methods unavailable.
+Reported facts and forward assumptions are separate. Provider mode retrieves Python defaults with historical estimates, clearly labeled configurable benchmarks, and explicit unavailable inputs. Unsourced target multiples require user input. Annual diluted weighted shares retain their reporting period and are not labeled current market shares. Missing classifications, common-equity scope, and incompatible earnings bases leave affected methods unavailable; explicit user forecasts and confirmations are identified as assumptions.
 
 Multiple listed share classes produce an explicit unverified-share-basis warning. Issuer-wide earnings and shares cannot be assumed to match a specific class's quote, so per-share valuations remain unavailable until that basis is verified. Ambiguous annual periods and equity including noncontrolling interests are also excluded from affected valuation inputs. Parent-specific net income and equity are not replaced by consolidated NCI-inclusive concepts.
 
-SEC operating cash flow minus capex is displayed as reported-source free cash flow. It is not treated as FCFF or FCFE, and the fictional 21% demonstration tax rate is never applied to provider data. Verified other claims, AFFO, stable dividend characteristics, and other unavailable valuation inputs are not assumed. Consequently, several models remain unavailable in Phase 3 even with financial statements present. Forward P/E and book-equity methods can calculate when their required compatible facts and explicit assumptions exist. Existing JavaScript formulas remain unchanged.
+SEC operating cash flow minus capex is displayed as sourced free cash flow and is never automatically treated as FCFF or FCFE. Python models require complete components, explicit defensible forecasts, and validated enterprise/common-equity bridges. Missing claims, net borrowing, AFFO and dividend stability are not assumed. Manual comparison prices do not overwrite provider quotes or stored snapshots. Existing JavaScript formulas remain unchanged and are used only in Demo mode.
 
 Financial and market observation dates are displayed separately; a current quote and the latest annual statements are not presented as the same reporting date. A provider price is never labeled live merely because it was recently fetched. Provider mode research insights show data-availability notices instead of fictional commentary.
 
@@ -287,9 +289,9 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 - The latest usable annual period drives valuations. Quarterly data is a historical statement view; no rolling TTM valuation or inferred annualization is introduced.
 - Filings refresh on demand after cache expiry. There is no global distributed rate limiter or production ingestion scheduler.
 - Market data requires configured licensed access. Quotes may be delayed or last-close values, and market share counts need not match diluted weighted financial shares. Differences and timestamps are shown.
-- There is no currency conversion, complete FCFF/FCFE forecast, inferred dividend stability, or sourced AFFO calculation. Methods that need these inputs remain unavailable.
+- There is no currency conversion, inferred dividend stability, or sourced AFFO calculation. Python supports complete FCFF/FCFE models, but incomplete provider components still require explicit analyst forecasts or remain unavailable.
 - Mobile checks use Chromium emulation; physical devices and Safari were not verified. Information-policy pages remain placeholders.
 
 ## Phase boundary
 
-Phase 3 implements backend infrastructure, sourced financial data ingestion, persistence, and explicit frontend provider integration. It does not implement OpenAI, AI financial reports, a production Python valuation engine, authentication, watchlists, payments, subscriptions, or production deployment. Stop here; Phase 4 requires the project owner's approval.
+Phase 4 implements a Python multi-model valuation engine and authoritative Provider-mode integration on the existing Phase 3 data infrastructure. It does not implement OpenAI, AI research reports, authentication, watchlists, payments, subscriptions, portfolios or Phase 5 features. Changes are not automatically committed or pushed. Phase 5 requires the project owner's approval.

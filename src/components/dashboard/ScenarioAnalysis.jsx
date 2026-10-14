@@ -29,7 +29,7 @@ export default function ScenarioAnalysis({ valuation }) {
               onClick={() => valuation.setActiveScenario(name)}
             >
               <span>{name[0].toUpperCase() + name.slice(1)} Case</span>
-              <strong>{dollars(result.fairValue)}</strong>
+              <strong>{dollars(result.fairValue, valuation.currency || "USD")}</strong>
               <span className={direction(result.upside)}>
                 {percent(result.upside, true)} potential return
               </span>

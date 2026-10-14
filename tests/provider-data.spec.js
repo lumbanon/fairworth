@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { providerFixture } from "./helpers/providerFixture.js";
+import { providerValuationFixture } from "./helpers/providerValuationFixture.js";
 
 async function mockApi(
   page,
@@ -19,6 +20,15 @@ async function mockApi(
         },
       });
     const url = new URL(route.request().url());
+    if (url.pathname.includes("/valuation/")) {
+      const ticker = url.pathname.split("/")[3];
+      const request = route.request().method() === "POST" ? route.request().postDataJSON() : {};
+      return route.fulfill({ json: providerValuationFixture(ticker, {
+        request,
+        price: fixture.profile.market?.price ?? null,
+        missingShares: fixture.annual.periods[0].metrics.weighted_average_diluted_shares == null,
+      }) });
+    }
     let json = fixture.profile;
     if (url.pathname.endsWith("/search"))
       json = {
@@ -91,7 +101,7 @@ test("provider mode shows loading, reported financials, source timestamps and qu
   await expect(
     page.getByRole("row", { name: /^Revenue \$1.4B$/ }),
   ).toBeVisible();
-  await page.locator(".research-quality-notice summary").click();
+  await page.locator(".research-quality-notice").filter({ has: page.getByRole("heading", { name: "Data quality & sources", exact: true }) }).locator("summary").click();
   await expect(
     page.getByText(/configured market price is stale/),
   ).toBeVisible();
@@ -235,7 +245,7 @@ test("missing provider price preserves fair value but excludes market comparison
     page.locator(".research-model-chart .recharts-reference-line"),
   ).toHaveCount(1);
   await expect(
-    page.getByText("Market provider price unavailable"),
+    page.getByText("Market provider price unavailable", { exact: true }),
   ).toBeVisible();
 });
 
@@ -251,16 +261,14 @@ test("missing shares and incompatible earnings disable formulas without fabricat
     page.getByRole("heading", { name: "API Fixture Corporation (MSFT)" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("checkbox", { name: "Enable Forward P/E", exact: true }),
-  ).toBeDisabled();
+    page.getByRole("row").filter({ hasText: "Forward P/E" }).first(),
+  ).toContainText("Insufficient data");
   await expect(page.getByTestId("weighted-fair-value")).toHaveText("—");
   await expect(
     page.getByRole("button", { name: "Quarterly", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByText(
-      /No valuation method has compatible required financial inputs/,
-    ),
+    page.getByText(/same-period net income, diluted weighted share count/).first(),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Details for Forward P/E", exact: true })
@@ -314,10 +322,10 @@ test("stale provider search suggestions disclose their directory status and sour
   await expect(
     page.getByRole("listbox", { name: "Provider stock suggestions" }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator(".search-help[role=status]")).toContainText(
     "Company directory status: stale.",
   );
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator(".search-help[role=status]")).toContainText(
     "Cached directory results",
   );
 });
@@ -332,7 +340,7 @@ test("expanded SEC concept notices fit the viewport without horizontal page over
   await mockApi(page, fixture);
   await chooseProvider(page);
   await expect(page.getByRole("heading", { name: "API Fixture Corporation (MSFT)" })).toBeVisible();
-  await page.locator(".research-quality-notice summary").click();
+  await page.locator(".research-quality-notice").filter({ has: page.getByRole("heading", { name: "Data quality & sources", exact: true }) }).locator("summary").click();
   await expect(page.getByText(/cannot substitute for parent equity/)).toBeVisible();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize().width + 1);
 });

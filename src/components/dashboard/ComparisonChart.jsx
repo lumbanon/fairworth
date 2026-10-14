@@ -17,11 +17,11 @@ import {
 } from "@/lib/valuationChartColors";
 import { dollars, percent } from "@/lib/financialFormatting";
 
-function ComparisonBarLabel({ viewBox, value, index, models, compact }) {
+function ComparisonBarLabel({ viewBox, value, index, models, compact, currency }) {
   const { x, y, width, height } = viewBox ?? {};
   if (![x, y, width, height].every(Number.isFinite)) return null;
   const model = models[index];
-  const formatted = dollars(value);
+  const formatted = dollars(value, currency);
   return (
     <g pointerEvents="none">
       {compact && (
@@ -60,14 +60,14 @@ function ComparisonBarLabel({ viewBox, value, index, models, compact }) {
   );
 }
 
-function ComparisonTooltip({ active, payload }) {
+function ComparisonTooltip({ active, payload, currency }) {
   const model = payload?.[0]?.payload;
   if (!active || !model) return null;
   return (
     <div className="research-comparison-tooltip">
       <strong>{model.fullName}</strong>
       <p>
-        Estimated fair value <span>{dollars(model.value)}</span>
+        Estimated fair value <span>{dollars(model.value, currency)}</span>
       </p>
       <p>
         Absolute difference <span>{percent(model.distance)}</span>
@@ -86,6 +86,7 @@ export default function ComparisonChart({
   enabled,
   fairValue,
   marketPrice,
+  currency = "USD",
 }) {
   const [chartWidth, setChartWidth] = useState(0);
   const compact = chartWidth < 520;
@@ -102,7 +103,7 @@ export default function ComparisonChart({
   const chartHeight = Math.max(200, data.length * (compact ? 70 : 52) + 48);
   const valuePadding = Math.max(
     92,
-    ...data.map((model) => dollars(model.value).length * 8 + 24),
+    ...data.map((model) => dollars(model.value, currency).length * 8 + 24),
   );
   if (!data.length)
     return (
@@ -136,7 +137,7 @@ export default function ComparisonChart({
         <XAxis
           type="number"
           domain={[
-            0,
+            (dataMin) => Math.min(0, dataMin, fairValue ?? 0) * 1.12,
             (dataMax) =>
               Math.max(
                 dataMax,
@@ -144,7 +145,7 @@ export default function ComparisonChart({
                 fairValue ?? 0,
               ) * 1.12,
           ]}
-          tickFormatter={(value) => `$${Math.round(value)}`}
+          tickFormatter={(value) => dollars(Math.round(value), currency).replace(/\.00$/, "")}
           tickCount={compact ? 3 : 6}
           minTickGap={20}
           tick={{
@@ -170,7 +171,7 @@ export default function ComparisonChart({
           axisLine={false}
           tickLine={false}
         />
-        <Tooltip content={<ComparisonTooltip />} cursor={{ fill: "#fafafa" }} />
+        <Tooltip content={<ComparisonTooltip currency={currency} />} cursor={{ fill: "#fafafa" }} />
         {Number.isFinite(marketPrice) && marketPrice > 0 && (
           <ReferenceLine
             x={marketPrice}
@@ -193,7 +194,7 @@ export default function ComparisonChart({
           ))}
           <LabelList
             dataKey="value"
-            content={<ComparisonBarLabel models={data} compact={compact} />}
+            content={<ComparisonBarLabel models={data} compact={compact} currency={currency} />}
           />
         </Bar>
       </BarChart>

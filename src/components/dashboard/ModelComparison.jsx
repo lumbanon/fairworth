@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { modelDefinitions } from "@/data/modelDefinitions";
 import { dollars, percent, direction } from "@/lib/financialFormatting";
 import { marketDistanceScale } from "@/lib/valuationChartColors";
+import ProviderCalculationDetails from "./ProviderCalculationDetails";
 
 const ComparisonChart = lazy(() => import("./ComparisonChart"));
 const statuses = {
@@ -58,7 +59,7 @@ export default function ModelComparison({
             {valuation.results.map((result) => {
               const isEnabled = valuation.enabled[result.id];
               const upside =
-                result.status === "valid" &&
+                valuation.providerMode ? result.upside : result.status === "valid" &&
                 Number.isFinite(company.price) &&
                 company.price > 0
                   ? (result.fairValue / company.price - 1) * 100
@@ -84,7 +85,7 @@ export default function ModelComparison({
                       <span>{result.name}</span>
                     </label>
                   </th>
-                  <td>{dollars(result.fairValue)}</td>
+                  <td>{dollars(result.fairValue, valuation.providerMode ? company.currency : "USD")}</td>
                   <td className={direction(upside)}>{percent(upside, true)}</td>
                   <td>
                     <Input
@@ -93,7 +94,7 @@ export default function ModelComparison({
                       max="1000"
                       step="1"
                       disabled={!result.applicable || !isEnabled}
-                      value={valuation.weights[result.id]}
+                      value={valuation.weights[result.id] ?? 0}
                       aria-label={`${result.name} raw weight`}
                       className="research-weight-input"
                       onChange={(event) =>
@@ -142,8 +143,10 @@ export default function ModelComparison({
       </div>
       {details &&
         (() => {
-          const model = modelDefinitions.find((item) => item.id === details);
           const result = valuation.results.find((item) => item.id === details);
+          const model = valuation.providerMode
+            ? result.definition
+            : modelDefinitions.find((item) => item.id === details);
           return (
             <div id={`details-${details}`} className="model-details">
               <h3>{model.name}</h3>
@@ -156,14 +159,15 @@ export default function ModelComparison({
               </p>
               <p>
                 <strong>Required data:</strong>{" "}
-                {model.requiredInputs.join(", ")}. Default raw weight:{" "}
-                {model.defaultWeight}.
+                {model.requiredInputs.join(", ")}. Suggested raw weight:{" "}
+                {valuation.providerMode ? valuation.suggestedWeights[result.id] ?? 0 : model.defaultWeight}.
               </p>
               {result.warnings.map((warning) => (
                 <p key={warning} className="negative">
                   {warning}
                 </p>
               ))}
+              {valuation.providerMode && <ProviderCalculationDetails details={result.details} currency={company.currency} />}
               {result.applicable && (
                 <Button
                   size="sm"
@@ -189,18 +193,19 @@ export default function ModelComparison({
             results={valuation.results}
             enabled={valuation.enabled}
             fairValue={valuation.summary.fairValue}
-            marketPrice={company.price}
+            marketPrice={valuation.providerMode ? valuation.comparisonPrice : company.price}
+            currency={valuation.providerMode ? company.currency : "USD"}
           />
         </Suspense>
       </div>
       <p className="research-chart-key">
         <span>
           <i className="chart-key-line" aria-hidden="true" />
-          Market price: {dollars(company.price)}
+          {valuation.providerMode && valuation.market?.source_type === "user" ? "User-provided market price" : "Market price"}: {dollars(valuation.providerMode ? valuation.comparisonPrice : company.price, valuation.providerMode ? company.currency : "USD")}
         </span>
         <span>
           <i className="chart-key-line chart-key-blue" aria-hidden="true" />
-          Weighted estimate: {dollars(valuation.summary.fairValue)}
+          Weighted estimate: {dollars(valuation.summary.fairValue, valuation.providerMode ? company.currency : "USD")}
         </span>
       </p>
       <div
@@ -208,7 +213,7 @@ export default function ModelComparison({
         role="group"
         aria-label="Bar color scale"
       >
-        <p>Absolute difference from market price</p>
+        <p>{valuation.providerMode && valuation.comparisonPrice == null ? "Comparison price unavailable · neutral bars" : "Absolute difference from market price"}</p>
         <div>
           {marketDistanceScale.map((band) => (
             <span key={band.label}>

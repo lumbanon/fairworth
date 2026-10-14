@@ -47,5 +47,5 @@ class ErrorResponse(ApiModel):
 class HealthResponse(ApiModel):
     status: Literal["ok", "unavailable"]
     database: Literal["ready", "unavailable"]
-    phase: int = 3
+    phase: int = 4
     timestamp: datetime

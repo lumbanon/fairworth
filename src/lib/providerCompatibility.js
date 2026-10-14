@@ -1,5 +1,5 @@
-// Phase 2 formulas use USD millions and millions of shares. API facts retain
-// absolute reported units. This adapter is the only place those units change.
+// Statement presentation uses millions; API facts retain absolute units.
+// Provider valuations use the Python response adapter, never these display units.
 const metricNames = {
   revenue: ["revenue"],
   costOfRevenue: ["cost_of_revenue"],
@@ -161,7 +161,7 @@ export function adaptProviderStock({
     /[.-][A-Z]$/.test(sourceCompany.ticker);
   if (sourceCompany.has_multiple_share_classes === true || shareClassUnknown) {
     const message =
-      "Issuer-wide SEC earnings and share counts have not been verified for this ticker’s share class. All per-share valuation estimates are unavailable; no share-class conversion is assumed.";
+      "Issuer-wide SEC earnings and share counts have not been verified for this ticker’s share class. Python checks each model’s required share basis; no share-class conversion is assumed.";
     modelCompatibility.all = message;
     warnings.push({
       field: "shares",
@@ -200,7 +200,7 @@ export function adaptProviderStock({
     )
   ) {
     const message =
-      "Reported book equity includes noncontrolling interests. A common-share equity basis is unavailable for the Phase 2 book-value formulas.";
+      "Reported book equity includes noncontrolling interests. A compatible common-share equity basis needs verification for book-value methods.";
     for (const id of ["pb", "residual", "graham"])
       modelCompatibility[id] = message;
     warnings.push({
@@ -218,7 +218,7 @@ export function adaptProviderStock({
     0.02
   ) {
     const message =
-      "Reported diluted EPS does not reconcile with net income divided by diluted weighted shares. The Phase 2 earnings formulas are unavailable for this reporting basis.";
+      "Reported diluted EPS does not reconcile with net income divided by diluted weighted shares. Python validates the model-specific earnings basis before using historical per-share estimates.";
     for (const id of ["pe", "peg", "graham"]) modelCompatibility[id] = message;
     warnings.push({
       field: "diluted_eps",
@@ -226,30 +226,25 @@ export function adaptProviderStock({
       message,
     });
   }
+  const incompatibleFinancialUnits = (annual.periods ?? []).some((period) =>
+    Object.entries(period.provenance ?? {}).some(([field, sources]) => {
+      const expectedUnit = field.includes("shares") ? "shares" : field.includes("eps") ? `${currency}/shares` : currency;
+      return Array.isArray(sources) && sources.some((source) => source.unit != null && source.unit !== expectedUnit);
+    }),
+  );
   if (
-    currency !== "USD" ||
-    (market?.price != null && market.currency !== "USD")
+    !/^[A-Z]{3}$/.test(currency ?? "") ||
+    incompatibleFinancialUnits ||
+    (market?.price != null && market.currency !== currency)
   ) {
     modelCompatibility.all =
-      "The current valuation engine requires compatible USD financial statements and USD market prices. No currency conversion has been invented.";
+      "Financial and market currencies are unavailable or incompatible. Python validates intrinsic-value units and comparison-price currency separately; no currency conversion is invented.";
     warnings.push({
       field: "currency",
       code: "incompatible_currency",
       message: modelCompatibility.all,
     });
   }
-  warnings.push({
-    field: "assumptions",
-    code: "user_assumptions_required",
-    message:
-      "Forward growth rates, discount rates, forecast periods, and target multiples are user assumptions. Enter them explicitly before calculating an estimate; no demonstration assumptions have been copied.",
-  });
-  warnings.push({
-    field: "cash_flow",
-    code: "cash_flow_basis_unavailable",
-    message:
-      "Reported free cash flow is shown in the statements. It is not substituted for FCFE or FCFF; enterprise-value models also require verified other claims.",
-  });
   return {
     ticker: sourceCompany.ticker,
     companyName: sourceCompany.name,

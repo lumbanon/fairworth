@@ -6,7 +6,7 @@ import {
 } from "@/valuation/modelSelector";
 import { percent } from "@/lib/financialFormatting";
 
-export default function ReverseDCF({ company, valuation }) {
+function DemoReverseDCF({ company, valuation }) {
   const applicable = valuation.scenarios.base.results.find(
     (result) => result.id === "fcff",
   ).applicable;
@@ -76,4 +76,41 @@ export default function ReverseDCF({ company, valuation }) {
       </p>
     </section>
   );
+}
+
+function ProviderReverseDCF({ valuation }) {
+  const diagnostic = valuation.reverseDCF;
+  return (
+    <section id="reverse-dcf" className="research-section" aria-labelledby="reverse-heading">
+      <div className="research-section-heading">
+        <div>
+          <h2 id="reverse-heading">What does the price imply?</h2>
+          <p>Reverse DCF · Python diagnostic, excluded from weighted intrinsic value.</p>
+        </div>
+        <span className="research-caption">Base-case framework</span>
+      </div>
+      {diagnostic?.status === "valid" ? (
+        <div className="reverse-dcf-results">
+          <div>
+            <span>Market-implied {diagnostic.solvedVariable || "growth"}</span>
+            <strong data-testid="implied-growth">{percent(diagnostic.impliedGrowth * 100)}</strong>
+          </div>
+          <p>{diagnostic.explanation}</p>
+        </div>
+      ) : (
+        <p className="research-unavailable">{diagnostic?.explanation || "A compatible market price and valid base-case FCFF assumptions are required."}</p>
+      )}
+      {diagnostic?.warnings?.map((warning, index) => <p className="research-caption" key={index}>{warning}</p>)}
+      {diagnostic?.bounds && <p className="research-caption">Solver bounds: {percent(diagnostic.bounds[0] * 100)} to {percent(diagnostic.bounds[1] * 100)}. Convergence: {diagnostic.convergence || diagnostic.status}.</p>}
+      <details className="provider-reverse-details"><summary>Assumptions held constant</summary><p className="research-caption">Base discount rate, terminal assumptions, share count, and enterprise-to-equity bridge. Implied growth depends on this framework and is not a forecast.</p>
+        {Object.entries(diagnostic?.heldConstants ?? {}).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{typeof value === "object" && value !== null ? JSON.stringify(value) : String(value)}</p>)}
+      </details>
+    </section>
+  );
+}
+
+export default function ReverseDCF(props) {
+  return props.valuation.providerMode
+    ? <ProviderReverseDCF {...props} />
+    : <DemoReverseDCF {...props} />;
 }
