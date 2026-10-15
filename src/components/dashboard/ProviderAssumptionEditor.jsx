@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { number } from "@/lib/financialFormatting";
 import { providerEditableAssumptions } from "@/lib/providerValuation";
+import ProviderAssumptionSource from "./ProviderAssumptionSource";
 
 const fields = {
   fcff: ["revenue_growth", "operating_margin", "cash_flow_growth", "wacc", "terminal_growth", "forecast_years"],
@@ -35,6 +36,7 @@ const definitions = {
   other_nonoperating_assets: ["Other nonoperating assets", "currency"], shares: ["Valuation shares", "shares"],
   projected_fcff: ["Annual projected FCFF", "currency"], projected_fcfe: ["Annual projected FCFE", "currency"],
   projected_dividends: ["Annual projected dividends per share", "currency/share"],
+  projected_revenue: ["Annual projected revenue", "currency"],
   affo: ["Reliable AFFO", "currency"], forecast_affo: ["Forecast AFFO", "currency"], affo_basis_confirmed: ["AFFO financial basis verified", "boolean"],
   is_bank: ["Financial institution classification", "boolean"], is_reit: ["REIT classification", "boolean"],
   growth_fade_to_terminal: ["Forecast growth fades toward terminal growth", "boolean"],
@@ -46,27 +48,29 @@ const definitions = {
   stable_dividend_confirmed: ["Sustainable dividend policy confirmed", "boolean"],
   share_basis_confirmed: ["Ticker share basis verified", "boolean"],
 };
-const advancedFields = ["shares", "share_basis_confirmed", "fcff", "fcfe", "projected_fcff", "projected_fcfe", "net_borrowing", "change_nwc", "tax_rate", "capex_ratio", "da_ratio", "nwc_ratio", "preferred_equity", "minority_interest", "other_nonoperating_assets", "terminal_roe", "book_value_meaningful", "common_equity_basis_confirmed", "clean_surplus_confirmed", "stable_dividend_confirmed"];
+const advancedFields = ["shares", "share_basis_confirmed", "fcff", "fcfe", "projected_fcff", "projected_fcfe", "projected_revenue", "net_borrowing", "change_nwc", "tax_rate", "capex_ratio", "da_ratio", "nwc_ratio", "preferred_equity", "minority_interest", "other_nonoperating_assets", "terminal_roe", "book_value_meaningful", "common_equity_basis_confirmed", "clean_surplus_confirmed", "stable_dividend_confirmed"];
 
 function AssumptionField({ field, valuation, currency }) {
-  const current = valuation.assumptions[valuation.activeScenario][field];
   const metadata = valuation.assumptionMetadata[field] ?? valuation.defaults[valuation.activeScenario]?.metadata?.[field] ?? {};
+  const overridden = valuation.overriddenKeys.includes(field);
+  const resettable = (valuation.resettableKeys ?? valuation.overriddenKeys).includes(field);
+  const current = metadata.computed_only && !overridden && Number.isFinite(metadata.value)
+    ? metadata.value : valuation.assumptions[valuation.activeScenario][field];
   const [label, fallbackUnit] = definitions[field] ?? [field.replaceAll("_", " "), metadata.unit || "number"];
   const unit = metadata.unit || fallbackUnit;
   const percentage = unit === "fraction";
   const boolean = unit === "boolean" || fallbackUnit === "boolean";
-  const annualSeries = ["projected_fcff", "projected_fcfe", "projected_dividends"].includes(field);
+  const annualSeries = ["projected_fcff", "projected_fcfe", "projected_dividends", "projected_revenue"].includes(field);
   const multiplier = percentage ? 100 : 1;
   const displayUnit = percentage ? "%" : unit === "multiple" ? "×" : fallbackUnit === "currency" ? currency : fallbackUnit === "currency/share" ? `${currency}/share` : unit;
   const display = Number.isFinite(current) ? Number((current * multiplier).toFixed(6)) : "";
   const suggested = valuation.defaults[valuation.activeScenario]?.values?.[field] ?? valuation.defaults[valuation.activeScenario]?.metadata?.[field]?.value;
-  const overridden = valuation.overriddenKeys.includes(field);
   return (
     <div className="assumption-field">
       <label htmlFor={`provider-assumption-${field}`}>{label}<span aria-hidden="true">{boolean ? "" : displayUnit}</span></label>
       {annualSeries ? (
         <Input id={`provider-assumption-${field}`} type="text" value={Array.isArray(current) ? current.join(", ") : typeof current === "string" ? current : ""}
-          placeholder="Year 1, year 2, …" aria-describedby={`provider-assumption-help-${field}`} className="research-number-input"
+          placeholder="Year 1, year 2, …" aria-describedby={`provider-assumption-help-${field}`} className="research-number-input" disabled={metadata.editable === false}
           onChange={(event) => {
             const raw = event.target.value;
             const values = raw.split(",").map((part) => part.trim());
@@ -74,7 +78,7 @@ function AssumptionField({ field, valuation, currency }) {
             valuation.editAssumption(field, values.every((part) => part !== "") && parsed.every(Number.isFinite) ? parsed : raw);
           }} />
       ) : boolean ? (
-        <select id={`provider-assumption-${field}`} value={typeof current === "boolean" ? String(current) : ""}
+        <select id={`provider-assumption-${field}`} value={typeof current === "boolean" ? String(current) : ""} disabled={metadata.editable === false}
           onChange={(event) => event.target.value === "" ? valuation.resetAssumption(field) : valuation.editAssumption(field, event.target.value === "true")}
           aria-describedby={`provider-assumption-help-${field}`}>
           <option value="">Not confirmed</option><option value="true">Yes · user confirmation</option><option value="false">No · user assertion</option>
@@ -86,17 +90,12 @@ function AssumptionField({ field, valuation, currency }) {
           disabled={metadata.editable === false} className="research-number-input"
           aria-invalid={current === ""} aria-describedby={`provider-assumption-help-${field}`} />
       )}
-      <div className="assumption-default">Suggested: {typeof suggested === "boolean" ? String(suggested) : Number.isFinite(suggested) ? `${number(suggested * multiplier)} ${displayUnit}` : "Requires a supported input"}</div>
+      <div className="assumption-default">Suggested: {typeof suggested === "boolean" ? String(suggested) : Array.isArray(suggested) ? `${suggested.map(number).join(", ")} ${displayUnit}` : Number.isFinite(suggested) ? `${number(suggested * multiplier)} ${displayUnit}` : "Requires a supported input"}</div>
       {metadata.computed_only && Number.isFinite(metadata.value) && <p className="research-caption">Computed from current assumptions: {number(metadata.value * multiplier)} {displayUnit}. Enter a value only to override that forecast.</p>}
-      <p id={`provider-assumption-help-${field}`} className="assumption-explanation">
-        {overridden ? "User override · " : ""}{metadata.source_description || "Explicit user assumption; not a reported financial fact."}
-        {metadata.source_type && ` (${metadata.source_type.replaceAll("_", " ")})`}
-        {metadata.observation_period && ` · ${typeof metadata.observation_period === "string" ? metadata.observation_period : JSON.stringify(metadata.observation_period)}`}
-        {metadata.derivation_method && ` · ${metadata.derivation_method}`}
-        {annualSeries && (field === "projected_dividends" ? " · Comma-separated annual dividends per share, one for each explicit forecast year." : " · Comma-separated annual cash flows, one for each explicit forecast year. Negative early cash flows are permitted; a sustainable terminal basis is still required.")}
-      </p>
-      {metadata.warnings?.map((warning, index) => <p className="research-caption" key={index}>{typeof warning === "string" ? warning : warning.message}</p>)}
-      {overridden && <button className="research-text-button" onClick={() => valuation.resetAssumption(field)}>Reset {label}</button>}
+      <ProviderAssumptionSource metadata={metadata} overridden={overridden} id={`provider-assumption-help-${field}`} />
+      {annualSeries && <p className="research-caption">{field === "projected_revenue" ? "Comma-separated positive annual revenue amounts in absolute reporting-currency units, one for each forecast year. Cash-flow calculations still require complete reinvestment, financing and financial-basis inputs." : field === "projected_dividends" ? "Comma-separated annual dividends per share, one for each explicit forecast year." : "Comma-separated annual cash flows, one for each explicit forecast year. Negative early cash flows are permitted; a sustainable terminal basis is still required."}</p>}
+      {overridden && !resettable && <p className="research-caption">Inherited from the primary base assumption. Select the Base scenario to reset that input, or enter an independent value for this case.</p>}
+      {resettable && <button className="research-text-button" onClick={() => valuation.resetAssumption(field)}>Reset {label}</button>}
     </div>
   );
 }
@@ -117,10 +116,25 @@ export default function ProviderAssumptionEditor({ selectedModel, setSelectedMod
         </select>
       </div>
       {selected?.warnings?.map((warning, index) => <p className="research-caption" key={index}>{warning}</p>)}
+      {selected?.eligibility?.missing_inputs?.length > 0 && <p className="research-caption"><strong>Required next inputs: </strong>{selected.eligibility.missing_inputs.map((field) => definitions[field]?.[0] ?? field.replaceAll("_", " ")).join(", ")}. Enter a supported estimate below or review the financial basis before confirming its scope.</p>}
       <div className="assumption-grid">{primary.map((field) => <AssumptionField key={field} field={field} valuation={valuation} currency={currency} />)}</div>
       <details className="provider-advanced-assumptions"><summary>Advanced assumptions and missing-input confirmations</summary>
         <p className="research-caption">Financial amounts use absolute {currency} and shares use actual counts. A zero claim or financing input is an explicit user assertion. Confirm scope only after reviewing source disclosures.</p>
         <div className="assumption-grid">{advanced.map((field) => <AssumptionField key={field} field={field} valuation={valuation} currency={currency} />)}</div>
+      </details>
+      <details className="provider-advanced-assumptions provider-assumption-inventory"><summary>All assumption sources and methods</summary>
+        <p className="research-caption">Facts, estimates, policies and user inputs keep their original basis. Read-only observations inform calculations without becoming editable financial facts.</p>
+        <div className="assumption-grid">{Object.entries(valuation.assumptionMetadata).map(([field, metadata]) => {
+          const unit = metadata.unit;
+          const value = metadata.value;
+          const suggested = valuation.defaults[valuation.activeScenario]?.metadata?.[field]?.value;
+          const display = (input) => typeof input === "boolean" ? String(input) : Array.isArray(input) ? input.map(number).join(", ") : Number.isFinite(input) ? `${number(unit === "fraction" ? input * 100 : input)} ${unit === "fraction" ? "%" : unit || ""}` : "Unavailable";
+          return <div className="provider-assumption-record" key={field}><h3>{definitions[field]?.[0] ?? field.replaceAll("_", " ")}</h3>
+            <p className="research-caption">Current value: {display(value)} · Suggested: {display(suggested)}</p>
+            <ProviderAssumptionSource metadata={metadata} overridden={valuation.overriddenKeys.includes(field)} />
+            <p className="research-caption">{metadata.editable === false || !providerEditableAssumptions.has(field) ? "Read-only sourced input" : "Editable modeling assumption"}</p>
+          </div>;
+        })}</div>
       </details>
     </section>
   );

@@ -1,8 +1,8 @@
-# Fairworth — Phase 4
+# Fairworth — Phase 4.5
 
 A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
 
-The [Phase 4 implementation and verification report](docs/phase4-valuation-engine.md) documents the architecture, eleven valuation models, reverse DCF, mathematical tests, API contracts, assumption sources, real four-company verification, and remaining data limitations. Target multiples and unsupported financial facts are not invented, so untouched defaults can remain unavailable until the required analyst inputs are supplied.
+The [Phase 4.5 implementation and verification report](docs/phase45-automatic-valuation.md) documents automatic historical valuation benchmarks, split-compatible forecasts, dated discount-rate inputs, source quality, classifications, four-company results, tests and remaining limitations. AAPL and MSFT now support automatic single-model, policy-based illustrative P/E estimates with the verified source snapshots. NVDA and ORCL retain explicit evidence blockers. The [initial diagnostic matrix](docs/phase45-diagnostic-audit.md) explains all 44 company/model combinations; the [Phase 4 report](docs/phase4-valuation-engine.md) preserves the original model architecture and mathematical verification.
 
 ## Run locally
 
@@ -233,7 +233,9 @@ Raw SEC facts are cached by CIK, while normalized persistence is tracked per tic
 
 Reported facts and forward assumptions are separate. Provider mode retrieves Python defaults with historical estimates, clearly labeled configurable benchmarks, and explicit unavailable inputs. Unsourced target multiples require user input. Annual diluted weighted shares retain their reporting period and are not labeled current market shares. Missing classifications, common-equity scope, and incompatible earnings bases leave affected methods unavailable; explicit user forecasts and confirmations are identified as assumptions.
 
-Multiple listed share classes produce an explicit unverified-share-basis warning. Issuer-wide earnings and shares cannot be assumed to match a specific class's quote, so per-share valuations remain unavailable until that basis is verified. Ambiguous annual periods and equity including noncontrolling interests are also excluded from affected valuation inputs. Parent-specific net income and equity are not replaced by consolidated NCI-inclusive concepts.
+Automatic P/E benchmarks use original SEC filing vintages, prices strictly after publication, verified split compatibility, and at least three independent fiscal-year samples. Their historical forward EPS proxies and growth limits are disclosed. They never use today's quote to choose a fair-value target. Default values are classified as evidence-supported, policy-based illustrative, user-defined, or unavailable, with weighted composition and single-model warnings. Dated SEC common shares remain separate from annual weighted shares; verified zero claims remain separate from unknown aggregate scope.
+
+Multiple listed share classes produce an explicit unverified-share-basis warning. Issuer-wide earnings and shares cannot be assumed to match a specific class's quote. Historical per-share valuations require compatible class evidence or explicit user confirmation; an explicit quoted-class forward forecast remains a labeled user assumption. Ambiguous annual periods and equity including noncontrolling interests are also excluded from affected valuation inputs. Parent-specific net income and equity are not replaced by consolidated NCI-inclusive concepts.
 
 SEC operating cash flow minus capex is displayed as sourced free cash flow and is never automatically treated as FCFF or FCFE. Python models require complete components, explicit defensible forecasts, and validated enterprise/common-equity bridges. Missing claims, net borrowing, AFFO and dividend stability are not assumed. Manual comparison prices do not overwrite provider quotes or stored snapshots. Existing JavaScript formulas remain unchanged and are used only in Demo mode.
 
@@ -294,4 +296,4 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 
 ## Phase boundary
 
-Phase 4 implements a Python multi-model valuation engine and authoritative Provider-mode integration on the existing Phase 3 data infrastructure. It does not implement OpenAI, AI research reports, authentication, watchlists, payments, subscriptions, portfolios or Phase 5 features. Changes are not automatically committed or pushed. Phase 5 requires the project owner's approval.
+Phase 4.5 adds defensible automatic assumptions, source transparency and classifications to the existing Python multi-model engine and Phase 3 data infrastructure. It does not implement OpenAI, AI research reports, authentication, watchlists, payments, subscriptions, portfolios or Phase 5 features. Changes are not automatically committed or pushed. Phase 5 requires the project owner's approval.

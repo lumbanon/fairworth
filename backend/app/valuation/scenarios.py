@@ -36,7 +36,7 @@ def scenario_defaults(base):
         for key, value in changes.items():
             values[key] = value
             old = metadata.get(key, {})
-            metadata[key] = {**old, "value": value, "source_type": "scenario_assumption", "source_description": f"{name.title()} operating assumption based on the primary default; editable and illustrative.", "derivation_method": "Shift the underlying assumption, then rerun the complete valuation model.", "overridden": False}
+            metadata[key] = {**old, "value": value, "source_type": "scenario_assumption", "evidence_type": "user" if old.get("evidence_type") == "user" else "policy", "source_description": f"{name.title()} operating assumption based on the primary default; editable and illustrative.", "derivation_method": "Shift the underlying assumption, then rerun the complete valuation model.", "derivation_formula": "Shift the underlying assumption, then rerun the complete valuation model.", "policy_dependencies": ["scenario_adjustment"], "overridden": False}
     return result
 
 

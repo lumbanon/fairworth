@@ -13,6 +13,7 @@ from typing import Any
 
 from app.valuation.history import analyze_history
 from app.valuation.inputs import day, number
+from app.valuation.provenance import complete_assumptions
 
 METHODOLOGY_SOURCES = {
     "stable_growth": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/valquestions/stablegrowthrate.htm",
@@ -32,6 +33,8 @@ class AssumptionPolicy:
     minimum_forecast_growth: float = -0.15
     maximum_forecast_growth: float = 0.20
     maximum_annual_growth_dispersion: float = 1.0
+    historical_multiple_years: int = 5
+    historical_multiple_minimum_years: int = 3
     allow_benchmark_cost_of_equity: bool = True
 
 
@@ -70,7 +73,9 @@ def _policy(policy) -> AssumptionPolicy:
     if (not 1 <= candidate.forecast_years <= 20 or not -0.05 <= candidate.terminal_growth <= 0.05
             or not 0 < candidate.cost_of_equity <= 0.5
             or not -0.99 < candidate.minimum_forecast_growth <= candidate.maximum_forecast_growth <= 1
-            or not 0 <= candidate.maximum_annual_growth_dispersion <= 5):
+            or not 0 <= candidate.maximum_annual_growth_dispersion <= 5
+            or not 3 <= candidate.historical_multiple_years <= 10
+            or not 3 <= candidate.historical_multiple_minimum_years <= 10):
         raise ValueError("Illustrative policy values are outside supported modeling bounds.")
     return candidate
 
@@ -85,7 +90,7 @@ def generate_assumptions(inputs: dict, overrides: dict | None = None, policy=Non
         metadata[key] = _metadata(unit=f"{currency}/shares" if currency else "currency/shares")
     for key in ("forecast_revenue", "forecast_ebitda", "fcff", "fcfe", "net_borrowing", "change_nwc", "preferred_equity", "minority_interest", "other_nonoperating_assets", "debt", "cash", "book_equity", "affo", "forecast_affo"):
         metadata[key] = _metadata(unit=currency)
-    for key in ("projected_fcff", "projected_fcfe", "projected_dividends"):
+    for key in ("projected_fcff", "projected_fcfe", "projected_dividends", "projected_revenue"):
         metadata[key] = _metadata(unit=f"{currency}/shares/year" if key == "projected_dividends" else f"{currency}/year" if currency else "currency/year")
 
     def set_value(key, value, source_type, description, method=None, period=None, warnings=None):
@@ -168,6 +173,27 @@ def generate_assumptions(inputs: dict, overrides: dict | None = None, policy=Non
     if inputs.get("basis", {}).get("income_earnings_basis_verified") and dividends is not None and income is not None and income > 0 and 0 <= dividends / income <= 1:
         set_value("payout_ratio", dividends / income, "historical_estimate", "Latest annual reported cash dividends divided by reported net income; scope and clean-surplus require analyst confirmation.", "Cash dividends / annual net income; repurchases excluded explicitly.", reporting_period)
 
+    # Independently validated, cached automatic records precede user overrides.
+    # An unavailable external source must not erase a supported historical input.
+    for key, record in inputs.get("automatic_assumptions", {}).items():
+        if not isinstance(record, dict):
+            continue
+        if record.get("computed_only"):
+            # Cached dependent forecasts are descriptions of the snapshot, not
+            # defaults to preserve after a growth/margin input is cleared.
+            continue
+        if key not in metadata:
+            metadata[key] = {**record, "editable": False, "read_only_only": True}
+            continue
+        if record.get("value") is None and metadata[key].get("value") is not None:
+            continue
+        if record.get("fill_only") and metadata[key].get("value") is not None:
+            continue
+        requested = (overrides or {}).get("lookback_years")
+        if requested is not None and key in {"revenue_growth", "earnings_growth", "cash_flow_growth"} and record.get("lookback_years") not in (None, requested):
+            continue
+        metadata[key] = {**metadata[key], **record, "editable": record.get("editable", True), "overridden": False}
+
     # User inputs override estimates, while preserving the suggested defaults for reset.
     defaults = {key: item["value"] for key, item in metadata.items()}
     if overrides:
@@ -184,7 +210,7 @@ def generate_assumptions(inputs: dict, overrides: dict | None = None, policy=Non
                 raise ValueError(f"{key} requires a finite numeric assumption, not a boolean.")
             accepted = value
         elif isinstance(value, list):
-            if key not in ("projected_fcff", "projected_fcfe", "projected_dividends") or not 1 <= len(value) <= 30 or any(number(item) is None for item in value):
+            if key not in ("projected_fcff", "projected_fcfe", "projected_dividends", "projected_revenue") or not 1 <= len(value) <= 30 or any(number(item) is None for item in value):
                 raise ValueError("Projected cash-flow assumptions require 1 to 30 finite numeric observations.")
             accepted = [number(item) for item in value]
         elif key in ("risk_free_rate", "beta", "equity_risk_premium", "cost_of_debt") and isinstance(value, dict):
@@ -231,20 +257,28 @@ def generate_assumptions(inputs: dict, overrides: dict | None = None, policy=Non
             set_value("target_pe", sustainable_payout / (ke - growth), "derived_estimate", "Justified forward P/E using sustainable payout implied by ROE and growth, conditional on confirmed common book basis.",
                       "(1 − g / ROE) / (Ke − g); forward EPS basis.", reporting_period,
                       [_warning("target_pe", "stable_growth_multiple_assumptions", "This mature stable-growth framework is not automatically suitable for high-growth firms.")])
+    if inputs.get("automatic_evidence", {}).get("historical_annual_periods"):
+        from app.valuation.forecasts import derive_forward_forecasts
+        effective = {key: record.get("value") for key, record in metadata.items() if not record.get("read_only_only")}
+        effective.update(overrides or {})
+        fresh = derive_forward_forecasts(inputs, inputs["automatic_evidence"], chosen_policy, overrides=effective)
+        for key in ("forward_eps", "forecast_revenue", "forecast_ebitda", "projected_revenue"):
+            if key not in (overrides or {}) and key in fresh.get("assumptions", {}):
+                metadata[key] = fresh["assumptions"][key]
     for key, item in metadata.items():
         item.setdefault("default_value", defaults.get(key))
         if key in {"risk_free_rate", "beta", "equity_risk_premium", "cost_of_debt", "net_income_growth", "book_value_per_share", "forward_affo_per_share"}:
             item["editable"] = False
-    resolved = {key: item["value"] for key, item in metadata.items()}
-    for key in ("forward_eps", "forecast_revenue", "forecast_ebitda"):
+    resolved = {key: item["value"] for key, item in metadata.items() if not item.get("read_only_only")}
+    for key in ("forward_eps", "forecast_revenue", "forecast_ebitda", "projected_revenue"):
         if key not in (overrides or {}):
             # Models derive dependent forecasts afresh, so scenario growth edits
             # cannot accidentally retain a frozen base-scenario forecast.
             resolved[key] = None
             metadata[key]["computed_only"] = True
             metadata[key]["default_value"] = None
-    return {"values": resolved, "metadata": metadata, "history": history,
-            "policy": asdict(chosen_policy), "methodology_sources": METHODOLOGY_SOURCES}
+    return complete_assumptions({"values": resolved, "metadata": metadata, "history": history,
+                                "policy": asdict(chosen_policy), "methodology_sources": METHODOLOGY_SOURCES}, inputs)
 
 
 def _sourced(record: dict, field: str, require_method=False) -> tuple[float, dict]:

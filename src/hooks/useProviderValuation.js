@@ -77,8 +77,8 @@ export default function useProviderValuation(company) {
   const unavailable = state.status === "error" || !validInputs;
   const scenarios = unavailable ? Object.fromEntries(providerScenarioNames.map((name) => [name, {
     ...data.scenarios[name],
-    results: data.scenarios[name].results.map((result) => ({ ...result, fairValue: null, upside: null, status: "insufficient-data" })),
-    summary: { ...emptyProviderValuation().scenarios[name].summary },
+    results: data.scenarios[name].results.map((result) => ({ ...result, fairValue: null, upside: null, status: "insufficient-data", classification: "unavailable" })),
+    summary: { ...emptyProviderValuation().scenarios[name].summary, classification: "unavailable" },
   }])) : data.scenarios;
   return {
     ...data,
@@ -95,6 +95,7 @@ export default function useProviderValuation(company) {
     }])),
     assumptionMetadata: data.scenarios[activeScenario].metadata,
     overriddenKeys: Object.keys({ ...overrides.base, ...overrides[activeScenario] }),
+    resettableKeys: Object.keys(overrides[activeScenario]),
     enabled,
     setEnabled: (update) => setEnabledOverrides((previous) => typeof update === "function" ? update(previous ?? enabled) : update),
     weights,

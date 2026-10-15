@@ -74,11 +74,14 @@ def cash_flow_projection(inputs: Mapping, kind: str) -> tuple[list[dict], str]:
             raise ValuationInputError(f"projected_{kind} must contain one cash flow for each forecast year.")
         return [{"year": index + 1, "cash_flow": number({"cash_flow": value}, "cash_flow")}
                 for index, value in enumerate(explicit)], "explicit annual cash-flow forecasts"
-    driver_keys = ("revenue", "revenue_growth", "capex_ratio", "da_ratio", "nwc_ratio")
+    explicit_revenue = inputs.get("projected_revenue")
+    driver_keys = ("revenue", "capex_ratio", "da_ratio", "nwc_ratio") + (() if explicit_revenue is not None else ("revenue_growth",))
     income_driver = "operating_margin" if kind == "fcff" else "net_margin"
     if inputs.get(kind) is None and all(inputs.get(key) is not None for key in (*driver_keys, income_driver)):
         revenue = number(inputs, "revenue", positive=True)
-        rate = growth(inputs, "revenue_growth")
+        if explicit_revenue is not None and (not isinstance(explicit_revenue, (list, tuple)) or len(explicit_revenue) != count):
+            raise ValuationInputError("projected_revenue must contain one positive revenue for each forecast year.")
+        rate = growth(inputs, "revenue_growth") if explicit_revenue is None else None
         margin = number(inputs, income_driver, minimum=-2, maximum=2)
         capex_ratio = number(inputs, "capex_ratio", minimum=0, maximum=3)
         da_ratio = number(inputs, "da_ratio", minimum=0, maximum=3)
@@ -88,8 +91,12 @@ def cash_flow_projection(inputs: Mapping, kind: str) -> tuple[list[dict], str]:
         rows = []
         for year in range(1, count + 1):
             previous_revenue = revenue
-            year_growth = forecast_growth(rate, year)
-            revenue *= 1 + year_growth
+            if explicit_revenue is not None:
+                revenue = number({"revenue": explicit_revenue[year - 1]}, "revenue", positive=True)
+                year_growth = revenue / previous_revenue - 1
+            else:
+                year_growth = forecast_growth(rate, year)
+                revenue *= 1 + year_growth
             income = revenue * margin
             da, capex, change = revenue * da_ratio, revenue * capex_ratio, (revenue - previous_revenue) * nwc_ratio
             cash_flow = (income * (1 - tax) + da - capex - change if kind == "fcff"
@@ -99,7 +106,7 @@ def cash_flow_projection(inputs: Mapping, kind: str) -> tuple[list[dict], str]:
                          "capex": capex, "change_nwc": change, "cash_flow": cash_flow,
                          **({"tax_rate": tax} if kind == "fcff" else {"net_borrowing": net_borrowing})})
         return rows, ("revenue-driven financial statement forecast; noncash NWC changes on incremental revenue; "
-                      + ("growth fades linearly to terminal growth" if fade else "constant explicit-period revenue growth"))
+                      + ("explicit annual revenue path" if explicit_revenue is not None else "growth fades linearly to terminal growth" if fade else "constant explicit-period revenue growth"))
     if inputs.get(kind) is not None:
         initial, components = number(inputs, kind), {}
         basis = f"explicit or independently derived starting {kind.upper()}"

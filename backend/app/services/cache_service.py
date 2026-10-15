@@ -15,6 +15,7 @@ class CachedResult:
     status: str
     retrieved_at: object
     warnings: list
+    cache_ttl_seconds: int | None = None
 
 
 class CacheService:
@@ -55,7 +56,8 @@ class CacheService:
                 # A stale shared source must not become a freshly cached snapshot.
                 if payload.status == "stale":
                     return payload
-                retrieved_at = self._write(key, payload.payload, ttl, provider, payload.retrieved_at)
+                effective_ttl = min(ttl, max(1, payload.cache_ttl_seconds)) if payload.cache_ttl_seconds is not None else ttl
+                retrieved_at = self._write(key, payload.payload, effective_ttl, provider, payload.retrieved_at)
                 return CachedResult(payload.payload, payload.status, retrieved_at, payload.warnings)
             retrieved_at = self._write(key, payload, ttl, provider)
             return CachedResult(payload, "fresh", retrieved_at, [])

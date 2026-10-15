@@ -6,6 +6,8 @@ import math
 from app.core.exceptions import ApiError
 from app.valuation.assumptions import generate_assumptions, estimate_cost_of_equity, estimate_wacc
 from app.valuation.confidence import assess_confidence
+from app.valuation.classification import classify_model, classify_summary
+from app.valuation.provenance import ASSUMPTION_METHODOLOGY_VERSION, complete_metadata
 from app.valuation.eligibility import MODEL_NAMES, eligibility
 from app.valuation.models import MODEL_FUNCTIONS
 from app.valuation.models.reverse_dcf import calculate as reverse_dcf
@@ -38,9 +40,22 @@ def comparison_market(inputs, manual=None):
 
 def _discount_defaults(inputs, defaults, discount_rates, explicit=None):
     if discount_rates is None:
-        return defaults
+        from app.valuation.automatic import automatic_discount_records
+        return automatic_discount_records(inputs, defaults, explicit)
     records = discount_rates.model_dump(mode="json", exclude_none=True)
     explicit = explicit or {}
+    for field in ("risk_free_rate", "beta", "equity_risk_premium", "cost_of_debt"):
+        record = records.get(field)
+        if record is None:
+            continue
+        metadata = {"value": record["value"], "unit": "ratio" if field == "beta" else "fraction",
+                    "source_type": "user_assumption", "source_category": "user_supplied_source", "evidence_type": "user",
+                    "source_provider": record["source"], "source_description": "Explicitly supplied source record; not independently verified by the provider adapter.",
+                    "observation_date": record["observation_date"], "financial_period": None,
+                    "derivation_method": record.get("method"), "derivation_formula": record.get("method"),
+                    "editable": False, "overridden": False, "default_value": record["value"], "warnings": []}
+        defaults["values"][field] = record["value"]
+        defaults["metadata"][field] = complete_metadata(metadata, inputs, field)
     def safe_estimate(function, *args, **kwargs):
         try:
             return function(*args, **kwargs)
@@ -58,7 +73,7 @@ def _discount_defaults(inputs, defaults, discount_rates, explicit=None):
     for key, metadata in (("cost_of_equity", ke), ("wacc", wacc)):
         if metadata.get("value") is not None:
             defaults["values"][key] = metadata["value"]
-            defaults["metadata"][key] = {**metadata, "editable": True, "overridden": False, "default_value": metadata["value"]}
+            defaults["metadata"][key] = complete_metadata({**metadata, "editable": True, "overridden": False, "default_value": metadata["value"], "evidence_type": "user"}, inputs, key)
         else:
             defaults["metadata"].setdefault(key, {})["warnings"] = metadata.get("warnings", [])
     return defaults
@@ -90,6 +105,9 @@ def calculation_values(inputs, assumptions):
                  if value is not None or assumptions.get("metadata", {}).get(key, {}).get("overridden")}
     values = {**inputs["values"], **effective, "currency": inputs.get("currency"),
               "shares_unit": "shares", "amount_scale": "units", "share_scale": "units"}
+    for key, record in assumptions.get("metadata", {}).items():
+        if record.get("computed_only") and record.get("value") is not None and not record.get("read_only_only"):
+            values[key] = deepcopy(record["value"])
     if values.get("share_basis_confirmed"):
         for target, field in (("shares", "weighted_average_diluted_shares"), ("trailing_eps", "diluted_eps")):
             if values.get(target) is None:
@@ -107,8 +125,10 @@ def evaluate_model(model_id, inputs, assumptions, overridden=()):
         if result["status"] != "valid":
             selection = {**selection, "status": "unavailable" if result["status"] == "unavailable" else "ineligible", "reason": "; ".join(result["warnings"]), "reason_codes": ["missing_inputs" if result["status"] == "unavailable" else "invalid_model_assumptions"]}
     name, short_name = MODEL_NAMES[model_id]
-    return {**result, "id": model_id, "name": name, "short_name": short_name, "eligibility": selection,
-            "warnings": list(dict.fromkeys(result["warnings"] + selection["warnings"]))}
+    model = {**result, "id": model_id, "name": name, "short_name": short_name, "eligibility": selection,
+             "warnings": list(dict.fromkeys(result["warnings"] + selection["warnings"]))}
+    model.update(classify_model(model, assumptions, values))
+    return model
 
 
 def calculate_valuation(inputs, request=None, policy=None):
@@ -139,6 +159,7 @@ def calculate_valuation(inputs, request=None, policy=None):
             model["eligibility"]["recommended_weight"] = recommended.get(model["id"], 0)
             model["eligibility"]["weight_explanation"] = explanations.get(model["id"], "Inactive until required inputs are available; the configured preference is retained.")
         summary = combine_valuations(models[name], enabled, configured, market["price"])
+        summary.update(classify_summary(summary, models[name]))
         scenarios[name] = {"models": models[name], "summary": summary, "assumptions": resolved[name], "confidence": assess_confidence(inputs, models[name], summary, resolved[name])}
     reverse_inputs = calculation_values(inputs, resolved["base"])
     # The growth variable is solved, rather than required as an existing forecast.
@@ -163,7 +184,15 @@ def calculate_valuation(inputs, request=None, policy=None):
         grid = calculate_sensitivity(spec, resolved["base"], base_model, point, inputs.get("currency"))
     warnings = deepcopy(inputs.get("warnings", [])) + scenario_order_warnings(scenarios)
     warnings = list({(item.get("field"), item.get("code"), item.get("message")): item for item in warnings}.values())
-    return {"engine_version": ENGINE_VERSION, "calculated_at": datetime.now(UTC).isoformat(), "company": inputs["company"], "currency": inputs.get("currency"),
+    source_ids = sorted({identifier for case in resolved.values() for metadata in case["metadata"].values() for identifier in metadata.get("source_identifiers", [])})
+    evidence = inputs.get("automatic_evidence", {})
+    automatic_report = {"provider_status": evidence.get("provider_status", {}), "observations": evidence.get("observations", {}),
+                        "analytics": inputs.get("automatic_analytics", {}), "warnings": evidence.get("warnings", [])}
+    return {"engine_version": ENGINE_VERSION, "assumption_methodology_version": ASSUMPTION_METHODOLOGY_VERSION,
+            "snapshot_dates": {"financial": inputs.get("financial_retrieved_at"), "reporting_period": (inputs.get("reporting_period") or {}).get("end_date"),
+                               "market": (inputs.get("market") or {}).get("price_timestamp"), "historical_prices": evidence.get("historical_prices", {}).get("retrieved_at")},
+            "source_identifiers": source_ids, "automatic_evidence": automatic_report,
+            "calculated_at": datetime.now(UTC).isoformat(), "company": inputs["company"], "currency": inputs.get("currency"),
             "financials": {"reporting_period": inputs.get("reporting_period"), "retrieved_at": inputs.get("financial_retrieved_at"), "source_references": inputs.get("source_references", []), "facts": inputs.get("facts", {}), "basis": inputs.get("basis", {})},
             "defaults": defaults, "scenarios": scenarios, "suggested_weights": recommended, "configured_weights": configured,
             "enabled_models": enabled, "market": market, "reverse_dcf": reverse, "sensitivity": grid, "warnings": warnings, "confidence": scenarios["base"]["confidence"]}

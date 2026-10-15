@@ -30,8 +30,13 @@ def suggest_weights(models):
         total = sum(members[model["id"]] for model in present)
         for model in present:
             quality = 0.7 if model["eligibility"]["status"] == "available_with_warnings" else 1
+            source = model.get("source_quality", {})
+            source_factor = {"low": 0.6, "moderate": 0.85, "supported": 1}.get(source.get("level"), 1) if source.get("automatic_evidence") else 1
+            quality *= source_factor
             weights[model["id"]] = GROUP_BUDGETS[group] * members[model["id"]] / total * quality
             reasons[model["id"]] = f"Shares the {group.replace('_', ' ')} family budget; related methods do not count as independent confirmation."
+            if source_factor < 1:
+                reasons[model["id"]] += f" Automatic source quality ({source['level']}) applies a disclosed {source_factor:.0%} preference factor; this is a weighting policy, not a probability of accuracy."
     return weights, reasons
 
 

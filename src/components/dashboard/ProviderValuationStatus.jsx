@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { dollars } from "@/lib/financialFormatting";
+import { providerPeriodLabel } from "@/lib/providerValuation";
 
 export default function ProviderValuationStatus({ company, valuation }) {
   const confidence = valuation.scenarios[valuation.activeScenario].confidence ?? valuation.confidence;
@@ -28,8 +29,13 @@ export default function ProviderValuationStatus({ company, valuation }) {
           <p className="research-caption">Comparison source: {valuation.market.label || "Market provider price unavailable"}</p>
           <p className="research-caption">Official provider quote: {dollars(company.price, company.market?.currency ?? null)} · {company.market?.price_timestamp || "Timestamp unavailable"}</p>
           <p className="research-caption">Engine: {valuation.engineVersion || "Loading"} · Calculated: {valuation.calculatedAt || "Unavailable"}</p>
+          {valuation.assumptionMethodologyVersion && <p className="research-caption">Assumption methodology: {valuation.assumptionMethodologyVersion}</p>}
         </div>
       </div>
+      {valuation.status === "ready" && valuation.summary.fairValue == null && <p className="research-caption">No supported weighted estimate is available. Open a model's details to see its missing inputs, then edit the relevant assumptions. An unsupported estimate is kept unavailable.</p>}
+      {Object.keys(valuation.snapshotDates ?? {}).length > 0 && <details className="provider-confidence"><summary>Financial and market snapshot dates</summary>
+        {Object.entries(valuation.snapshotDates).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{providerPeriodLabel(value) || "Unavailable"}</p>)}
+      </details>}
       {valuation.warnings.map((warning, index) => <p className="research-caption" key={index}>{warning}</p>)}
       {confidence && <details className="provider-confidence"><summary>Valuation quality: {confidence.label || confidence.level || "See breakdown"}</summary>
         <p className="research-caption">A heuristic assessment of model and input quality, not a statistical probability or a measure of investment accuracy.</p>

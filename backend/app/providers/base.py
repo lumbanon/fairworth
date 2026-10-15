@@ -94,7 +94,7 @@ class JsonHttpProvider:
                 return min(30.0, max(0.0, delay))
         return min(8.0, 0.5 * (2**attempt))
 
-    async def _json(
+    async def _response(
         self,
         url: str,
         *,
@@ -149,13 +149,24 @@ class JsonHttpProvider:
                 elif not 200 <= status < 300:
                     raise ProviderError("provider_http_error", "The financial data provider returned an error.", 502)
                 else:
-                    try:
-                        return response.json()
-                    except (ValueError, UnicodeDecodeError):
-                        raise ProviderError(
-                            "invalid_provider_response", "The financial data provider returned invalid JSON.", 502
-                        ) from None
+                    return response
             if attempt < self.retries:
                 await asyncio.sleep(self._retry_delay(response, attempt))
         assert last_error is not None
         raise last_error
+
+    async def _json(self, url: str, *, params=None, headers=None) -> Any:
+        response = await self._response(url, params=params, headers=headers)
+        try:
+            return response.json()
+        except (ValueError, UnicodeDecodeError):
+            raise ProviderError(
+                "invalid_provider_response", "The financial data provider returned invalid JSON.", 502
+            ) from None
+
+    async def _text(self, url: str, *, params=None, headers=None) -> str:
+        """Use the same bounded, credential-safe transport for public XML."""
+        response = await self._response(url, params=params, headers=headers)
+        if len(response.content) > 2_000_000:
+            raise ProviderError("invalid_provider_response", "The provider response exceeds the supported size.", 502)
+        return response.text

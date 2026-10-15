@@ -18,7 +18,7 @@ MULTIPLE_FIELDS = {"target_pe", "target_ev_ebitda", "target_ev_revenue", "target
 FLAG_FIELDS = {"book_value_meaningful", "common_equity_basis_confirmed", "clean_surplus_confirmed", "stable_dividend_confirmed", "share_basis_confirmed", "affo_basis_confirmed", "is_bank", "is_reit", "growth_fade_to_terminal"}
 AMOUNT_FIELDS = {"forward_eps", "forecast_revenue", "forecast_ebitda", "fcff", "fcfe", "net_borrowing", "change_nwc", "preferred_equity", "minority_interest", "other_nonoperating_assets", "debt", "cash", "book_equity", "affo", "forecast_affo", "dividend_per_share", "capex", "depreciation_and_amortization", "ebit", "net_income"}
 RATIO_FIELDS = {"operating_margin", "net_margin", "ebitda_margin", "tax_rate", "capex_ratio", "da_ratio", "nwc_ratio", "return_on_equity", "terminal_roe", "payout_ratio", "reinvestment_rate"}
-ARRAY_FIELDS = {"projected_fcff", "projected_fcfe", "projected_dividends"}
+ARRAY_FIELDS = {"projected_fcff", "projected_fcfe", "projected_dividends", "projected_revenue"}
 ASSUMPTION_KEYS = GROWTH_FIELDS | DISCOUNT_FIELDS | MULTIPLE_FIELDS | FLAG_FIELDS | AMOUNT_FIELDS | RATIO_FIELDS | ARRAY_FIELDS | {"terminal_growth", "forecast_years", "shares", "lookback_years"}
 
 
@@ -37,6 +37,8 @@ def validate_assumptions(values: dict) -> dict:
                 raise ValueError(f"{key} must contain 1 to 30 annual values.")
             if any(isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(item) or abs(item) > 1e18 for item in value):
                 raise ValueError(f"{key} contains an invalid cash flow.")
+            if key == "projected_revenue" and any(item <= 0 for item in value):
+                raise ValueError("projected_revenue requires positive annual revenue amounts.")
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             raise ValueError(f"{key} must be a finite number.")
@@ -170,6 +172,9 @@ class ModelResult(ApiModel):
     warnings: list[str] = Field(default_factory=list)
     details: dict[str, Any] = Field(default_factory=dict)
     eligibility: dict[str, Any]
+    classification: Literal["evidence_supported", "policy_based", "user_defined", "unavailable"] = "unavailable"
+    classification_reasons: list[str] = Field(default_factory=list)
+    source_quality: dict[str, Any] = Field(default_factory=dict)
 
 
 class ValuationSummary(ApiModel):
@@ -179,6 +184,9 @@ class ValuationSummary(ApiModel):
     effective_weights: dict[str, float] = Field(default_factory=dict)
     count: int = 0
     warnings: list[str] = Field(default_factory=list)
+    classification: Literal["evidence_supported", "policy_based", "user_defined", "unavailable"] = "unavailable"
+    composition: list[dict[str, Any]] = Field(default_factory=list)
+    source_warnings: list[str] = Field(default_factory=list)
 
 
 class SensitivityCell(ApiModel):
@@ -221,6 +229,10 @@ class ScenarioResult(ApiModel):
 
 class ValuationResponse(ApiModel):
     engine_version: str
+    assumption_methodology_version: str = "automatic-assumptions-1"
+    snapshot_dates: dict[str, Any] = Field(default_factory=dict)
+    source_identifiers: list[str] = Field(default_factory=list)
+    automatic_evidence: dict[str, Any] = Field(default_factory=dict)
     calculated_at: datetime
     company: dict[str, Any]
     currency: str | None

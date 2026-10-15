@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from datetime import date
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,6 +29,24 @@ class Settings(BaseSettings):
     valuation_terminal_growth: float = Field(default=0.02, ge=-0.05, le=0.05)
     valuation_benchmark_cost_of_equity: float = Field(default=0.10, gt=0, le=0.5)
     valuation_allow_benchmark_cost_of_equity: bool = True
+    valuation_minimum_forecast_growth: float = Field(default=-0.15, ge=-0.95, le=0)
+    valuation_maximum_forecast_growth: float = Field(default=0.20, ge=0, le=1)
+    valuation_maximum_growth_dispersion: float = Field(default=1.0, ge=0, le=5)
+    valuation_historical_multiple_years: int = Field(default=5, ge=3, le=10)
+    valuation_historical_multiple_minimum_years: int = Field(default=3, ge=3, le=10)
+    valuation_automatic_inputs_enabled: bool = True
+    valuation_treasury_enabled: bool = True
+    valuation_assumption_cache_seconds: int = Field(default=86400, ge=60, le=604800)
+    valuation_erp_value: float | None = Field(default=None, ge=0, le=0.3)
+    valuation_erp_source: str = ""
+    valuation_erp_publication_date: date | None = None
+    valuation_erp_methodology: str = ""
+    valuation_erp_market: str = "US"
+
+    @field_validator("valuation_erp_value", "valuation_erp_publication_date", mode="before")
+    @classmethod
+    def empty_optional_research_setting(cls, value):
+        return None if isinstance(value, str) and not value.strip() else value
 
     @field_validator("cors_origins")
     @classmethod

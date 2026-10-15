@@ -24,7 +24,10 @@ def assess_confidence(inputs, models, summary, assumptions):
         age = None
     factors.append({"name": "Statement freshness", "status": "strong" if age is not None and 0 <= age <= 550 else "limited",
                     "explanation": f"Latest annual statement ended {observed}; annual facts are not current market observations."})
-    factors.append({"name": "Share denominator", "status": "review_required", "explanation": "Historical diluted weighted shares are dated modeling inputs; they are not a verified current diluted share count."})
+    share_basis = inputs.get("basis", {})
+    share_explanation = (f"Dated common shares outstanding observed {share_basis.get('valuation_share_observation_date')}; subsequent issuance, repurchases and dilution remain uncertain. Annual diluted EPS retains its own reported denominator."
+                         if share_basis.get("valuation_share_denominator") else "Historical diluted weighted shares are dated modeling inputs; they are not a verified current diluted share count.")
+    factors.append({"name": "Share denominator", "status": "review_required", "explanation": share_explanation})
     values = [model["fair_value"] for model in active]
     spread = (max(values) - min(values)) / max(1e-12, max(abs(value) for value in values)) if len(values) > 1 else None
     factors.append({"name": "Model agreement", "status": "limited" if spread is None or spread > 0.5 else "moderate",

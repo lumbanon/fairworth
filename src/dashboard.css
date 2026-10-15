@@ -573,6 +573,28 @@
 .assumption-explanation {
   overflow-wrap: anywhere;
 }
+.provider-assumption-record {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.provider-assumption-record h3 {
+  color: var(--body-foreground);
+  font-size: 14px;
+  font-weight: 500;
+}
+.provider-assumption-source,
+.provider-valuation-composition {
+  overflow-wrap: anywhere;
+}
+.provider-source-identifiers summary {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.provider-valuation-composition {
+  margin-top: 14px;
+}
 .research-body-copy {
   font-size: 14px;
   line-height: 1.8;

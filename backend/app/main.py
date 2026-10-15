@@ -17,12 +17,14 @@ from app.core.logging import configure_logging
 from app.providers.base import ProviderError
 from app.providers.market_data import DisabledMarketDataProvider, FmpMarketDataProvider
 from app.providers.sec_edgar import SecEdgarProvider
+from app.providers.treasury import TreasuryYieldProvider
 from app.repositories.financial_repository import FinancialRepository
 from app.schemas.common import ErrorDetail, ErrorResponse
 from app.services.cache_service import CacheService
 from app.services.company_service import CompanyService
 from app.services.financial_service import FinancialService
 from app.services.valuation_service import ValuationService
+from app.services.automatic_inputs_service import AutomaticInputsService
 
 
 def error_response(code, message, status_code, details=None):
@@ -58,11 +60,13 @@ def create_app(settings=None, engine=None, providers=None):
             company_service = CompanyService(sec, market, cache, repository, settings)
             application.state.company_service = company_service
             application.state.financial_service = FinancialService(company_service, sec, cache, repository, settings)
-            application.state.valuation_service = ValuationService(company_service, application.state.financial_service, settings)
+            treasury = TreasuryYieldProvider(client, retries=settings.provider_retries, timeout=settings.provider_timeout_seconds) if not providers and settings.valuation_treasury_enabled else None
+            automatic = AutomaticInputsService(company_service, application.state.financial_service, settings, treasury) if settings.valuation_automatic_inputs_enabled else None
+            application.state.valuation_service = ValuationService(company_service, application.state.financial_service, settings, automatic)
             yield
         engine.dispose()
 
-    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.4.0", lifespan=lifespan,
+    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.4.5", lifespan=lifespan,
                           description="Sourced financial data and transparent, bounded Python valuations for Provider mode.",
                           responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse},
                                      502: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})

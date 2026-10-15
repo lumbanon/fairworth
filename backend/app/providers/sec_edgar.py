@@ -152,6 +152,13 @@ class SecEdgarProvider(JsonHttpProvider):
         payload = await self._sec_json(f"{self.DATA_ORIGIN}/api/xbrl/companyfacts/CIK{identifier}.json")
         if not isinstance(payload.get("facts"), dict):
             raise ProviderError("invalid_provider_response", "SEC company facts are unavailable.", 502)
+        if "cik" in payload:
+            try:
+                matching_identity = normalize_cik(payload["cik"]) == identifier
+            except ProviderError:
+                matching_identity = False
+            if not matching_identity:
+                raise ProviderError("incompatible_financial_identity", "SEC facts do not match the requested company identifier.", 502)
         return payload
 
     async def submissions(self, cik: str | int) -> dict:

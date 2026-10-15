@@ -8,7 +8,7 @@ export const providerEditableAssumptions = new Set([
   "book_value_meaningful", "common_equity_basis_confirmed", "clean_surplus_confirmed", "stable_dividend_confirmed", "share_basis_confirmed", "affo_basis_confirmed", "is_bank", "is_reit", "growth_fade_to_terminal",
   "forward_eps", "forecast_revenue", "forecast_ebitda", "fcff", "fcfe", "net_borrowing", "change_nwc", "preferred_equity", "minority_interest", "other_nonoperating_assets", "debt", "cash", "book_equity", "affo", "forecast_affo", "dividend_per_share", "capex", "depreciation_and_amortization", "ebit", "net_income",
   "operating_margin", "net_margin", "ebitda_margin", "tax_rate", "capex_ratio", "da_ratio", "nwc_ratio", "return_on_equity", "terminal_roe", "payout_ratio", "reinvestment_rate",
-  "projected_fcff", "projected_fcfe", "projected_dividends", "terminal_growth", "forecast_years", "shares", "lookback_years",
+  "projected_fcff", "projected_fcfe", "projected_dividends", "projected_revenue", "terminal_growth", "forecast_years", "shares", "lookback_years",
 ]);
 
 const formulas = {
@@ -27,6 +27,42 @@ const formulas = {
 
 function strings(values = []) {
   return values.map((value) => typeof value === "string" ? value : value.message).filter(Boolean);
+}
+
+const classificationLabels = {
+  evidence_supported: "Evidence-supported estimate",
+  policy_based: "Policy-based illustrative estimate",
+  user_defined: "User-defined estimate",
+  unavailable: "Unavailable",
+};
+
+export function providerClassificationLabel(classification) {
+  return classificationLabels[classification] ?? null;
+}
+
+export function providerAssumptionEvidence(metadata = {}) {
+  const legacyTypes = {
+    reported_input: "fact", market_observation: "fact", historical_estimate: "estimate",
+    derived_estimate: "estimate", benchmark_assumption: "policy", user_input: "user",
+    unavailable: "unavailable",
+  };
+  const evidence = metadata.evidence_type ?? legacyTypes[metadata.source_type];
+  return ({ fact: "Reported or observed fact", estimate: "Derived or sourced estimate", policy: "Modeling policy", user: "User override", unavailable: "Unavailable" })[evidence] ?? "Source category unavailable";
+}
+
+export function providerPeriodLabel(period) {
+  if (period == null) return null;
+  if (typeof period !== "object") return String(period);
+  const start = period.start ?? period.start_date;
+  const end = period.end ?? period.end_date;
+  if (start || end) return [start, end].filter(Boolean).join(" to ");
+  if (period.fiscal_year) return `${period.fiscal_period || "FY"} ${period.fiscal_year}`;
+  if (Array.isArray(period.fiscal_years) && period.fiscal_years.length > 0 && period.fiscal_years.every(Number.isInteger)) {
+    const years = [...new Set(period.fiscal_years)].sort((a, b) => a - b);
+    const contiguous = years.every((year, index) => index === 0 || year === years[index - 1] + 1);
+    return contiguous && years.length > 1 ? `FY ${years[0]}–${years.at(-1)}` : `FY ${years.join(", ")}`;
+  }
+  return JSON.stringify(period);
 }
 
 export function adaptProviderValuation(response, expectedTicker) {
@@ -60,6 +96,9 @@ export function adaptProviderValuation(response, expectedTicker) {
         warnings,
         details: model.details ?? {},
         eligibility,
+        classification: model.classification ?? null,
+        classificationReasons: strings(model.classification_reasons),
+        sourceQuality: model.source_quality ?? null,
         definition: {
           id: model.id,
           name: model.name,
@@ -79,6 +118,9 @@ export function adaptProviderValuation(response, expectedTicker) {
         normalizedWeights: scenario.summary.effective_weights ?? {},
         count: scenario.summary.count ?? 0,
         warnings: strings(scenario.summary.warnings),
+        classification: scenario.summary.classification ?? null,
+        composition: scenario.summary.composition ?? [],
+        sourceWarnings: strings(scenario.summary.source_warnings),
       },
       metadata: scenario.assumptions?.metadata ?? {},
       values: scenario.assumptions?.values ?? {},
@@ -109,6 +151,9 @@ export function adaptProviderValuation(response, expectedTicker) {
       details: reverse.details,
     },
     engineVersion: response.engine_version,
+    assumptionMethodologyVersion: response.assumption_methodology_version,
+    snapshotDates: response.snapshot_dates ?? {},
+    sourceIdentifiers: response.source_identifiers ?? [],
     currency: response.currency,
     calculatedAt: response.calculated_at,
   };
@@ -118,7 +163,7 @@ export function emptyProviderValuation() {
   return {
     scenarios: Object.fromEntries(providerScenarioNames.map((name) => [name, {
       results: [],
-      summary: { fairValue: null, upside: null, marginOfSafety: null, normalizedWeights: {}, count: 0, warnings: [] },
+      summary: { fairValue: null, upside: null, marginOfSafety: null, normalizedWeights: {}, count: 0, warnings: [], classification: null, composition: [], sourceWarnings: [] },
       values: {}, metadata: {},
     }])),
     defaults: {}, suggestedWeights: {}, configuredWeights: {}, enabledModels: [],
@@ -135,6 +180,8 @@ export function providerInputErrors(assumptions, scenarios, weights, manualPrice
         errors.push(`${scenario}: ${key.replaceAll("_", " ")} requires a finite input.`);
       if (Array.isArray(value) && (!value.length || value.length > 30 || !value.every(Number.isFinite)))
         errors.push(`${scenario}: ${key.replaceAll("_", " ")} requires 1–30 finite annual values.`);
+      if (key === "projected_revenue" && Array.isArray(value) && value.some((amount) => Number.isFinite(amount) && amount <= 0))
+        errors.push(`${scenario}: projected revenue requires positive annual amounts in absolute reporting-currency units.`);
     }
   }
   for (const [id, weight] of Object.entries(weights ?? {}))

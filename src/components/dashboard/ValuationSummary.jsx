@@ -1,4 +1,5 @@
 import { dollars, percent, direction } from "@/lib/financialFormatting";
+import { providerClassificationLabel } from "@/lib/providerValuation";
 
 export default function ValuationSummary({ company, valuation }) {
   const { summary, scenarios, activeScenario } = valuation;
@@ -46,6 +47,7 @@ export default function ValuationSummary({ company, valuation }) {
           <small>
             {enabledCount} enabled · {summary.count} contributing
           </small>
+          {valuation.providerMode && summary.classification && <small data-testid="weighted-classification">{providerClassificationLabel(summary.classification) || "Classification unavailable"}</small>}
         </div>
         <div>
           <span>Potential upside / downside</span>
@@ -65,6 +67,11 @@ export default function ValuationSummary({ company, valuation }) {
           <small>(Fair value − price) / fair value × 100</small>
         </div>
       </div>
+      {valuation.providerMode && summary.composition?.length > 0 && <div className="provider-valuation-composition" aria-label="Weighted estimate composition">
+        <p className="research-caption">Weighted estimate composition: {summary.composition.map((part) => `${providerClassificationLabel(part.classification) || "Unclassified"}: ${Number.isFinite(part.weight) ? `${(part.weight * 100).toFixed(1)}%` : "Unavailable"} (${part.model_ids?.join(", ") || "No contributing models"})`).join(" · ")}</p>
+        <p className="research-caption">Classification describes the assumptions supporting the estimate; it does not verify the intrinsic value.</p>
+      </div>}
+      {valuation.providerMode && summary.sourceWarnings?.map((warning) => <p className="research-caption" key={warning}>{warning}</p>)}
       <div className="research-summary-bottom">
         <span>
           Bear / bull fair values{" "}

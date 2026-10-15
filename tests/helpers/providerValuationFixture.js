@@ -64,3 +64,44 @@ export function providerValuationFixture(ticker = "MSFT", {
     warnings: [], confidence: { level: "low", breakdown: { coverage: "One model is not independent multi-model confirmation." } },
   };
 }
+
+// Phase 4.5 transport coverage uses deliberately synthetic server outputs.
+// These values test UI provenance and request handling, not valuation formulas.
+export function automaticProviderValuationFixture(ticker = "MSFT", options = {}) {
+  const request = options.request ?? {};
+  const response = providerValuationFixture(ticker, { ...options, request, forceActive: true, fairValue: options.fairValue ?? 777.77 });
+  const automatic = {
+    earnings_growth: { value: 0.08, unit: "fraction", source_type: "historical_estimate", source_category: "derived_historical_estimate", source_provider: "SEC EDGAR", evidence_type: "estimate", source_description: "Comparable synthetic fiscal EPS history informs a disclosed forward estimate.", observation_date: "2026-02-10", financial_period: { start: "2021-12-31", end: "2025-12-31" }, derivation_formula: "Aligned annual EPS CAGR; financial basis verified by the synthetic provider.", quality: { level: "medium", warnings: [] }, source_identifiers: ["fixture:eps:2025"], editable: true },
+    forward_eps: { value: 10.8, unit: "USD/share", source_type: "derived_estimate", source_category: "derived_historical_estimate", source_provider: "SEC EDGAR", evidence_type: "estimate", source_description: "Forward EPS is regenerated from current growth assumptions; it is not trailing EPS.", observation_date: "2026-02-10", financial_period: "FY2025", derivation_formula: "Compatible reported EPS × (1 + forward earnings growth)", quality: { level: "medium", warnings: [] }, source_identifiers: ["fixture:eps:2025"], computed_only: true, editable: true },
+    target_pe: { value: 22.5, unit: "multiple", source_type: "historical_estimate", source_category: "historical_company_valuation", source_provider: "FMP + SEC EDGAR", evidence_type: "estimate", source_description: "Historical company valuation from a synthetic matched price and earnings series.", observation_date: "2026-01-15", financial_period: { start: "2021-12-31", end: "2025-12-31" }, derivation_formula: "Median of valid, filing-date-aligned historical P/E observations", quality: { level: "medium", warnings: ["Historical multiples are evidence, not a guarantee of fair value."] }, source_identifiers: ["fixture:historical-multiple:2025-12-31"], editable: true },
+    cost_of_equity: { value: 0.1, unit: "fraction", source_type: "benchmark_assumption", source_category: "research_policy", source_provider: "Fairworth research policy", evidence_type: "policy", source_description: "Illustrative configurable required return, not an observed company rate.", observation_date: null, financial_period: null, derivation_formula: "Documented illustrative policy", quality: { level: "low", warnings: ["Calibrate company risk before relying on this policy."] }, editable: true },
+    beta: { value: 1.2, unit: "ratio", source_type: "derived_estimate", source_category: "market_estimate", source_provider: "FMP", evidence_type: "estimate", source_description: "Synthetic sourced beta observation; not fabricated from a missing value.", observation_date: "2026-01-15", derivation_formula: "Provider-documented market return regression", quality: "moderate", editable: false },
+    preferred_equity: { value: 0, unit: "USD", source_type: "reported_input", source_category: "sec_reported_fact", source_provider: "SEC EDGAR", evidence_type: "fact", input_status: "verified_zero", source_description: "Synthetic filing evidence verifies the zero claim; missing is not zero.", observation_date: "2026-02-10", financial_period: "FY2025", derivation_formula: "Reported preferred claim", quality: { level: "medium", warnings: [] }, editable: true },
+  };
+  for (const name of ["bear", "base", "bull"]) {
+    const defaultMetadata = { ...response.defaults[name].metadata, ...structuredClone(automatic) };
+    const defaultValues = Object.fromEntries(Object.entries(defaultMetadata).map(([key, metadata]) => [key, metadata.computed_only ? null : metadata.value]));
+    response.defaults[name] = { values: defaultValues, metadata: defaultMetadata };
+    const overrides = { ...request.assumptions, ...request.scenario_overrides?.[name] };
+    const metadata = structuredClone(defaultMetadata);
+    if (overrides.earnings_growth === 0.12) metadata.forward_eps.value = 12.34;
+    for (const [field, value] of Object.entries(overrides)) {
+      metadata[field] = { ...(metadata[field] ?? {}), value, overridden: true, evidence_type: "user", source_type: "user_input", source_category: "user_override", source_provider: "User", source_description: "Explicit synthetic analyst override; not a provider financial fact.", input_status: "user_supplied", computed_only: false };
+    }
+    const scenario = response.scenarios[name];
+    scenario.assumptions = { values: { ...defaultValues, ...overrides }, metadata };
+    const classification = Object.keys(overrides).length ? "user_defined" : "evidence_supported";
+    const pe = scenario.models.find((model) => model.id === "pe");
+    pe.classification = classification;
+    pe.classification_reasons = ["The server classifies this synthetic estimate from the effective assumption sources."];
+    pe.source_quality = { level: "medium", warnings: ["One earnings model is not independent multi-model confirmation."], categories: ["derived_historical_estimate", "historical_company_valuation"] };
+    for (const model of scenario.models.filter((model) => model.id !== "pe")) model.classification = "unavailable";
+    scenario.summary.classification = scenario.summary.count ? classification : "unavailable";
+    scenario.summary.composition = scenario.summary.count ? [{ classification, weight: 1, model_ids: ["pe"] }] : [];
+    scenario.summary.source_warnings = ["The synthetic historical multiple requires economic relevance review."];
+  }
+  response.assumption_methodology_version = "automatic-assumptions-fixture-1";
+  response.snapshot_dates = { financial_period: "2025-12-31", market_observation: response.market.price_timestamp };
+  response.source_identifiers = ["fixture:financial-snapshot:2025", "fixture:historical-multiple:2025-12-31"];
+  return response;
+}

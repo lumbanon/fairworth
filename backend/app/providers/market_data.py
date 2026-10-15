@@ -96,7 +96,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         self._access_denials = {}
         self._endpoint_locks = {}
 
-    async def _records(self, endpoint: str, ticker: str) -> list[dict]:
+    async def _records(self, endpoint: str, ticker: str, parameters: dict | None = None) -> list[dict]:
         if not self.enabled:
             raise ProviderError("provider_disabled", "The market provider API key is not configured.", 503)
         symbol = _market_symbol(ticker)
@@ -109,7 +109,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             try:
                 # endpoint is an internal constant; no user-controlled URL is accepted.
                 payload = await self._json(
-                    f"{self.ORIGIN}/{endpoint}", params={"symbol": symbol, "apikey": self.api_key}
+                    f"{self.ORIGIN}/{endpoint}", params={**(parameters or {}), "symbol": symbol, "apikey": self.api_key}
                 )
                 if isinstance(payload, dict) and ("Error Message" in payload or "error" in payload):
                     raise ProviderError(
@@ -142,6 +142,10 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             "industry": row.get("industry") or None,
             "description": row.get("description") or None,
             "cik": row.get("cik") or None,
+            "beta": _number(row.get("beta")),
+            "beta_methodology": "FMP current profile beta; provider lookback and return frequency are not supplied in this endpoint.",
+            "ipo_date": row.get("ipoDate") or None,
+            "retrieved_at": datetime.now(UTC).isoformat(),
             "provider": self.name,
         }
         self._profiles[symbol] = (time.monotonic(), result)
@@ -233,6 +237,10 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 "volume": _number(row.get("volume")),
                 "currency": profile.get("currency"),
                 "provider": self.name,
+                # FMP documents full EOD as split adjusted. It is distinct from
+                # its dividend-adjusted endpoint, which is unsuitable for P/E.
+                "adjustment_basis": "split_adjusted",
+                "adjustment_date": datetime.now(UTC).date().isoformat(),
             })
         result.sort(key=lambda item: item["date"], reverse=True)
         return result[: min(2000, max(1, limit))]
@@ -260,3 +268,40 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 "provider": self.name,
             })
         return result[: min(1000, max(1, limit))]
+
+    async def splits(self, ticker: str) -> list[dict]:
+        """Full authorized split-event endpoint; a denied call is not no splits."""
+        symbol = _market_symbol(ticker)
+        rows = await self._records("splits", symbol)
+        result = []
+        for row in rows:
+            if row.get("symbol", symbol) != symbol:
+                continue
+            numerator, denominator = _number(row.get("numerator")), _number(row.get("denominator"))
+            try:
+                day = datetime.strptime(str(row.get("date")), "%Y-%m-%d").date().isoformat()
+            except ValueError:
+                raise ProviderError("invalid_provider_response", "A split observation has an invalid date.", 502) from None
+            if numerator is None or denominator is None or numerator <= 0 or denominator <= 0:
+                raise ProviderError("invalid_provider_response", "A split observation has an invalid ratio.", 502)
+            result.append({"date": day, "numerator": numerator, "denominator": denominator, "provider": self.name})
+        return sorted(result, key=lambda item: item["date"])
+
+    async def share_float(self, ticker: str) -> dict:
+        symbol = _market_symbol(ticker)
+        rows = await self._records("shares-float", symbol)
+        row = next((item for item in rows if item.get("symbol") == symbol), None)
+        if row is None:
+            raise ProviderError("not_found", "The provider has no share-float observation for this ticker.", 404)
+        shares = _number(row.get("outstandingShares"))
+        if shares is None or shares <= 0:
+            raise ProviderError("invalid_provider_response", "The share-float endpoint did not supply a valid outstanding share count.", 502)
+        return {"ticker": symbol, "shares_outstanding": shares, "date": row.get("date"),
+                "source_url": row.get("source"), "provider": self.name,
+                "retrieved_at": datetime.now(UTC).isoformat()}
+
+    async def financial_statements(self, ticker: str, kind: str, limit: int = 6) -> list[dict]:
+        endpoints = {"balance_sheet": "balance-sheet-statement", "cash_flow": "cash-flow-statement"}
+        if kind not in endpoints:
+            raise ProviderError("unsupported_statement", "This supplemental statement type is unsupported.", 400)
+        return await self._records(endpoints[kind], ticker, {"period": "annual", "limit": min(10, max(1, limit))})

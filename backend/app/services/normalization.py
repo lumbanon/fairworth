@@ -14,7 +14,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
-NORMALIZATION_VERSION = 2
+NORMALIZATION_VERSION = 3
 
 # Ordered alternatives are never summed. Explicit total revenue takes priority
 # over a contract-revenue subtotal; differing aliases produce a quality warning.
@@ -30,6 +30,7 @@ METRIC_DEFINITIONS = {
     "basic_eps": (("EarningsPerShareBasic",), "USD/shares", "duration"),
     "diluted_eps": (("EarningsPerShareDiluted",), "USD/shares", "duration"),
     "weighted_average_diluted_shares": (("WeightedAverageNumberOfDilutedSharesOutstanding",), "shares", "duration"),
+    "weighted_average_basic_shares": (("WeightedAverageNumberOfSharesOutstandingBasic",), "shares", "duration"),
     "cash_and_cash_equivalents": (("CashAndCashEquivalentsAtCarryingValue",), "USD", "instant"),
     "short_term_investments": (("ShortTermInvestments", "MarketableSecuritiesCurrent"), "USD", "instant"),
     "total_current_assets": (("AssetsCurrent",), "USD", "instant"),
@@ -46,22 +47,32 @@ METRIC_DEFINITIONS = {
     "operating_cash_flow": (("NetCashProvidedByUsedInOperatingActivities",), "USD", "duration"),
     "capital_expenditures": (("PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"), "USD", "duration"),
     "depreciation_and_amortization": (("DepreciationDepletionAndAmortization", "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment", "DepreciationAndAmortization"), "USD", "duration"),
+    "depreciation_expense": (("Depreciation",), "USD", "duration"),
+    "intangible_amortization_expense": (("AmortizationOfIntangibleAssets",), "USD", "duration"),
+    "minority_interest": (("MinorityInterest",), "USD", "instant"),
+    "preferred_stock_value_outstanding": (("PreferredStockValueOutstanding",), "USD", "instant"),
+    "preferred_stock_stated_value": (("PreferredStockValue",), "USD", "instant"),
+    "accounts_receivable": (("AccountsReceivableNetCurrent",), "USD", "instant"),
+    "inventory": (("InventoryNet",), "USD", "instant"),
+    "accounts_payable": (("AccountsPayableCurrent",), "USD", "instant"),
     "dividends_paid": (("PaymentsOfDividends", "PaymentsOfDividendsCommonStock"), "USD", "duration"),
     "share_repurchases": (("PaymentsForRepurchaseOfCommonStock",), "USD", "duration"),
-    "interest_expense": (("InterestExpense",), "USD", "duration"),
+    "interest_expense": (("InterestExpense", "InterestExpenseNonoperating"), "USD", "duration"),
 }
 CONCEPT_METRICS = {
     concept: metric for metric, (concepts, _, _) in METRIC_DEFINITIONS.items() for concept in concepts
 }
 FORMS = {"10-K", "10-K/A", "10-Q", "10-Q/A", "20-F", "20-F/A", "40-F", "40-F/A"}
 ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
-NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares"}
+NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares", "weighted_average_basic_shares"}
 NON_NEGATIVE = {
     "cash_and_cash_equivalents", "short_term_investments", "total_current_assets", "total_assets",
     "short_term_debt", "current_long_term_debt", "long_term_debt", "total_liabilities",
     "reported_total_debt", "liabilities_and_equity",
     "shares_outstanding", "weighted_average_diluted_shares", "capital_expenditures",
     "dividends_paid", "share_repurchases",
+    "weighted_average_basic_shares", "preferred_stock_value_outstanding", "preferred_stock_stated_value",
+    "accounts_receivable", "inventory", "accounts_payable",
 }
 
 

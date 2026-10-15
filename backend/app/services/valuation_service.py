@@ -12,13 +12,19 @@ from app.valuation.schemas import ValuationRequest
 
 
 class ValuationService:
-    def __init__(self, companies, financials, settings):
+    def __init__(self, companies, financials, settings, automatic_inputs=None):
         self.companies, self.financials, self.settings = companies, financials, settings
+        self.automatic_inputs = automatic_inputs
         self._snapshots = {}
         self._locks = {}
         self.policy = {"forecast_years": settings.valuation_forecast_years,
                        "terminal_growth": settings.valuation_terminal_growth,
                        "cost_of_equity": settings.valuation_benchmark_cost_of_equity,
+                       "minimum_forecast_growth": settings.valuation_minimum_forecast_growth,
+                       "maximum_forecast_growth": settings.valuation_maximum_forecast_growth,
+                       "maximum_annual_growth_dispersion": settings.valuation_maximum_growth_dispersion,
+                       "historical_multiple_years": settings.valuation_historical_multiple_years,
+                       "historical_multiple_minimum_years": settings.valuation_historical_multiple_minimum_years,
                        "allow_benchmark_cost_of_equity": settings.valuation_allow_benchmark_cost_of_equity}
 
     async def inputs(self, ticker):
@@ -32,6 +38,10 @@ class ValuationService:
                 raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the requested company.", 502)
             normalized = {**result.payload, "warnings": warnings}
             inputs = build_valuation_inputs(profile, normalized, result.retrieved_at)
+            if self.automatic_inputs is not None:
+                from app.valuation.automatic import prepare_automatic_inputs
+                evidence = await self.automatic_inputs.evidence(ticker, profile, normalized, result.retrieved_at)
+                inputs = await run_in_threadpool(prepare_automatic_inputs, inputs, evidence, self.policy)
             inputs["data_status"] = status
             self._snapshots[ticker] = (time.monotonic(), deepcopy(inputs))
             # Bound process-local snapshot retention; persistent financial caching
