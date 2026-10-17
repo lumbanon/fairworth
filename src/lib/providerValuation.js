@@ -139,6 +139,7 @@ export function adaptProviderValuation(response, expectedTicker) {
     sensitivity: response.sensitivity,
     confidence: response.confidence,
     warnings: strings(response.warnings),
+    sourceNotices: response.warnings ?? [],
     reverseDCF: {
       status: reverse.status,
       impliedGrowth: reverse.implied_growth,

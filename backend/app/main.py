@@ -9,7 +9,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from app.api.routes import financials, health, stocks, valuation
+from app.api.routes import financials, health, stocks, valuation, research
+from app.ai.client import ResearchClient
+from app.ai.context import EvidenceContextAssembler
+from app.ai.filings import FilingResearchService
+from app.ai.middleware import ResearchBodyLimit
+from app.ai.report_service import ResearchService
 from app.core.config import get_settings
 from app.core.database import build_engine, build_session_factory
 from app.core.exceptions import ApiError
@@ -63,21 +68,30 @@ def create_app(settings=None, engine=None, providers=None):
             treasury = TreasuryYieldProvider(client, retries=settings.provider_retries, timeout=settings.provider_timeout_seconds) if not providers and settings.valuation_treasury_enabled else None
             automatic = AutomaticInputsService(company_service, application.state.financial_service, settings, treasury) if settings.valuation_automatic_inputs_enabled else None
             application.state.valuation_service = ValuationService(company_service, application.state.financial_service, settings, automatic)
-            yield
+            filings = FilingResearchService(sec, cache, settings)
+            context_settings = settings.model_copy(update={"ai_max_context_tokens": settings.ai_max_context_tokens - 12000})
+            assembler = EvidenceContextAssembler(application.state.valuation_service, company_service, application.state.financial_service, filings, context_settings)
+            application.state.research_service = ResearchService(settings, assembler, ResearchClient(settings))
+            try:
+                yield
+            finally:
+                await application.state.research_service.close()
         engine.dispose()
 
-    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.4.5", lifespan=lifespan,
+    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.5.0", lifespan=lifespan,
                           description="Sourced financial data and transparent, bounded Python valuations for Provider mode.",
                           responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse},
                                      502: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})
     application.state.settings = settings
     application.state.session_factory = session_factory
     application.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=False,
-                               allow_methods=["GET", "POST"], allow_headers=["Accept", "Content-Type"])
+                               allow_methods=["GET", "POST"], allow_headers=["Accept", "Content-Type", "X-Fairworth-Session"])
+    application.add_middleware(ResearchBodyLimit)
     application.include_router(health.router, prefix="/api")
     application.include_router(stocks.router, prefix="/api")
     application.include_router(financials.router, prefix="/api")
     application.include_router(valuation.router, prefix="/api")
+    application.include_router(research.router, prefix="/api")
 
     @application.exception_handler(ProviderError)
     async def provider_error_handler(_request: Request, error: ProviderError):

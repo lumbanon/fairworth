@@ -37,7 +37,7 @@ const sections = [
   ["Research Insights", "insights"],
 ];
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children, showAIResearch = false }) {
   const { pathname, hash } = useLocation();
   const { mode } = useDataMode();
   return (
@@ -56,6 +56,7 @@ export default function DashboardLayout({ children }) {
               {label}
             </Link>
           ))}
+          {showAIResearch && <Link to={`${pathname}#ai-research`} aria-current={hash === "#ai-research" ? "location" : undefined}>AI Research</Link>}
         </nav>
         <div className="sidebar-note">
           {mode === "provider" ? "Provider workspace" : "Demonstration preview"}

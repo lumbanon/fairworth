@@ -10,6 +10,7 @@ test("Provider presentation preserves authoritative Python values, distinct comp
   fixture.scenarios.base.summary.upside = 12.34;
   fixture.scenarios.base.summary.margin_of_safety = 8.76;
   fixture.scenarios.base.models.find((model) => model.id === "pe").upside = 92.5;
+  fixture.warnings = [{ code: "restated_fact", field: "revenue", message: "FY2025 FY (2025-12-31): a filing revised this exact period.", source_id: "fixture:source:2025" }];
   const view = adaptProviderValuation(fixture, "ORCL");
   assert.equal(view.scenarios.base.results.find((model) => model.id === "pe").fairValue, 777.77);
   assert.equal(view.scenarios.base.results.find((model) => model.id === "pe").upside, 92.5);
@@ -21,6 +22,8 @@ test("Provider presentation preserves authoritative Python values, distinct comp
   assert.equal(view.defaults.base.values.shares, 12000000);
   assert.equal(view.scenarios.bear.summary.fairValue, 145);
   assert.equal(view.scenarios.bull.summary.fairValue, 195);
+  assert.deepEqual(view.sourceNotices, fixture.warnings);
+  assert.deepEqual(view.warnings, fixture.warnings.map((warning) => warning.message));
 });
 
 test("Provider adapter rejects missing scenarios, nonfinite results and another company without fallback", () => {

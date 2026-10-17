@@ -14,7 +14,7 @@ export class ApiError extends Error {
 
 export async function fetchJson(
   path,
-  { signal, fetcher = fetch, timeoutMs = 20000, method = "GET", body: requestBody } = {},
+  { signal, fetcher = fetch, timeoutMs = 20000, method = "GET", body: requestBody, headers = {} } = {},
 ) {
   let response;
   const controller = new AbortController();
@@ -34,6 +34,7 @@ export async function fetchJson(
         headers: {
           Accept: "application/json",
           ...(requestBody === undefined ? {} : { "Content-Type": "application/json" }),
+          ...headers,
         },
         ...(requestBody === undefined ? {} : { body: JSON.stringify(requestBody) }),
       });

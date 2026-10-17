@@ -1,8 +1,20 @@
-# Fairworth — Phase 4.5
+# Fairworth — Phase 5
 
 A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
 
 The [Phase 4.5 implementation and verification report](docs/phase45-automatic-valuation.md) documents automatic historical valuation benchmarks, split-compatible forecasts, dated discount-rate inputs, source quality, classifications, four-company results, tests and remaining limitations. AAPL and MSFT now support automatic single-model, policy-based illustrative P/E estimates with the verified source snapshots. NVDA and ORCL retain explicit evidence blockers. The [initial diagnostic matrix](docs/phase45-diagnostic-audit.md) explains all 44 company/model combinations; the [Phase 4 report](docs/phase4-valuation-engine.md) preserves the original model architecture and mathematical verification.
+
+The [Phase 5 AI research implementation and verification report](docs/phase5-ai-research.md) documents the source-grounded report/chat architecture, strict claim checks, SEC text coverage, usage limits and mocked versus live verification. AI generation is disabled by default and requires an explicitly configured OpenAI model and server-only API key.
+
+The [MSFT research repair report](docs/phase5-msft-research-fixes.md) records evidence-bound numerical prose, grouped historical diagnostics, the shares/debt audit and bounded live-chat failures followed by deterministic category checks. It preserves the illustrative valuation and documents the remaining live-verification limitation.
+
+The [category and uncertainty repair](docs/phase5-category-validation.md) documents the subsequent captured `interpretation` / `documented` failure, complete allowed classification matrix, schema enforcement, offline regressions and remaining semantic-validation limits.
+
+The [typed evidence binding repair](docs/phase5-binding-validation.md) documents the retained v6 MSFT binding failures, prompt v7's request-scoped eligible-ID schema, server-owned rendering and strict offline regressions. No live AI request is part of that repair.
+
+The [citation coverage repair](docs/phase5-citation-coverage.md) documents prompt v8's server-derived citations for explicitly selected, eligible typed references. The exact retained v7 failure now passes offline with complete provenance; independent financial and privacy checks remain strict.
+
+The [Phase 5.1 presentation report](docs/phase5-1-presentation.md) documents prompt v9, safe typed-segment spacing, display-only financial rounding, explicit quote observation dates and clearer findings/source/limitation disclosures. The exact successful v8 MSFT response is retained and replayed offline without new OpenAI requests.
 
 ## Run locally
 
@@ -36,7 +48,7 @@ Independent Python model tests verify all 11 models, financial contracts, source
 
 Responsive checks cover widths of 320, 390, 768, 1024, and 1440 pixels. Financial tables scroll within their containers. Desktop and mobile dashboard screenshots were visually reviewed, and sampled rendered text was checked for WCAG AA contrast. The shared text colors remain headings `#111111`, body `#333333`, labels `#444444`, and captions `#525252`.
 
-Playwright starts a local Vite server if one is not already running. Screenshots and failure traces are written to ignored `test-results/`. Mobile emulation does not verify Safari or physical iOS devices.
+Playwright builds fresh production assets and starts a dedicated Vite preview server at `http://127.0.0.1:4173` with a strict port. It never reuses or interrupts the development server on port 5173. This keeps backend changes and development hot reloads from resetting browser tests. Screenshots and failure traces are written to ignored `test-results/`. Mobile emulation does not verify Safari or physical iOS devices.
 
 ## Demonstration dashboard behavior
 
@@ -296,4 +308,4 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 
 ## Phase boundary
 
-Phase 4.5 adds defensible automatic assumptions, source transparency and classifications to the existing Python multi-model engine and Phase 3 data infrastructure. It does not implement OpenAI, AI research reports, authentication, watchlists, payments, subscriptions, portfolios or Phase 5 features. Changes are not automatically committed or pushed. Phase 5 requires the project owner's approval.
+Phase 5 adds source-grounded AI research reports and company-scoped Q&A around the Phase 4.5 assumptions engine and existing financial infrastructure. It does not implement authentication, watchlists, payments, subscriptions, portfolios or Phase 6 features. Changes are not automatically committed or pushed. See the Phase 5 report for configuration and limitations. Phase 6 requires a separate request.

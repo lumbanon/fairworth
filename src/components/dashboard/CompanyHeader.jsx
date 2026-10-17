@@ -1,7 +1,9 @@
 import { totalDollars, dollars } from "@/lib/financialFormatting";
+import { companyDescriptionPreview } from "@/lib/sourceNotices";
 
 export default function CompanyHeader({ company }) {
   const provider = company.dataMode === "provider";
+  const description = companyDescriptionPreview(company.description || "Company description unavailable from the configured provider.");
   return (
     <section
       id="overview"
@@ -35,9 +37,12 @@ export default function CompanyHeader({ company }) {
         </div>
       </div>
       <p className="research-company-description">
-        {company.description ||
-          "Company description unavailable from the configured provider."}
+        {description.preview}
       </p>
+      {description.expandable && <details className="research-company-full-description">
+        <summary>Read full company description</summary>
+        <p>{description.full}</p>
+      </details>}
       <div className="company-metadata">
         <span>
           Market cap{" "}

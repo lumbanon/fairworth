@@ -2,9 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { dollars } from "@/lib/financialFormatting";
 import { providerPeriodLabel } from "@/lib/providerValuation";
+import { isHistoricalNotice, noticeMessage } from "@/lib/sourceNotices";
+import SourceNoticeGroups from "./SourceNoticeGroups";
 
 export default function ProviderValuationStatus({ company, valuation }) {
   const confidence = valuation.scenarios[valuation.activeScenario].confidence ?? valuation.confidence;
+  const notices = valuation.sourceNotices ?? valuation.warnings;
+  const historicalNotices = notices.filter(isHistoricalNotice);
+  const currentNotices = notices.filter((notice) => !isHistoricalNotice(notice));
   return (
     <section className="research-quality-notice" aria-labelledby="valuation-engine-title" aria-busy={["loading", "calculating"].includes(valuation.status)}>
       <div><h2 id="valuation-engine-title">Python valuation engine</h2>
@@ -36,7 +41,8 @@ export default function ProviderValuationStatus({ company, valuation }) {
       {Object.keys(valuation.snapshotDates ?? {}).length > 0 && <details className="provider-confidence"><summary>Financial and market snapshot dates</summary>
         {Object.entries(valuation.snapshotDates).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{providerPeriodLabel(value) || "Unavailable"}</p>)}
       </details>}
-      {valuation.warnings.map((warning, index) => <p className="research-caption" key={index}>{warning}</p>)}
+      {currentNotices.map((notice, index) => <p className="research-caption" key={index}>{noticeMessage(notice)}</p>)}
+      <SourceNoticeGroups notices={historicalNotices} label="Historical financial source checks" />
       {confidence && <details className="provider-confidence"><summary>Valuation quality: {confidence.label || confidence.level || "See breakdown"}</summary>
         <p className="research-caption">A heuristic assessment of model and input quality, not a statistical probability or a measure of investment accuracy.</p>
         {Object.entries(confidence.breakdown ?? confidence.components ?? {}).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{typeof value === "object" && value !== null ? value.explanation || value.description || JSON.stringify(value) : String(value)}</p>)}

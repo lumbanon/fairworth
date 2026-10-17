@@ -1,5 +1,8 @@
+import { Link, useLocation } from "react-router";
+
 export default function ResearchInsights({ company }) {
   const provider = company.dataMode === "provider";
+  const { pathname } = useLocation();
   return (
     <section
       id="insights"
@@ -10,13 +13,14 @@ export default function ResearchInsights({ company }) {
         <div>
           <h2 id="insights-heading">Research insights</h2>
           <p>
-            Research insights preview — AI analysis will be available in a later
-            phase.
+            A static checklist for reviewing business quality, source evidence,
+            and valuation assumptions.
+            {provider && <> <Link className="research-insights-ai-link" to={`${pathname}#ai-research`}>Open {company.ticker} AI Research</Link> for source-cited generated analysis.</>}
           </p>
         </div>
         <span className="research-caption">
           {provider
-            ? "Research checklist · no automated company report"
+            ? "Static research checklist"
             : "Static demonstration commentary"}
         </span>
       </div>
@@ -24,8 +28,9 @@ export default function ResearchInsights({ company }) {
         <article>
           <h3>Business context</h3>
           <p>
-            {company.description ||
-              "Review the original SEC filings and available company profile for business context."}
+            Review the company overview and original filings for revenue sources,
+            competitive position, and exposure to industry changes. Check whether
+            the reported segments support the assumptions used in each model.
           </p>
         </article>
         <article>
@@ -50,7 +55,7 @@ export default function ResearchInsights({ company }) {
           <h3>Limitations and risks</h3>
           <p>
             {provider ? (
-              "Reported source data may be partial, stale, or incompatible with a valuation method. Check filing dates, share-count bases, missing fields, and source notices before entering assumptions. No AI-generated analysis is provided."
+              "Reported source data may be partial, stale, or incompatible with a valuation method. Check filing dates, share-count bases, missing fields, and source notices before entering assumptions. This checklist is static; the AI Research workspace identifies generated analysis and its supporting sources separately."
             ) : (
               <>
                 These fictional statements omit detailed working capital,

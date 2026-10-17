@@ -42,6 +42,23 @@ class Settings(BaseSettings):
     valuation_erp_publication_date: date | None = None
     valuation_erp_methodology: str = ""
     valuation_erp_market: str = "US"
+    # AI is opt-in; no implicit model or paid generation on installation.
+    ai_research_enabled: bool = False
+    openai_api_key: str = Field(default="", repr=False)
+    openai_model: str = Field(default="", max_length=100)
+    openai_request_timeout: float = Field(default=45, ge=1, le=120)
+    openai_max_output_tokens: int = Field(default=5000, ge=256, le=8000)
+    ai_max_context_tokens: int = Field(default=64000, ge=24000, le=64000)
+    ai_report_cache_ttl: int = Field(default=1800, ge=30, le=86400)
+    ai_max_concurrent_requests: int = Field(default=2, ge=1, le=4)
+    ai_client_requests_per_minute: int = Field(default=6, ge=1, le=30)
+    ai_client_requests_per_hour: int = Field(default=20, ge=1, le=100)
+    ai_global_generations_per_day: int = Field(default=50, ge=1, le=500)
+    ai_filings_enabled: bool = True
+    ai_filing_max_bytes: int = Field(default=1500000, ge=10000, le=3000000)
+    ai_filing_excerpt_chars: int = Field(default=2500, ge=300, le=5000)
+    ai_filing_max_documents: int = Field(default=2, ge=1, le=2)
+    ai_filing_cache_ttl: int = Field(default=86400, ge=300, le=604800)
 
     @field_validator("valuation_erp_value", "valuation_erp_publication_date", mode="before")
     @classmethod

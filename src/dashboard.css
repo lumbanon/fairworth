@@ -157,6 +157,27 @@
   max-width: 770px;
   margin-top: 17px;
 }
+.research-company-full-description {
+  max-width: 770px;
+  margin-top: 8px;
+  color: var(--body-foreground);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.research-company-full-description summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.research-company-full-description p {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.research-insights-ai-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .company-metadata {
   display: flex;
   flex-wrap: wrap;
@@ -1114,6 +1135,20 @@
 .research-quality-notice ul {
   padding: 8px 0 0 20px;
   list-style: disc;
+}
+.research-notice-groups > li + li {
+  margin-top: 18px;
+}
+.research-original-diagnostics pre {
+  margin-top: 10px;
+  padding: 12px;
+  background: #fafafa;
+  color: var(--body-foreground);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .research-source-links {
   display: flex;

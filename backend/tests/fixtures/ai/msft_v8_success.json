@@ -1,0 +1,637 @@
+{
+  "description": "Exact successful authorized MSFT v8 provider output, with only its seven cited public evidence records. No credentials, personal data, session capability, history or manual overrides. Dated observations are not current market expectations.",
+  "question": "Why is MSFT's valuation available or unavailable?",
+  "capture_provenance": {
+    "prompt_version": "fairworth-research-8",
+    "model": "gpt-5-mini-2025-08-07",
+    "original_text_sha256": "e5ede61fd4602197a661e0adfd9258f3b7acc05108159552a5a0402c262c2a79",
+    "approved_complete_request_sha256": "94f0932fd1147c4265fafad947cbd357dd76380db950d4fe8e71cae398f7eb13",
+    "approved_generation_schema_sha256": "c314c2a4a1418af8517b61209632d1dd7e17b505e83876c5211545c25052f6c8",
+    "redacted": false
+  },
+  "raw_output_text": "{\"answer\":[{\"title\":\"Policy-based base fair value available\",\"explanation\":[{\"kind\":\"text\",\"text\":\"Fairworth provides a policy-based base fair value\"},{\"kind\":\"value\",\"evidence_id\":\"e_08a38cfcbd0ebf8f7e26541857636ba7\"},{\"kind\":\"text\",\"text\":\"and a dated market comparison price\"},{\"kind\":\"value\",\"evidence_id\":\"e_c667a7d34cc385ea9b544d7409f06eb3\"},{\"kind\":\"text\",\"text\":\".\"},{\"kind\":\"text\",\"text\":\"Only \"},{\"kind\":\"value\",\"evidence_id\":\"e_82c857efeafd188bd0b5996ba485a591\"},{\"kind\":\"text\",\"text\":\" model contributes: \"},{\"kind\":\"model\",\"evidence_id\":\"e_1654a4c638231ee03712a91c0eac51a6\"},{\"kind\":\"text\",\"text\":\".\"},{\"kind\":\"text\",\"text\":\"Many other common valuation models were ineligible or unavailable because required inputs (for example: debt, WACC, EBITDA/EBITDA margin, target multiples, projected dividends and related items) are missing; see the engine eligibility summary for details.\"},{\"kind\":\"text\",\"text\":\"The estimate is policy-dependent, produced by the engine with single-model weighting and flagged as low confidence.\"}],\"evidence_ids\":[\"e_65470808ad7d983648cd0113d92f1f70\",\"e_08a38cfcbd0ebf8f7e26541857636ba7\",\"e_c667a7d34cc385ea9b544d7409f06eb3\",\"e_82c857efeafd188bd0b5996ba485a591\"],\"category\":\"policy_estimate\",\"uncertainty\":\"analytical\",\"quantitative_claims\":[]},{\"title\":\"Deterministic Fairworth methodology summary\",\"explanation\":[{\"kind\":\"text\",\"text\":\"Fairworth uses a deterministic valuation policy: FCFF discounts unlevered cash flows at WACC and bridges enterprise to equity; FCFE discounts equity cash flows at cost of equity; historical P/E benchmarks and growth caps are implemented as disclosed research policies.\"},{\"kind\":\"text\",\"text\":\"Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool and did not run independent models.\"}],\"evidence_ids\":[\"e_49f3e8385d904e93fded78db\",\"e_63e5951ec3cafb1799d1ee34e498e9c1\"],\"category\":\"interpretation\",\"uncertainty\":\"analytical\",\"quantitative_claims\":[]}]}",
+  "request_scope": {
+    "evidence_ids": [
+      "e_016a74d79ebc53b96b2490aaff321a99",
+      "e_c667a7d34cc385ea9b544d7409f06eb3",
+      "e_08a38cfcbd0ebf8f7e26541857636ba7",
+      "e_f3f38359bd60513e1b071ed5c9a88dc6",
+      "e_8e546964db1f4b7da02648a014e663f2",
+      "e_82c857efeafd188bd0b5996ba485a591",
+      "e_1654a4c638231ee03712a91c0eac51a6",
+      "e_0f27e3741d99f3ccb3be9c86cb21c0d2",
+      "e_948deb54950f13bf5636ec324bca75b3",
+      "e_15b81b136d096cabbced95489a5cadd0",
+      "e_8042afeeaf8081f8e6cc60785bcf02f1",
+      "e_eafa6d1dba165cc02b3d65a5893cbc87",
+      "e_fd530ecf7998717f221e3ad6653e874d",
+      "e_0648109e03e3b4fb2ab39ca46e3bdb59",
+      "e_f702ebbfd9bd0bb48f2645eab4155711",
+      "e_df48e054fc1fe771ef369ca7fd858fdd",
+      "e_cd92b514451b8a774503106ba9fb2fd5",
+      "e_aaa24a7714946aba8a5e7f089b0c3057",
+      "e_5468751d3b7fac8c74439b1b16d6b9ce",
+      "e_522b8a37ce769af896de02df218da9f2",
+      "e_dec8ac3ad5e209c7158c666fdcafe78b",
+      "e_68cb7d8ab0f4fd14cd16d6a8b427a4d8",
+      "e_63e5951ec3cafb1799d1ee34e498e9c1",
+      "e_65470808ad7d983648cd0113d92f1f70",
+      "e_9f7ec80d13a405220185981c9382d461",
+      "e_2c292c52e921d3cd07f5bbeea3fded17",
+      "e_853f1cf8e5913a36059e8d6b2eb0235f",
+      "e_3da4016e952c26d6bacb71b0f98041a5",
+      "e_edfab655f91e533b7d7c329cca4d6675",
+      "e_dec959d6dbfcdf8a35eecaab98742f25",
+      "e_d610cb3a531ee1dded6b778be846a6d2",
+      "e_2ec12e230b9bdfde16eda18c521c4117",
+      "e_cae767ac3c51bf2c88a77dafaafb0f26",
+      "e_a5b2468cf9de79c049606d0752d58280",
+      "e_3ffe346437442170cc971ee9d8c1bb79",
+      "e_3a0bad3f0e52cca0745dee29c04cdc88",
+      "e_1f36bd17e1a4ed1c91642a28ff081ace",
+      "e_d242a730b5b30e5daa65ccf721929479",
+      "e_57ea59a71934b967ba0e5b7ddd4735a4",
+      "e_b79a14a1b52986f7a18766ff5eb9d0d1",
+      "e_effbcbf4b18d9d6cb3259fa6d59c55ab",
+      "e_24705ff4c68775e95a8133c59e1ffe16",
+      "e_2de4f96a58e06c70be78210050080ee8",
+      "e_f527055f6dc26f498a391353fb49fbb1",
+      "e_e8131c069e5ca866182c2cc3114c78e1",
+      "e_49f3e8385d904e93fded78db"
+    ],
+    "binding_catalog": {
+      "value": [
+        "e_c667a7d34cc385ea9b544d7409f06eb3",
+        "e_08a38cfcbd0ebf8f7e26541857636ba7",
+        "e_f3f38359bd60513e1b071ed5c9a88dc6",
+        "e_8e546964db1f4b7da02648a014e663f2",
+        "e_82c857efeafd188bd0b5996ba485a591",
+        "e_0f27e3741d99f3ccb3be9c86cb21c0d2",
+        "e_948deb54950f13bf5636ec324bca75b3",
+        "e_15b81b136d096cabbced95489a5cadd0",
+        "e_8042afeeaf8081f8e6cc60785bcf02f1",
+        "e_eafa6d1dba165cc02b3d65a5893cbc87",
+        "e_fd530ecf7998717f221e3ad6653e874d",
+        "e_0648109e03e3b4fb2ab39ca46e3bdb59",
+        "e_f702ebbfd9bd0bb48f2645eab4155711",
+        "e_df48e054fc1fe771ef369ca7fd858fdd",
+        "e_aaa24a7714946aba8a5e7f089b0c3057",
+        "e_5468751d3b7fac8c74439b1b16d6b9ce",
+        "e_522b8a37ce769af896de02df218da9f2",
+        "e_dec8ac3ad5e209c7158c666fdcafe78b",
+        "e_68cb7d8ab0f4fd14cd16d6a8b427a4d8",
+        "e_63e5951ec3cafb1799d1ee34e498e9c1",
+        "e_853f1cf8e5913a36059e8d6b2eb0235f",
+        "e_3da4016e952c26d6bacb71b0f98041a5",
+        "e_edfab655f91e533b7d7c329cca4d6675",
+        "e_dec959d6dbfcdf8a35eecaab98742f25",
+        "e_d610cb3a531ee1dded6b778be846a6d2",
+        "e_cae767ac3c51bf2c88a77dafaafb0f26",
+        "e_a5b2468cf9de79c049606d0752d58280",
+        "e_3ffe346437442170cc971ee9d8c1bb79",
+        "e_3a0bad3f0e52cca0745dee29c04cdc88",
+        "e_b79a14a1b52986f7a18766ff5eb9d0d1",
+        "e_effbcbf4b18d9d6cb3259fa6d59c55ab"
+      ],
+      "date": [
+        "e_c667a7d34cc385ea9b544d7409f06eb3",
+        "e_948deb54950f13bf5636ec324bca75b3",
+        "e_15b81b136d096cabbced95489a5cadd0",
+        "e_8042afeeaf8081f8e6cc60785bcf02f1",
+        "e_eafa6d1dba165cc02b3d65a5893cbc87",
+        "e_fd530ecf7998717f221e3ad6653e874d",
+        "e_0648109e03e3b4fb2ab39ca46e3bdb59",
+        "e_f702ebbfd9bd0bb48f2645eab4155711",
+        "e_df48e054fc1fe771ef369ca7fd858fdd",
+        "e_aaa24a7714946aba8a5e7f089b0c3057",
+        "e_5468751d3b7fac8c74439b1b16d6b9ce",
+        "e_522b8a37ce769af896de02df218da9f2",
+        "e_dec8ac3ad5e209c7158c666fdcafe78b",
+        "e_68cb7d8ab0f4fd14cd16d6a8b427a4d8",
+        "e_63e5951ec3cafb1799d1ee34e498e9c1",
+        "e_edfab655f91e533b7d7c329cca4d6675",
+        "e_dec959d6dbfcdf8a35eecaab98742f25",
+        "e_3ffe346437442170cc971ee9d8c1bb79",
+        "e_3a0bad3f0e52cca0745dee29c04cdc88",
+        "e_b79a14a1b52986f7a18766ff5eb9d0d1",
+        "e_effbcbf4b18d9d6cb3259fa6d59c55ab"
+      ],
+      "period": [
+        "e_08a38cfcbd0ebf8f7e26541857636ba7",
+        "e_f3f38359bd60513e1b071ed5c9a88dc6",
+        "e_8e546964db1f4b7da02648a014e663f2",
+        "e_82c857efeafd188bd0b5996ba485a591",
+        "e_1654a4c638231ee03712a91c0eac51a6",
+        "e_0f27e3741d99f3ccb3be9c86cb21c0d2",
+        "e_948deb54950f13bf5636ec324bca75b3",
+        "e_15b81b136d096cabbced95489a5cadd0",
+        "e_8042afeeaf8081f8e6cc60785bcf02f1",
+        "e_eafa6d1dba165cc02b3d65a5893cbc87",
+        "e_fd530ecf7998717f221e3ad6653e874d",
+        "e_0648109e03e3b4fb2ab39ca46e3bdb59",
+        "e_f702ebbfd9bd0bb48f2645eab4155711",
+        "e_df48e054fc1fe771ef369ca7fd858fdd",
+        "e_aaa24a7714946aba8a5e7f089b0c3057",
+        "e_5468751d3b7fac8c74439b1b16d6b9ce",
+        "e_522b8a37ce769af896de02df218da9f2",
+        "e_dec8ac3ad5e209c7158c666fdcafe78b",
+        "e_68cb7d8ab0f4fd14cd16d6a8b427a4d8",
+        "e_63e5951ec3cafb1799d1ee34e498e9c1",
+        "e_853f1cf8e5913a36059e8d6b2eb0235f",
+        "e_3da4016e952c26d6bacb71b0f98041a5",
+        "e_edfab655f91e533b7d7c329cca4d6675",
+        "e_dec959d6dbfcdf8a35eecaab98742f25",
+        "e_3a0bad3f0e52cca0745dee29c04cdc88"
+      ],
+      "model": [
+        "e_1654a4c638231ee03712a91c0eac51a6"
+      ],
+      "citation_only": [
+        "e_016a74d79ebc53b96b2490aaff321a99",
+        "e_cd92b514451b8a774503106ba9fb2fd5",
+        "e_65470808ad7d983648cd0113d92f1f70",
+        "e_9f7ec80d13a405220185981c9382d461",
+        "e_2c292c52e921d3cd07f5bbeea3fded17",
+        "e_2ec12e230b9bdfde16eda18c521c4117",
+        "e_1f36bd17e1a4ed1c91642a28ff081ace",
+        "e_d242a730b5b30e5daa65ccf721929479",
+        "e_57ea59a71934b967ba0e5b7ddd4735a4",
+        "e_24705ff4c68775e95a8133c59e1ffe16",
+        "e_2de4f96a58e06c70be78210050080ee8",
+        "e_f527055f6dc26f498a391353fb49fbb1",
+        "e_e8131c069e5ca866182c2cc3114c78e1",
+        "e_49f3e8385d904e93fded78db"
+      ]
+    }
+  },
+  "evidence_package": {
+    "ticker": "MSFT",
+    "company_name": "MICROSOFT CORP",
+    "financial_snapshot_id": "financial_1181453fbd5ae8d3396c7d29f54ae3ce",
+    "valuation_snapshot_id": "valuation_696d7a4d8101015e00014a3193d5ad79",
+    "snapshot_dates": {
+      "financial": "2026-10-16T05:52:41.999839+00:00",
+      "reporting_period": "2026-06-30",
+      "market": "2026-10-15T20:00:01+00:00",
+      "historical_prices": "2026-10-16T05:52:59.357647+00:00",
+      "valuation": "2026-10-16T05:53:01.970116+00:00"
+    },
+    "limitations": [
+      "Evidence and binding choices were bounded to the complete request budget; omitted records must not be inferred or cited.",
+      "Evidence context was bounded: omitted records must not be inferred or cited. Full financial/valuation snapshots remain authoritative.",
+      "SEC filing text could not be retrieved (filing_too_large); qualitative filing coverage is unavailable.",
+      "No SEC filing passages were retrieved; documented qualitative company-risk coverage is unavailable.",
+      "Financial observations are dated; retrieval time does not make a financial period current.",
+      "Research is AI-generated interpretation of registered evidence, not audited research or an investment recommendation.",
+      "The weighted estimate is policy-based and illustrative; it is not an independently verified intrinsic value.",
+      "The weighted estimate uses one model; no independent model confirmation is available.",
+      "FY2010 FY (2010-06-30): current maturities of long-term debt are unavailable; total debt is not assumed from partial components.",
+      "FY2011 FY (2011-06-30): current maturities of long-term debt are unavailable; total debt is not assumed from partial components.",
+      "FY2012 FY (2012-06-30): complete current and noncurrent debt components are unavailable.",
+      "FY2014 FY (2014-06-30): operating cash flow data is unavailable; free cash flow cannot be calculated.",
+      "FY2015 FY (2015-06-30): operating cash flow data is unavailable; free cash flow cannot be calculated.",
+      "FY2020 FY (2020-06-30): complete current and noncurrent debt components are unavailable."
+    ],
+    "registry": {
+      "e_08a38cfcbd0ebf8f7e26541857636ba7": {
+        "id": "e_08a38cfcbd0ebf8f7e26541857636ba7",
+        "category": "policy_estimate",
+        "provider": "Fairworth Python valuation engine",
+        "title": "Base weighted intrinsic value (policy_based)",
+        "ticker": "MSFT",
+        "metric": "base_fair_value",
+        "value": 619.5604742486083,
+        "unit": "USD/share",
+        "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+        "observation_date": null,
+        "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+        "source_url": null,
+        "accession": null,
+        "derivation": "Deterministic weighted estimate from eligible enabled models; not an AI calculation.",
+        "quality_warnings": [
+          "Historical pricing is a transparent company benchmark, not proof of intrinsic fair value; future growth, risk, reinvestment and profitability may differ.",
+          "This historical estimate depends on explicitly disclosed forecasting or capital-value modeling policies.",
+          "Single-model estimate: there is no independent model confirmation.",
+          "This is a single-model estimate; no independent model confirmation is available."
+        ],
+        "excerpt": null
+      },
+      "e_1654a4c638231ee03712a91c0eac51a6": {
+        "id": "e_1654a4c638231ee03712a91c0eac51a6",
+        "category": "valuation_output",
+        "provider": "Fairworth Python valuation engine",
+        "title": "Sole contributing valuation model",
+        "ticker": "MSFT",
+        "metric": "base_model_name",
+        "value": "Forward P/E",
+        "unit": "text",
+        "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+        "observation_date": null,
+        "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+        "source_url": null,
+        "accession": null,
+        "derivation": "Model name selected by the existing base scenario effective_weights; not a new model selection.",
+        "quality_warnings": [],
+        "excerpt": null
+      },
+      "e_49f3e8385d904e93fded78db": {
+        "id": "e_49f3e8385d904e93fded78db",
+        "category": "historical_metric",
+        "provider": "Fairworth",
+        "title": "Deterministic valuation methodology",
+        "ticker": "MSFT",
+        "metric": "valuation_methodology",
+        "value": "FCFF discounts unlevered cash flows at WACC and bridges enterprise to common equity. FCFE discounts equity cash flows at cost of equity without deducting net debt again. Historical P/E benchmarks and growth caps are disclosed research policies. Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool.",
+        "unit": "text",
+        "period": null,
+        "observation_date": null,
+        "retrieved_at": null,
+        "source_url": null,
+        "accession": null,
+        "derivation": null,
+        "quality_warnings": [],
+        "excerpt": null
+      },
+      "e_63e5951ec3cafb1799d1ee34e498e9c1": {
+        "id": "e_63e5951ec3cafb1799d1ee34e498e9c1",
+        "category": "policy_estimate",
+        "provider": "sec-edgar + fmp",
+        "title": "Base assumption: target pe",
+        "ticker": "MSFT",
+        "metric": "target_pe",
+        "value": 29.40123247853427,
+        "unit": "multiple",
+        "period": "FY 2022, 2023, 2024, 2025, 2026",
+        "observation_date": "2026-07-30",
+        "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+        "source_url": null,
+        "accession": "0000950170-23-035122, 0000950170-24-087843, 0000950170-25-100235, 0001193125-26-323660, 0001564590-2",
+        "derivation": "Median(price on first trading day after earnings publication / (split-compatible reported annual EPS × (1 + three-year EPS CAGR known at that date))); no future fundamentals enter historical forecasts.",
+        "quality_warnings": [
+          "Historical pricing is a transparent company benchmark, not proof of intrinsic fair value; future growth, risk, reinvestment and profitability may differ.",
+          "This historical estimate depends on explicitly disclosed forecasting or capital-value modeling policies.",
+          "Policy-dependent estimate; it is not a reported financial fact."
+        ],
+        "excerpt": null
+      },
+      "e_65470808ad7d983648cd0113d92f1f70": {
+        "id": "e_65470808ad7d983648cd0113d92f1f70",
+        "category": "valuation_output",
+        "provider": "Fairworth Python valuation engine",
+        "title": "Base model eligibility, weights and classifications",
+        "ticker": "MSFT",
+        "metric": "base_model_results",
+        "value": {
+          "models": [
+            {
+              "id": "fcff",
+              "name": "FCFF DCF",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "debt",
+                "fcff",
+                "minority_interest",
+                "other_nonoperating_assets",
+                "preferred_equity",
+                "wacc"
+              ],
+              "reason_codes": [
+                "missing_inputs"
+              ]
+            },
+            {
+              "id": "fcfe",
+              "name": "FCFE DCF",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "fcfe"
+              ],
+              "reason_codes": [
+                "missing_inputs"
+              ]
+            },
+            {
+              "id": "pe",
+              "name": "Forward P/E",
+              "status": "valid",
+              "fair_value": 619.5604742486083,
+              "classification": "policy_based",
+              "eligibility": "eligible",
+              "missing_inputs": [],
+              "reason_codes": [
+                "inputs_complete"
+              ]
+            },
+            {
+              "id": "evEbitda",
+              "name": "EV/EBITDA",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "debt",
+                "ebitda_margin",
+                "minority_interest",
+                "other_nonoperating_assets",
+                "preferred_equity",
+                "target_ev_ebitda"
+              ],
+              "reason_codes": [
+                "missing_inputs"
+              ]
+            },
+            {
+              "id": "evRevenue",
+              "name": "EV/Revenue",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "debt",
+                "minority_interest",
+                "other_nonoperating_assets",
+                "preferred_equity",
+                "target_ev_revenue"
+              ],
+              "reason_codes": [
+                "missing_inputs"
+              ]
+            },
+            {
+              "id": "peg",
+              "name": "PEG",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "target_peg"
+              ],
+              "reason_codes": [
+                "missing_inputs"
+              ]
+            },
+            {
+              "id": "graham",
+              "name": "Graham",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "book_value_meaningful",
+                "common_equity_basis_confirmed"
+              ],
+              "reason_codes": [
+                "preferred_and_common_book_scope_unverified",
+                "economic_book_value_unconfirmed"
+              ]
+            },
+            {
+              "id": "dividend",
+              "name": "Dividend discount",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "projected_dividends",
+                "stable_dividend_confirmed"
+              ],
+              "reason_codes": [
+                "dividend_sustainability_unconfirmed"
+              ]
+            },
+            {
+              "id": "residual",
+              "name": "Residual income",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "book_value_meaningful",
+                "clean_surplus_confirmed",
+                "common_equity_basis_confirmed"
+              ],
+              "reason_codes": [
+                "preferred_and_common_book_scope_unverified",
+                "economic_book_value_unconfirmed",
+                "clean_surplus_unconfirmed"
+              ]
+            },
+            {
+              "id": "pb",
+              "name": "Price-to-book",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "unavailable",
+              "missing_inputs": [
+                "book_value_meaningful",
+                "common_equity_basis_confirmed",
+                "target_pb"
+              ],
+              "reason_codes": [
+                "preferred_and_common_book_scope_unverified",
+                "economic_book_value_unconfirmed"
+              ]
+            },
+            {
+              "id": "affo",
+              "name": "REIT AFFO",
+              "status": "unavailable",
+              "fair_value": null,
+              "classification": "unavailable",
+              "eligibility": "ineligible",
+              "missing_inputs": [
+                "affo_basis_confirmed",
+                "forecast_affo",
+                "target_p_affo"
+              ],
+              "reason_codes": [
+                "not_a_reit",
+                "affo_basis_unverified"
+              ]
+            }
+          ],
+          "effective_weights": {
+            "pe": 1.0
+          },
+          "classification": "policy_based",
+          "composition": [
+            {
+              "classification": "policy_based",
+              "weight": 1.0,
+              "model_ids": [
+                "pe"
+              ]
+            }
+          ],
+          "confidence": "low"
+        },
+        "unit": "structured",
+        "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+        "observation_date": null,
+        "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+        "source_url": null,
+        "accession": null,
+        "derivation": null,
+        "quality_warnings": [],
+        "excerpt": null
+      },
+      "e_82c857efeafd188bd0b5996ba485a591": {
+        "id": "e_82c857efeafd188bd0b5996ba485a591",
+        "category": "valuation_output",
+        "provider": "Fairworth Python valuation engine",
+        "title": "Base contributing model count",
+        "ticker": "MSFT",
+        "metric": "base_contributing_model_count",
+        "value": 1,
+        "unit": "models",
+        "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+        "observation_date": null,
+        "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+        "source_url": null,
+        "accession": null,
+        "derivation": "Existing base scenario summary.count; only eligible, enabled models with positive effective weight contribute.",
+        "quality_warnings": [
+          "A contributing model count is not a probability or independent confirmation."
+        ],
+        "excerpt": null
+      },
+      "e_c667a7d34cc385ea9b544d7409f06eb3": {
+        "id": "e_c667a7d34cc385ea9b544d7409f06eb3",
+        "category": "reported_fact",
+        "provider": "fmp",
+        "title": "Comparison market price",
+        "ticker": "MSFT",
+        "metric": "market_price",
+        "value": 539.44,
+        "unit": "USD/share",
+        "period": null,
+        "observation_date": "2026-10-15T20:00:01+00:00",
+        "retrieved_at": "2026-10-16T05:52:58.184929+00:00",
+        "source_url": null,
+        "accession": null,
+        "derivation": null,
+        "quality_warnings": [
+          "The market provider did not supply a usable current share count."
+        ],
+        "excerpt": null
+      }
+    }
+  },
+  "original_published_findings": [
+    {
+      "title": "Policy-based base fair value available",
+      "explanation": "Fairworth provides a policy-based base fair value$619.56and a dated market comparison price$539.44.Only 1 model contributes: Forward P/E.Many other common valuation models were ineligible or unavailable because required inputs (for example: debt, WACC, EBITDA/EBITDA margin, target multiples, projected dividends and related items) are missing; see the engine eligibility summary for details.The estimate is policy-dependent, produced by the engine with single-model weighting and flagged as low confidence.",
+      "evidence_ids": [
+        "e_65470808ad7d983648cd0113d92f1f70",
+        "e_08a38cfcbd0ebf8f7e26541857636ba7",
+        "e_c667a7d34cc385ea9b544d7409f06eb3",
+        "e_82c857efeafd188bd0b5996ba485a591",
+        "e_1654a4c638231ee03712a91c0eac51a6"
+      ],
+      "category": "policy_estimate",
+      "uncertainty": "analytical",
+      "quantitative_claims": [
+        {
+          "evidence_id": "e_08a38cfcbd0ebf8f7e26541857636ba7",
+          "metric": "base_fair_value",
+          "value": 619.5604742486083,
+          "unit": "USD/share",
+          "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+          "derivation": "Deterministic weighted estimate from eligible enabled models; not an AI calculation."
+        },
+        {
+          "evidence_id": "e_c667a7d34cc385ea9b544d7409f06eb3",
+          "metric": "market_price",
+          "value": 539.44,
+          "unit": "USD/share",
+          "period": null,
+          "derivation": null
+        },
+        {
+          "evidence_id": "e_82c857efeafd188bd0b5996ba485a591",
+          "metric": "base_contributing_model_count",
+          "value": 1,
+          "unit": "models",
+          "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+          "derivation": "Existing base scenario summary.count; only eligible, enabled models with positive effective weight contribute."
+        }
+      ]
+    },
+    {
+      "title": "Deterministic Fairworth methodology summary",
+      "explanation": "Fairworth uses a deterministic valuation policy: FCFF discounts unlevered cash flows at WACC and bridges enterprise to equity; FCFE discounts equity cash flows at cost of equity; historical P/E benchmarks and growth caps are implemented as disclosed research policies.Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool and did not run independent models.",
+      "evidence_ids": [
+        "e_49f3e8385d904e93fded78db",
+        "e_63e5951ec3cafb1799d1ee34e498e9c1"
+      ],
+      "category": "interpretation",
+      "uncertainty": "analytical",
+      "quantitative_claims": []
+    }
+  ],
+  "expected_presented_findings": [
+    {
+      "title": "Policy-based base fair value available",
+      "explanation": "Fairworth provides a policy-based base fair value $619.56 and a dated market comparison price $539.44. Only 1 model contributes: Forward P/E. Many other common valuation models were ineligible or unavailable because required inputs (for example: debt, WACC, EBITDA/EBITDA margin, target multiples, projected dividends and related items) are missing; see the engine eligibility summary for details. The estimate is policy-dependent, produced by the engine with single-model weighting and flagged as low confidence.",
+      "evidence_ids": [
+        "e_65470808ad7d983648cd0113d92f1f70",
+        "e_08a38cfcbd0ebf8f7e26541857636ba7",
+        "e_c667a7d34cc385ea9b544d7409f06eb3",
+        "e_82c857efeafd188bd0b5996ba485a591",
+        "e_1654a4c638231ee03712a91c0eac51a6"
+      ],
+      "category": "policy_estimate",
+      "uncertainty": "analytical",
+      "quantitative_claims": [
+        {
+          "evidence_id": "e_08a38cfcbd0ebf8f7e26541857636ba7",
+          "metric": "base_fair_value",
+          "value": 619.5604742486083,
+          "unit": "USD/share",
+          "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+          "derivation": "Deterministic weighted estimate from eligible enabled models; not an AI calculation."
+        },
+        {
+          "evidence_id": "e_c667a7d34cc385ea9b544d7409f06eb3",
+          "metric": "market_price",
+          "value": 539.44,
+          "unit": "USD/share",
+          "period": null,
+          "derivation": null
+        },
+        {
+          "evidence_id": "e_82c857efeafd188bd0b5996ba485a591",
+          "metric": "base_contributing_model_count",
+          "value": 1,
+          "unit": "models",
+          "period": "FY2026 FY; 2025-07-01 to 2026-06-30",
+          "derivation": "Existing base scenario summary.count; only eligible, enabled models with positive effective weight contribute."
+        }
+      ]
+    },
+    {
+      "title": "Deterministic Fairworth methodology summary",
+      "explanation": "Fairworth uses a deterministic valuation policy: FCFF discounts unlevered cash flows at WACC and bridges enterprise to equity; FCFE discounts equity cash flows at cost of equity; historical P/E benchmarks and growth caps are implemented as disclosed research policies. Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool and did not run independent models.",
+      "evidence_ids": [
+        "e_49f3e8385d904e93fded78db",
+        "e_63e5951ec3cafb1799d1ee34e498e9c1"
+      ],
+      "category": "interpretation",
+      "uncertainty": "analytical",
+      "quantitative_claims": []
+    }
+  ]
+}

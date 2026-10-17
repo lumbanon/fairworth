@@ -83,6 +83,8 @@ export default function useProviderValuation(company) {
   return {
     ...data,
     providerMode: true,
+    valuationRequest: JSON.parse(requestKey),
+    validForResearch: validInputs && state.status === "ready",
     status: state.status,
     error: state.error,
     validationErrors,

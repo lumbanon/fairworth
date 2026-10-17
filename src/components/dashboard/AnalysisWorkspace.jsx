@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import DashboardLayout from "./DashboardLayout";
 import CompanyHeader from "./CompanyHeader";
 import ValuationSummary from "./ValuationSummary";
@@ -16,16 +17,22 @@ import DataModeControl from "./DataModeControl";
 import DataQualityNotice from "./DataQualityNotice";
 import ProviderAssumptionEditor from "./ProviderAssumptionEditor";
 import ProviderValuationStatus from "./ProviderValuationStatus";
+import AIResearchWorkspace from "./AIResearchWorkspace";
 
 function Workspace({ company, valuation }) {
   const [selectedModel, setSelectedModel] = useState(() => valuation.providerMode ? "pe" : valuation.results.find((result) => result.applicable)?.id ?? "fcff");
+  const { pathname, hash } = useLocation();
+  const navigate = useNavigate();
+  const researchActive = valuation.providerMode && hash === "#ai-research";
   return (
-    <DashboardLayout>
+    <DashboardLayout showAIResearch={valuation.providerMode}>
       <DataModeControl />
       <CompanyHeader company={company} />
       {company.dataMode === "provider" && (
-        <><DataQualityNotice company={company} /><ProviderValuationStatus company={company} valuation={valuation} /></>
+        <><DataQualityNotice company={company} /><div className="ai-view-tabs" role="group" aria-label="Company workspace view"><button type="button" aria-pressed={!researchActive} onClick={() => navigate(`${pathname}#overview`)}>Valuation</button><button type="button" aria-pressed={researchActive} onClick={() => navigate(`${pathname}#ai-research`)}>AI Research</button></div></>
       )}
+      <div hidden={researchActive}>
+      {valuation.providerMode && <ProviderValuationStatus company={company} valuation={valuation} />}
       <div className="research-context-row">
         <span>
           Analysis workspace{" "}
@@ -64,6 +71,8 @@ function Workspace({ company, valuation }) {
       <SensitivityTable company={company} valuation={valuation} />
       <ReverseDCF company={company} valuation={valuation} />
       <ResearchInsights company={company} />
+      </div>
+      {valuation.providerMode && <AIResearchWorkspace key={JSON.stringify([company.ticker, valuation.valuationRequest])} company={company} valuation={valuation} active={researchActive} />}
     </DashboardLayout>
   );
 }

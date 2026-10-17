@@ -1,3 +1,6 @@
+import SourceNoticeGroups from "./SourceNoticeGroups";
+import { groupSourceNotices } from "@/lib/sourceNotices";
+
 function sourceLink(source) {
   const value =
     typeof source === "string" ? source : (source.url ?? source.filing_url);
@@ -11,6 +14,8 @@ function sourceLink(source) {
 
 export default function DataQualityNotice({ company }) {
   const status = company.dataStatus;
+  const warnings = company.warnings ?? [];
+  const issueCount = groupSourceNotices(warnings).length;
   const references = [
     ...new Set(company.sourceReferences.map(sourceLink).filter(Boolean)),
   ];
@@ -61,19 +66,10 @@ export default function DataQualityNotice({ company }) {
           Missing reported fields: {status.missing_fields.join(", ")}.
         </p>
       )}
-      <details>
-        <summary>
-          {company.warnings.length} source and compatibility notices
-        </summary>
-        <ul>
-          {company.warnings.map((warning, index) => (
-            <li key={`${warning.code}-${index}`}>
-              {warning.field && <strong>{warning.field}: </strong>}
-              {warning.message}
-            </li>
-          ))}
-        </ul>
-      </details>
+      <p className="research-caption">
+        {warnings.length ? `${issueCount} source issue type${issueCount === 1 ? "" : "s"} across ${warnings.length} notices. Historical checks are grouped below; original diagnostics remain available.` : "No source or compatibility notices were reported."}
+      </p>
+      <SourceNoticeGroups notices={warnings} />
       {references.length > 0 && (
         <div className="research-source-links">
           {references.map((url, index) => (
