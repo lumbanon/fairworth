@@ -78,7 +78,7 @@ def create_app(settings=None, engine=None, providers=None):
                 await application.state.research_service.close()
         engine.dispose()
 
-    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.5.0", lifespan=lifespan,
+    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.6.0", lifespan=lifespan,
                           description="Sourced financial data and transparent, bounded Python valuations for Provider mode.",
                           responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse},
                                      502: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})

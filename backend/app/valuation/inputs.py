@@ -71,10 +71,14 @@ def _fact(field: str, raw: Any, period: dict, currency: str | None, retrieved_at
     records = deepcopy(period.get("provenance", {}).get(field, []))
     unit = "shares" if "shares" in field else f"{currency}/shares" if field in ("basic_eps", "diluted_eps") else currency
     kind = METRIC_DEFINITIONS.get(field, ((), None, "duration"))[2]
-    if field == "total_debt":
+    if field in {"total_debt", "preferred_equity", "other_nonoperating_assets"}:
         kind = "instant"
     warnings = []
     if value is not None:
+        if field == "total_debt" and isinstance(records, list) and any(record.get("source") == "sec" for record in records if isinstance(record, dict)):
+            from app.services.normalization import complete_conventional_debt_provenance
+            if not complete_conventional_debt_provenance(records, end_date=period.get("end_date")):
+                warnings.append(_warning(field, "incomplete_conventional_debt_scope", "Legacy debt observations do not establish complete conventional debt without lease overlap or missing borrowing components."))
         if not currency or not isinstance(records, list) or not records:
             warnings.append(_warning(field, "missing_fact_provenance", "A declared currency and original source observations are required."))
         else:
@@ -211,7 +215,7 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
             warnings.append(_warning("market_price", "incompatible_market_currency", "Market and reporting currencies are incompatible; no foreign-exchange rate was invented."))
     references = deepcopy(normalized.get("source_references", [])) + deepcopy(profile.get("source_references", []))
     return {
-        "company": company, "currency": currency,
+        "company": company, "currency": currency, "normalization_version": normalized.get("normalization_version"),
         "reporting_period": {key: latest.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")} if latest else None,
         "financial_retrieved_at": retrieved_at.isoformat() if isinstance(retrieved_at, datetime) else retrieved_at,
         "market": market, "values": values, "facts": facts, "annual_periods": periods,

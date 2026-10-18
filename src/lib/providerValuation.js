@@ -29,6 +29,12 @@ function strings(values = []) {
   return values.map((value) => typeof value === "string" ? value : value.message).filter(Boolean);
 }
 
+export function providerRequiredInputPaths(values = []) {
+  if (!Array.isArray(values) || values.length === 0) return [];
+  if (values.every((value) => typeof value === "string")) return [values];
+  return values.filter(Array.isArray).map((path) => path.filter((value) => typeof value === "string")).filter((path) => path.length);
+}
+
 const classificationLabels = {
   evidence_supported: "Evidence-supported estimate",
   policy_based: "Policy-based illustrative estimate",
@@ -105,7 +111,8 @@ export function adaptProviderValuation(response, expectedTicker) {
           description: eligibility.reason || "Python determines suitability from the financial basis and available inputs.",
           formula: formulas[model.id] || "See the Python calculation explanation.",
           condition: eligibility.reason || eligibility.status || "Review required financial inputs.",
-          requiredInputs: eligibility.required_inputs ?? [],
+          requiredInputs: [...new Set(providerRequiredInputPaths(eligibility.required_inputs).flat())],
+          requiredInputPaths: providerRequiredInputPaths(eligibility.required_inputs),
         },
       };
     });
@@ -125,6 +132,8 @@ export function adaptProviderValuation(response, expectedTicker) {
       metadata: scenario.assumptions?.metadata ?? {},
       values: scenario.assumptions?.values ?? {},
       confidence: scenario.confidence,
+      diagnostics: scenario.diagnostics ?? null,
+      dataCompleteness: scenario.data_completeness ?? (name === "base" ? response.data_completeness : null) ?? null,
     }];
   }));
   const reverse = response.reverse_dcf ?? {};
@@ -138,6 +147,10 @@ export function adaptProviderValuation(response, expectedTicker) {
     comparisonPrice: response.market?.price ?? null,
     sensitivity: response.sensitivity,
     confidence: response.confidence,
+    diagnostics: response.scenarios.base.diagnostics ?? null,
+    dataCompleteness: response.data_completeness ?? null,
+    financials: response.financials ?? {},
+    automaticEvidence: response.automatic_evidence ?? {},
     warnings: strings(response.warnings),
     sourceNotices: response.warnings ?? [],
     reverseDCF: {
@@ -166,10 +179,12 @@ export function emptyProviderValuation() {
       results: [],
       summary: { fairValue: null, upside: null, marginOfSafety: null, normalizedWeights: {}, count: 0, warnings: [], classification: null, composition: [], sourceWarnings: [] },
       values: {}, metadata: {},
+      diagnostics: null, dataCompleteness: null,
     }])),
     defaults: {}, suggestedWeights: {}, configuredWeights: {}, enabledModels: [],
     market: { price: null, source_type: "unavailable" }, comparisonPrice: null,
     sensitivity: null, reverseDCF: null, warnings: [],
+    diagnostics: null, dataCompleteness: null, financials: {}, automaticEvidence: {},
   };
 }
 

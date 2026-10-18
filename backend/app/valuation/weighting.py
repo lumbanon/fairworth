@@ -11,6 +11,42 @@ GROUPS = {
     "distributions": {"dividend": 2, "affo": 4},
 }
 GROUP_BUDGETS = {"cash_flow": 35, "earnings": 25, "enterprise_multiples": 20, "book_equity": 15, "distributions": 20}
+AGGREGATION_VERSION = "family-weighted-mean-1"
+FAMILY_LABELS = {"cash_flow": "Discounted cash flow", "earnings": "Earnings multiples",
+                 "enterprise_multiples": "Enterprise multiples", "book_equity": "Book equity",
+                 "distributions": "Distributions"}
+
+
+def aggregation_diagnostics(models, summary, user_weights=()):
+    """Describe the existing arithmetic; ranges are not confidence intervals."""
+    active = [model for model in models if model["id"] in summary["effective_weights"]]
+    values = [model["fair_value"] for model in active]
+    sources = {model["id"]: "user" if model["id"] in user_weights else "default" for model in active}
+    origin = "mixed" if len(set(sources.values())) > 1 else next(iter(sources.values()), "default")
+    spread = ((max(values) - min(values)) / max(1e-12, max(abs(value) for value in values))
+              if len(values) > 1 else None)
+    fields = {}
+    for model in active:
+        for key in model.get("source_quality", {}).get("used_inputs", []):
+            fields.setdefault(key, []).append(model["id"])
+    warnings = ["Method families describe related financial frameworks; distinct families do not establish independent evidence."]
+    if len(values) < 2:
+        warnings.append("A single contributing model cannot establish model agreement or a defensible model range.")
+    elif spread > 0.5:
+        warnings.append("Contributing estimates materially disagree: their range exceeds half the largest absolute estimate; no outlier is silently removed.")
+    if any(value <= 0 for value in values):
+        warnings.append("Nonpositive equity estimates are preserved; a range crossing zero requires economic interpretation.")
+    if fields and any(len(ids) > 1 for ids in fields.values()):
+        warnings.append("Contributing models share inputs or assumptions; agreement is not independent confirmation.")
+    return {"methodology_version": AGGREGATION_VERSION, "method": "normalized_weighted_mean",
+            "weight_source": origin, "per_model_weight_sources": sources,
+            "estimate_range": {"minimum": min(values), "maximum": max(values)} if len(values) > 1 else None,
+            "dispersion": {"status": "material_disagreement" if spread > 0.5 else "limited_agreement",
+                           "relative_spread": spread} if spread is not None else None,
+            "shared_assumptions": [{"key": key, "model_ids": ids} for key, ids in sorted(fields.items()) if len(ids) > 1],
+            "family_weights": {family: math.fsum(summary["effective_weights"].get(model["id"], 0) for model in active if model["id"] in members)
+                               for family, members in GROUPS.items() if any(model["id"] in members for model in active)},
+            "warnings": warnings}
 
 
 def comparisons(fair_value, price):

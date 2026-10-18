@@ -17,6 +17,8 @@ import DataModeControl from "./DataModeControl";
 import DataQualityNotice from "./DataQualityNotice";
 import ProviderAssumptionEditor from "./ProviderAssumptionEditor";
 import ProviderValuationStatus from "./ProviderValuationStatus";
+import ProviderValuationDiagnostics from "./ProviderValuationDiagnostics";
+import ProviderDataCompleteness from "./ProviderDataCompleteness";
 import AIResearchWorkspace from "./AIResearchWorkspace";
 
 function Workspace({ company, valuation }) {
@@ -55,6 +57,7 @@ function Workspace({ company, valuation }) {
         </div>
       </div>
       <ValuationSummary company={company} valuation={valuation} />
+      {valuation.providerMode && <><ProviderValuationDiagnostics valuation={valuation} currency={company.currency} /><ProviderDataCompleteness valuation={valuation} /></>}
       <ModelComparison
         company={company}
         valuation={valuation}

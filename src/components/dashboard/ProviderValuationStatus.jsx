@@ -43,7 +43,7 @@ export default function ProviderValuationStatus({ company, valuation }) {
       </details>}
       {currentNotices.map((notice, index) => <p className="research-caption" key={index}>{noticeMessage(notice)}</p>)}
       <SourceNoticeGroups notices={historicalNotices} label="Historical financial source checks" />
-      {confidence && <details className="provider-confidence"><summary>Valuation quality: {confidence.label || confidence.level || "See breakdown"}</summary>
+      {confidence && !valuation.diagnostics && <details className="provider-confidence"><summary>Valuation quality: {confidence.label || confidence.level || "See breakdown"}</summary>
         <p className="research-caption">A heuristic assessment of model and input quality, not a statistical probability or a measure of investment accuracy.</p>
         {Object.entries(confidence.breakdown ?? confidence.components ?? {}).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{typeof value === "object" && value !== null ? value.explanation || value.description || JSON.stringify(value) : String(value)}</p>)}
         {(confidence.factors ?? []).map((factor, index) => <p className="research-caption" key={index}><strong>{factor.name}: </strong>{factor.explanation} ({factor.status?.replaceAll("_", " ")})</p>)}

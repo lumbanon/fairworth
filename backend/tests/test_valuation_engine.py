@@ -389,10 +389,14 @@ def test_overflowing_market_comparisons_are_unavailable_finite_json(synthetic_in
 def test_dated_reported_model_baselines_have_explicit_default_sources(verified_inputs):
     result = calculate_valuation(verified_inputs["AAPL"])
     defaults = result["defaults"]["base"]
-    for key in ("shares", "debt", "cash", "book_equity"):
+    for key in ("shares", "cash", "book_equity"):
         assert defaults["values"][key] == verified_inputs["AAPL"]["values"][key]
         assert defaults["metadata"][key]["source_type"] == "reported_input"
         assert defaults["metadata"][key]["observation_period"]["fiscal_year"] == 2025
+    # Normalization v4 does not reuse the legacy CommercialPaper-based
+    # aggregate as complete conventional debt; the immutable fixture remains.
+    assert defaults["values"]["debt"] is None
+    assert defaults["metadata"]["debt"]["source_type"] == "unavailable"
     missing = calculate_valuation(verified_inputs["MSFT"])["defaults"]["base"]
     assert missing["values"]["debt"] is None
     assert missing["metadata"]["debt"]["source_type"] == "unavailable"

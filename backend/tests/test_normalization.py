@@ -275,7 +275,10 @@ def test_debt_components_are_complete_and_not_double_counted():
             "LongTermDebtCurrent": ("USD", [observation(15, None)]),
             "LongTermDebtNoncurrent": ("USD", [observation(100, None)])}
     result = normalize_company_facts(payload(base))
-    assert result["annual"][0]["metrics"]["total_debt"] == 140  # Current maturities already in DebtCurrent.
+    # DebtCurrent also permits capital leases; its conventional debt scope is
+    # unverified. Preserve it separately instead of calling the sum total debt.
+    assert result["annual"][0]["metrics"]["total_debt"] is None
+    assert result["annual"][0]["metrics"]["current_debt_including_lease_obligations"] == 40
     base.pop("DebtCurrent")
     base["ShortTermBorrowings"] = ("USD", [observation(25, None)])
     result = normalize_company_facts(payload(base))
@@ -392,7 +395,7 @@ def test_derived_cash_flow_overflow_is_excluded():
 
 def test_financial_ratios_growth_and_average_equity(raw_facts):
     raw = copy.deepcopy(raw_facts)
-    raw["facts"]["us-gaap"]["DebtCurrent"] = {"units": {"USD": [observation(25, None)]}}
+    raw["facts"]["us-gaap"]["DebtLongtermAndShorttermCombinedAmount"] = {"units": {"USD": [observation(150, None)]}}
     result = normalize_company_facts(raw)
     calculated = calculate_metrics(result["annual"])
     values = calculated["periods"][0]["metrics"]
@@ -470,7 +473,8 @@ def test_commercial_paper_and_reported_total_debt_do_not_double_count():
         'LongTermDebtCurrent':('USD',[observation(10,None)]),
         'LongTermDebtNoncurrent':('USD',[observation(80,None)]),
     }
-    assert normalize_company_facts(payload(concepts))['annual'][0]['metrics']['total_debt'] == 95
+    # A commercial-paper subtotal does not establish complete short borrowing.
+    assert normalize_company_facts(payload(concepts))['annual'][0]['metrics']['total_debt'] is None
     concepts['DebtLongtermAndShorttermCombinedAmount'] = ('USD',[observation(96,None)])
     period = normalize_company_facts(payload(concepts))['annual'][0]
     assert period['metrics']['total_debt'] == 96

@@ -7,12 +7,12 @@ import pytest
 
 from app.core.config import Settings
 from app.core.database import utcnow
-from app.services.automatic_inputs_service import AutomaticInputsService, EVIDENCE_VERSION
+from app.services.automatic_inputs_service import AutomaticInputsService, PROVIDER_CACHE_VERSION
 from app.services.cache_service import CacheService
 
 
 def key(day):
-    return f"treasury:10year:{day.isoformat()}:v{EVIDENCE_VERSION}"
+    return f"treasury:10year:{day.isoformat()}:v{PROVIDER_CACHE_VERSION}"
 
 
 def fixture_service(session_factory):

@@ -100,5 +100,10 @@ def eligibility(model_id, inputs, values, overridden=()):
         status, reason = "unavailable", "Required inputs or compatibility confirmations are unavailable: " + ", ".join(missing) + "."
     else:
         status, reason = ("available_with_warnings" if warnings else "eligible"), "Required financial inputs and assumptions are available."
+    paths = [{"required_inputs": path,
+              "available_inputs": [key for key in path if values.get(key) is not None],
+              "missing_inputs": [key for key in path if values.get(key) is None]}
+             for path in required_inputs(model_id)]
     return {"status": status, "reason": reason, "reason_codes": reasons or (["missing_inputs"] if missing else ["inputs_complete"]),
-            "required_inputs": required_inputs(model_id), "missing_inputs": missing, "warnings": warnings}
+            "required_inputs": required_inputs(model_id), "input_paths": paths,
+            "missing_inputs": missing, "warnings": warnings}

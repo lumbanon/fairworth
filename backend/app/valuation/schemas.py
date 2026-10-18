@@ -225,11 +225,13 @@ class ScenarioResult(ApiModel):
     summary: ValuationSummary
     assumptions: dict[str, Any]
     confidence: dict[str, Any]
+    diagnostics: dict[str, Any] = Field(default_factory=dict)
+    data_completeness: dict[str, Any] = Field(default_factory=dict)
 
 
 class ValuationResponse(ApiModel):
     engine_version: str
-    assumption_methodology_version: str = "automatic-assumptions-1"
+    assumption_methodology_version: str = "automatic-assumptions-2"
     snapshot_dates: dict[str, Any] = Field(default_factory=dict)
     source_identifiers: list[str] = Field(default_factory=list)
     automatic_evidence: dict[str, Any] = Field(default_factory=dict)
@@ -247,3 +249,5 @@ class ValuationResponse(ApiModel):
     sensitivity: dict[str, Any] | None = None
     warnings: list[dict[str, Any]]
     confidence: dict[str, Any]
+    diagnostics: dict[str, Any] = Field(default_factory=dict)
+    data_completeness: dict[str, Any] = Field(default_factory=dict)

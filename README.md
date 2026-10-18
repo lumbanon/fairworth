@@ -1,6 +1,8 @@
-# Fairworth — Phase 5
+# Fairworth — Phase 6
 
 A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
+
+The [Phase 6 implementation and verification report](docs/phase6-valuation-accuracy.md) documents verified financial scope mappings, complete-debt safeguards, fiscal forecast alignment, versioned evidence, coverage/quality/confidence diagnostics and the expandable data-completeness dashboard. The [internal audit](docs/phase6-internal-audit.md) records the evidence and priorities established before implementation. Four-company results use explicitly dated public fixtures: additional fields improve inspection while AAPL/MSFT retain single-model policy estimates and NVDA/ORCL retain legitimate blockers. No fresh provider or OpenAI requests are part of Phase 6 verification.
 
 The [Phase 4.5 implementation and verification report](docs/phase45-automatic-valuation.md) documents automatic historical valuation benchmarks, split-compatible forecasts, dated discount-rate inputs, source quality, classifications, four-company results, tests and remaining limitations. AAPL and MSFT now support automatic single-model, policy-based illustrative P/E estimates with the verified source snapshots. NVDA and ORCL retain explicit evidence blockers. The [initial diagnostic matrix](docs/phase45-diagnostic-audit.md) explains all 44 company/model combinations; the [Phase 4 report](docs/phase4-valuation-engine.md) preserves the original model architecture and mathematical verification.
 
@@ -308,4 +310,4 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 
 ## Phase boundary
 
-Phase 5 adds source-grounded AI research reports and company-scoped Q&A around the Phase 4.5 assumptions engine and existing financial infrastructure. It does not implement authentication, watchlists, payments, subscriptions, portfolios or Phase 6 features. Changes are not automatically committed or pushed. See the Phase 5 report for configuration and limitations. Phase 6 requires a separate request.
+Phase 6 improves financial-data interpretation, deterministic valuation safeguards and diagnostic presentation around the existing source-grounded AI research service. It does not implement authentication, watchlists, payments, subscriptions or portfolios. AI research remains optional; data and valuation tests use mocked OpenAI responses. Changes are not automatically committed or pushed. Fresh provider audits and any live AI verification require separate explicit authorization.

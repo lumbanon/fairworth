@@ -21,6 +21,13 @@ from app.valuation.schemas import ValuationRequest
 _FACTS = ("revenue", "net_income", "operating_income", "diluted_eps", "operating_cash_flow", "capital_expenditures",
           "free_cash_flow", "cash_and_cash_equivalents", "total_debt", "total_assets", "total_liabilities",
           "shareholders_equity", "weighted_average_diluted_shares", "basic_eps", "dividends_paid")
+EVIDENCE_ADAPTER_VERSION = "financial-evidence-2"
+_ADDITIONAL_FACTS = ("stock_based_compensation", "noncurrent_marketable_securities", "long_term_investments",
+                     "finance_lease_liability", "operating_lease_liability", "long_term_debt_including_current",
+                     "current_debt_including_lease_obligations", "commercial_paper", "gross_debt_instrument_carrying_amount",
+                     "long_term_debt_proceeds", "long_term_debt_repayments", "total_debt_repayments",
+                     "debt_repayments_maturing_over_three_months", "net_commercial_paper_borrowing",
+                     "change_in_accounts_receivable", "change_in_inventory", "change_in_accounts_payable")
 _MATERIAL_ASSUMPTIONS = ("forward_eps", "target_pe", "earnings_growth", "revenue_growth", "cost_of_equity", "wacc",
                         "terminal_growth", "forecast_years", "shares", "cash", "debt", "target_ev_ebitda", "target_ev_revenue",
                         "risk_free_rate", "beta", "equity_risk_premium", "nwc_ratio", "preferred_equity", "minority_interest")
@@ -46,6 +53,17 @@ def _compact_model(model):
             "classification": model.get("classification", "unavailable"),
             "eligibility": selection.get("status"), "missing_inputs": selection.get("missing_inputs", []),
             "reason_codes": selection.get("reason_codes", [])}
+
+
+def _valuation_identity(valuation):
+    """Exclude only explicit audit clocks; observation dates and quality stay hashed."""
+    identity = deepcopy({key: value for key, value in valuation.items() if key != "snapshot_dates"})
+    for container in [identity, *identity.get("scenarios", {}).values()]:
+        container.get("data_completeness", {}).pop("as_of", None)
+        container.get("confidence", {}).pop("assessed_as_of", None)
+    identity["observation_dates"] = {key: value for key, value in valuation.get("snapshot_dates", {}).items()
+                                     if key in {"reporting_period", "market"}}
+    return identity
 
 
 class EvidenceContextAssembler:
@@ -120,12 +138,11 @@ class EvidenceContextAssembler:
         # validated request, including overrides that may not fit in the prompt.
         financial_id = stable_snapshot_id({"company": company, "currency": currency, "facts": inputs.get("facts"),
                                           "annual_periods": inputs.get("annual_periods"), "basis": inputs.get("basis")}, "financial")
-        valuation_for_hash = {key: value for key, value in (valuation or {}).items() if key != "snapshot_dates"}
-        valuation_for_hash["observation_dates"] = {key: value for key, value in (valuation or {}).get("snapshot_dates", {}).items()
-                                                   if key in {"reporting_period", "market"}}
+        valuation_for_hash = _valuation_identity(valuation or {})
         valuation_id = stable_snapshot_id({"financial_snapshot_id": financial_id, "request": request.model_dump(mode="json"),
                                           "valuation": valuation_for_hash}, "valuation")
         package = {"ticker": ticker, "company_name": public_text(company.get("name"), 180) or ticker,
+                   "evidence_adapter_version": EVIDENCE_ADAPTER_VERSION,
                    "financial_snapshot_id": financial_id, "valuation_snapshot_id": valuation_id,
                    "snapshot_dates": json_value(valuation.get("snapshot_dates", {}) if valuation else {
                        "financial": retrieved, "reporting_period": observed_period,
@@ -146,7 +163,7 @@ class EvidenceContextAssembler:
                      provider="User" if market.get("source_type") == "user" else market.get("provider"),
                      title="Comparison market price", metric="market_price", value=market.get("price"),
                      unit=f"{currency}/share" if currency else "unknown/share", observation_date=market.get("price_timestamp"),
-                     retrieved_at=market.get("retrieved_at"), quality_warnings=market.get("warnings", []) +
+                     retrieved_at=None if market.get("source_type") == "user" else market.get("retrieved_at"), quality_warnings=market.get("warnings", []) +
                      (["Manual comparison price; it is not an official provider quote."] if market.get("source_type") == "user" else []))
         if market.get("price") is None:
             limitations.append("A permitted comparison market quote is unavailable; market upside/downside cannot be inferred.")
@@ -200,6 +217,28 @@ class EvidenceContextAssembler:
                     value=model["fair_value"], unit=f"{currency}/share", quality_warnings=model.get("classification_reasons", []),
                     derivation=public_text(model.get("details", {}).get("formula"), 600))
 
+        diagnostics = base.get("diagnostics", {})
+        if diagnostics:
+            coverage, aggregation = diagnostics.get("coverage", {}), diagnostics.get("aggregation", {})
+            caveats = ["Method families describe related equations, not proven independent evidence or statistical confidence."]
+            for metric, key in (("base_eligible_model_count", "eligible_count"), ("base_method_family_count", "method_family_count")):
+                add(category="valuation_output", provider="Fairworth Python valuation engine", title=metric.replace("_", " ").title(),
+                    metric=metric, value=coverage.get(key), unit="models" if key == "eligible_count" else "count",
+                    derivation=f"Exact base diagnostics.coverage.{key}; {diagnostics.get('methodology_version')}.", quality_warnings=caveats)
+            estimate_range = aggregation.get("estimate_range") or {}
+            for endpoint in ("minimum", "maximum"):
+                if estimate_range.get(endpoint) is not None:
+                    add(category="user_assumption" if base_summary.get("classification") == "user_defined" else
+                        "policy_estimate" if base_summary.get("classification") == "policy_based" else "valuation_output", provider="Fairworth Python valuation engine",
+                        title=f"Base contributing model range {endpoint}", metric=f"base_estimate_range_{endpoint}",
+                        value=estimate_range[endpoint], unit=f"{currency}/share",
+                        derivation=f"Exact base diagnostics.aggregation.estimate_range.{endpoint}.",
+                        quality_warnings=["Range of contributing models; not a statistical confidence interval or an independent forecast."])
+            # Structured diagnostics are citation-only. Numbers inside them do
+            # not become binding-eligible scalars; selected exact values above do.
+            add(category="valuation_output", provider="Fairworth Python valuation engine", title="Base valuation coverage and quality diagnostics",
+                metric="base_valuation_diagnostics", value=json_value(diagnostics), unit="structured", quality_warnings=caveats)
+
         def fact(field, record, period=reporting_period):
             provenance = record.get("provenance", [])
             dates = [str(item["filed"]) for item in provenance if item.get("filed")]
@@ -215,7 +254,7 @@ class EvidenceContextAssembler:
                 accession=", ".join(accessions) or None, derivation=record.get("derivation_method") or "; ".join(derivations) or None,
                 quality_warnings=record.get("warnings", []))
 
-        for field in _FACTS:
+        for field in (*_FACTS, *_ADDITIONAL_FACTS):
             record = inputs.get("facts", {}).get(field)
             if record is not None:
                 fact(field, record)
@@ -338,6 +377,10 @@ class EvidenceContextAssembler:
                 return 1 if item["period"] == period_label_for_latest else 6
             if metric in {"forward_eps", "target_pe", "earnings_growth", "pe_fair_value", "upside", "margin_of_safety"} or item["category"] == "user_assumption":
                 return 3
+            if metric in _ADDITIONAL_FACTS and item["value"] is not None:
+                return 3
+            if metric in {"base_eligible_model_count", "base_method_family_count", "base_estimate_range_minimum", "base_estimate_range_maximum", "base_valuation_diagnostics"}:
+                return 4
             if metric in {"business_description", "filing_passage", "bear_assumption_changes", "bull_assumption_changes", "confidence", "sensitivity", "reverse_dcf"}:
                 return 4
             if metric in _MATERIAL_ASSUMPTIONS:

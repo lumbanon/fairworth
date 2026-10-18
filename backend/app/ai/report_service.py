@@ -72,7 +72,8 @@ class ResearchService:
 
     def _key(self, owner, package):
         content = [owner, package["ticker"], package["financial_snapshot_id"], package["valuation_snapshot_id"],
-                   stable_snapshot_id({"registry": package["registry"], "limitations": package["limitations"]}),
+                   stable_snapshot_id({"registry": package["registry"], "limitations": package["limitations"],
+                                       "adapter_version": package.get("evidence_adapter_version")}),
                    self.settings.openai_model, PROMPT_VERSION, self.settings.openai_max_output_tokens]
         return hashlib.sha256(json.dumps(content).encode()).hexdigest()
 

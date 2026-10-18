@@ -72,7 +72,7 @@ def test_provenance_classification_and_user_override_composition_are_additive():
     for field in ("forward_eps", "target_pe", "cost_of_equity"):
         record = base["assumptions"]["metadata"][field]
         assert {"value", "unit", "source_category", "source_provider", "observation_date", "financial_period", "derivation_formula", "quality", "evidence_type", "editable", "source_identifiers"} <= set(record)
-    assert result["assumption_methodology_version"] == "automatic-assumptions-1"
+    assert result["assumption_methodology_version"] == "automatic-assumptions-2"
 
 
 def test_unused_global_policy_rate_does_not_make_evidence_supported_pe_policy_based():

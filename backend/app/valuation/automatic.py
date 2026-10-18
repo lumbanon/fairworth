@@ -4,7 +4,7 @@ from datetime import date
 import math
 
 from app.valuation.assumptions import estimate_cost_of_equity, estimate_wacc
-from app.valuation.inputs import day, number
+from app.valuation.inputs import _fact, day, number
 from app.valuation.history import _aligned
 from app.valuation.provenance import complete_metadata
 
@@ -31,6 +31,34 @@ def usable_observation(record, *, unit=None):
             and record.get("state") in {"verified_value", "verified_zero"}
             and bool(record.get("source_provider") or record.get("provider"))
             and (unit is None or record.get("unit") == unit))
+
+
+def compatible_statement_observation(record, inputs, field):
+    """Do not overwrite a financial baseline with a different-period fact."""
+    selected = inputs.get("reporting_period") or {}
+    selected_end = day(selected.get("end_date"))
+    period = record.get("period") or record.get("financial_period") or {}
+    declared_end = day(period.get("end_date", period.get("end"))) if isinstance(period, dict) else None
+    observed = day(str(record.get("observation_date") or "")[:10])
+    if selected_end is None or observed != selected_end or declared_end not in (None, selected_end):
+        return False
+    duration = field == "depreciation_and_amortization"
+    if duration and (not isinstance(period, dict) or day(period.get("start_date", period.get("start"))) != day(selected.get("start_date"))):
+        return False
+    provenance = record.get("provenance")
+    sec_source = "sec" in str(record.get("source_provider") or record.get("provider") or "").lower() or any(
+        isinstance(source, dict) and source.get("source") == "sec" for source in provenance or [])
+    if field == "debt" and not sec_source and record.get("scope_complete") is not True:
+        return False
+    if provenance:
+        metric = "total_debt" if field == "debt" else "cash_and_cash_equivalents" if field == "cash" else field
+        checked = _fact(metric, record.get("value"), {**selected, "provenance": {metric: provenance}}, inputs.get("currency"), record.get("retrieved_at"))
+        return checked["value"] is not None
+    # Explicit source IDs can support additional non-SEC verified disclosures;
+    # a provider label alone cannot establish a fact's original identity.
+    if "sec" in str(record.get("source_provider") or record.get("provider") or "").lower():
+        return False
+    return bool(record.get("source_id") or record.get("source_identifiers"))
 
 
 def cost_of_debt_from_history(periods):
@@ -76,9 +104,14 @@ def prepare_automatic_inputs(inputs, evidence, policy=None):
         return result
     observations = evidence.get("observations", {})
     records = {key: observation_metadata(value) for key, value in observations.items() if isinstance(value, dict)}
+    as_of = day(evidence.get("as_of_date"))
+    def within_snapshot(record):
+        observed = day(str(record.get("observation_date") or "")[:10])
+        return as_of is None or observed is not None and observed <= as_of
     for key in AMOUNT_OBSERVATIONS:
         record = observations.get(key, {})
-        valid = usable_observation(record, unit=result.get("currency")) and number(record.get("value")) >= 0
+        valid = (usable_observation(record, unit=result.get("currency")) and number(record.get("value")) >= 0
+                 and compatible_statement_observation(record, result, key) and within_snapshot(record))
         valid = valid and (key not in CLAIMS or record.get("scope_complete") is True)
         valid = valid and (key not in CLAIMS or record.get("value") != 0 or record.get("state") == "verified_zero")
         if not valid:
@@ -91,11 +124,16 @@ def prepare_automatic_inputs(inputs, evidence, policy=None):
             continue
         result["values"][key] = record["value"]
     current = observations.get("current_shares", {})
-    if usable_observation(current, unit="shares") and current.get("scope_verified") is True and current["value"] > 0:
+    current_usable = usable_observation(current, unit="shares") and within_snapshot(current) and current.get("scope_verified") is True and current["value"] > 0
+    if current_usable:
         result["values"]["shares"] = current["value"]
         records["shares"] = observation_metadata(current)
         result["basis"]["valuation_share_denominator"] = current.get("share_basis")
         result["basis"]["valuation_share_observation_date"] = current.get("observation_date")
+    elif "current_shares" in records:
+        records["current_shares"].update(value=None, reported_value=number(current.get("value")),
+                                         source_type="unavailable", evidence_type="unavailable", input_status="unavailable")
+        records["current_shares"].setdefault("warnings", []).append("The dated share observation has no compatible verified common-share scope or falls outside this snapshot.")
     # Keep reported annual EPS separate from dated current/period-end shares.
     # The existing common-income compatibility flag is never recomputed here.
     multiples = derive_historical_multiples(result, evidence, policy)
@@ -118,6 +156,9 @@ def automatic_discount_records(inputs, defaults, explicit=None):
     def rate(key):
         record = observations.get(key, {})
         if not usable_observation(record):
+            return None
+        as_of = day(inputs.get("automatic_evidence", {}).get("as_of_date"))
+        if as_of is not None and day(str(record.get("observation_date") or "")[:10]) > as_of:
             return None
         return {**record, "source": record.get("source_provider") or record.get("provider"),
                 "method": record.get("methodology") or record.get("derivation_formula") or record.get("source_description")}

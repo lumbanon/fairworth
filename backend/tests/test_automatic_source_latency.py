@@ -11,7 +11,8 @@ import pytest
 from app.core.config import Settings
 from app.core.database import utcnow
 from app.providers.base import ProviderError
-from app.services.automatic_inputs_service import AutomaticInputsService, EVIDENCE_VERSION
+from app.services.automatic_inputs_service import AutomaticInputsService, EVIDENCE_VERSION, PROVIDER_CACHE_VERSION
+from app.services.normalization import NORMALIZATION_VERSION
 from app.services.cache_service import CacheService
 from app.valuation.forecasts import derive_forward_forecasts
 from app.valuation.historical_multiples import derive_historical_multiples
@@ -69,7 +70,7 @@ async def test_treasury_stale_status_dates_and_warnings_survive_timeout(short_bu
     service = AutomaticInputsService(SimpleNamespace(cache=cache), None, Settings(_env_file=None), treasury)
     observed = (utcnow() - timedelta(days=1)).date().isoformat()
     record = {"value": .04, "observation_date": observed, "unit": "fraction", "state": "verified_value", "warnings": []}
-    key = f"treasury:10year:{datetime.now(UTC).date().isoformat()}:v{EVIDENCE_VERSION}"
+    key = f"treasury:10year:{datetime.now(UTC).date().isoformat()}:v{PROVIDER_CACHE_VERSION}"
     cache._write(key, {"available": True, "data": record}, 1, "us-treasury", utcnow() - timedelta(hours=1))
     result = await service._treasury()
     assert result["value"] == .04
@@ -141,7 +142,7 @@ async def test_treasury_and_statements_timeout_independently_while_pe_survives(s
     service = AutomaticInputsService(companies, None, settings, SimpleNamespace(name="us-treasury", risk_free_rate=treasury))
     cik = old["profile"]["company"]["cik"]
     retrieved = cache._write(f"sec:facts:{cik}", {"facts": {}}, 3600, "sec-edgar")
-    cache._write(f"sec:annual-publications:{cik}:AAPL:{retrieved.isoformat()}:v{EVIDENCE_VERSION}", actual["historical_annual_periods"], 3600, "sec-edgar")
+    cache._write(f"sec:annual-publications:{cik}:AAPL:{retrieved.isoformat()}:v{EVIDENCE_VERSION}:n{NORMALIZATION_VERSION}", actual["historical_annual_periods"], 3600, "sec-edgar")
     started = time.monotonic()
     result = await service.evidence("AAPL", old["profile"], old["normalized"], old["retrieved_at"])
     assert time.monotonic() - started < 1

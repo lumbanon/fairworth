@@ -15,7 +15,7 @@ from app.valuation.historical_multiples import _adjusted_eps, _facts, _publicati
 from app.valuation.history import _aligned, historical_cagr
 from app.valuation.inputs import day, number
 
-METHODOLOGY_VERSION = "automatic-forward-forecasts-1"
+METHODOLOGY_VERSION = "automatic-forward-forecasts-2"
 
 
 def _setting(policy, key, default):
@@ -133,7 +133,7 @@ def _ratios(periods, amount_field, revenue_field="revenue"):
     return median(result), window
 
 
-def _working_capital(periods, as_of, currency):
+def _working_capital(periods, as_of, currency, base_period=None):
     rows = []
     fields = ("operating_current_assets", "operating_current_liabilities")
     for period in periods:
@@ -155,6 +155,8 @@ def _working_capital(periods, as_of, currency):
     window = rows[-3:]
     if len(window) != 3 or any(not _aligned(left, right) for left, right in zip(window, window[1:])):
         return {}
+    if base_period and any(day(window[-1].get(key)) != day(base_period.get(key)) for key in ("start_date", "end_date")):
+        return {}
     ratio = median([row["nwc_ratio"] for row in window])
     if not math.isfinite(ratio) or not -2 <= ratio <= 2:
         return {}
@@ -166,7 +168,7 @@ def _working_capital(periods, as_of, currency):
                                    "operating NWC at latest fiscal year end - prior aligned fiscal year end", window[-2:])}
 
 
-def _net_borrowing(periods, as_of, currency):
+def _net_borrowing(periods, as_of, currency, base_period=None):
     usable = []
     for period in periods:
         if not _valid_period(period, currency):
@@ -182,6 +184,8 @@ def _net_borrowing(periods, as_of, currency):
     usable.sort(key=lambda period: period["fiscal_year"])
     window = usable[-3:]
     if len(window) != 3 or any(not _aligned(left, right) for left, right in zip(window, window[1:])):
+        return None
+    if base_period and any(day(window[-1].get(key)) != day(base_period.get(key)) for key in ("start_date", "end_date")):
         return None
     flows = [period["net_borrowing"] for period in window]
     if min(flows) < 0 < max(flows):
@@ -216,6 +220,15 @@ def derive_forward_forecasts(inputs, evidence, policy=None, *, overrides=None):
     if not periods:
         quality.update(status="unavailable", reason="no_compatible_annual_observations")
         return {"assumptions": {}, "forecast_quality": quality, "warnings": [], "methodology_version": METHODOLOGY_VERSION}
+    base_period = inputs.get("reporting_period") or next(iter(reversed(inputs.get("annual_periods", []))), {})
+    base_start, base_end = day(base_period.get("start_date")), day(base_period.get("end_date"))
+    if (base_end is None or day(periods[-1].get("end_date")) != base_end
+            or base_start is not None and day(periods[-1].get("start_date")) != base_start):
+        quality.update(status="unavailable", reason="forecast_base_period_mismatch",
+                       required_base_period=base_period, historical_base_period={key: periods[-1].get(key) for key in ("start_date", "end_date")})
+        return {"assumptions": {}, "forecast_quality": quality,
+                "warnings": [_warning("forecast_base", "forecast_base_period_mismatch", "Historical forecast evidence does not match the selected financial base period; no older forecast is substituted.")],
+                "methodology_version": METHODOLOGY_VERSION}
     revenue_growth, growth_details = _growth_estimate(periods, "revenue", policy, overrides.get("lookback_years"))
     quality["revenue_growth"] = growth_details
     if revenue_growth:
@@ -264,8 +277,13 @@ def derive_forward_forecasts(inputs, evidence, policy=None, *, overrides=None):
         records["ebitda_margin"] = _record(ebitda_margin, "fraction", "Median of three compatible EBIT-plus-D&A/revenue observations; operating income is an identified EBIT proxy.",
                                           "median((reported operating income + compatible reported D&A) / revenue)", window,
                                           [_warning("ebitda_margin", "operating_income_ebit_proxy", "Company-specific nonoperating and EBITDA adjustments are not fabricated.")])
-    records.update(_working_capital(evidence.get("operating_working_capital_periods", []), as_of, currency))
-    borrowing = _net_borrowing(evidence.get("financing_periods", []), as_of, currency)
+    working_periods = evidence.get("operating_working_capital_periods", [])
+    financing_periods = evidence.get("financing_periods", [])
+    def matches_base(rows):
+        return rows and max((str(row.get("end_date", "")) for row in rows if isinstance(row, dict)), default="") == base_end.isoformat()
+    if matches_base(working_periods):
+        records.update(_working_capital(working_periods, as_of, currency, base_period))
+    borrowing = _net_borrowing(financing_periods, as_of, currency, base_period) if matches_base(financing_periods) else None
     if borrowing:
         records["net_borrowing"] = borrowing
     # Overrides here affect pure forecasts only. Root assumption orchestration

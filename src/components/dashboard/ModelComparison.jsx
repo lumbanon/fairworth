@@ -6,6 +6,9 @@ import { dollars, percent, direction } from "@/lib/financialFormatting";
 import { marketDistanceScale } from "@/lib/valuationChartColors";
 import { providerClassificationLabel } from "@/lib/providerValuation";
 import ProviderCalculationDetails from "./ProviderCalculationDetails";
+import ProviderAssumptionSource from "./ProviderAssumptionSource";
+import { completenessValue, diagnosticLabel } from "@/lib/providerDiagnostics";
+import ProviderModelInputPaths from "./ProviderModelInputPaths";
 
 const ComparisonChart = lazy(() => import("./ComparisonChart"));
 const statuses = {
@@ -162,7 +165,7 @@ export default function ModelComparison({
               </p>
               <p>
                 <strong>Required data:</strong>{" "}
-                {model.requiredInputs.join(", ")}. Suggested raw weight:{" "}
+                {model.requiredInputPaths?.length > 1 ? "Review the alternative financial input paths below" : model.requiredInputs.join(", ")}. Suggested raw weight:{" "}
                 {valuation.providerMode ? valuation.suggestedWeights[result.id] ?? 0 : model.defaultWeight}.
               </p>
               {result.warnings.map((warning) => (
@@ -173,6 +176,11 @@ export default function ModelComparison({
               {valuation.providerMode && result.classificationReasons?.map((reason) => <p className="research-caption" key={reason}>{reason}</p>)}
               {valuation.providerMode && result.eligibility.missing_inputs?.length > 0 && <p className="research-caption"><strong>Missing inputs: </strong>{result.eligibility.missing_inputs.map((field) => field.replaceAll("_", " ")).join(", ")}. Provide a supported assumption or review the source basis. Missing financial facts remain unavailable.</p>}
               {valuation.providerMode && result.sourceQuality?.warnings?.map((warning, index) => <p className="research-caption" key={index}>{typeof warning === "string" ? warning : warning.message}</p>)}
+              {valuation.providerMode && <p className="research-caption"><strong>Weight basis: </strong>{diagnosticLabel(valuation.diagnostics?.aggregation?.per_model_weight_sources?.[result.id] ?? "Basis not supplied")}. {result.eligibility.weight_explanation || "Configured weights are normalized across contributing eligible models."}</p>}
+              {valuation.providerMode && <ProviderModelInputPaths paths={result.eligibility.input_paths} />}
+              {valuation.providerMode && result.definition.requiredInputs.some((key) => valuation.assumptionMetadata?.[key]) && <details className="provider-model-assumptions"><summary>Main assumptions and sources</summary>
+                {result.definition.requiredInputs.filter((key) => valuation.assumptionMetadata?.[key]).map((key) => <div key={key} className="provider-assumption-record"><h4>{diagnosticLabel(key)} · {completenessValue(valuation.assumptionMetadata[key])}</h4><ProviderAssumptionSource metadata={valuation.assumptionMetadata[key]} overridden={valuation.overriddenKeys?.includes(key)} /></div>)}
+              </details>}
               {valuation.providerMode && <ProviderCalculationDetails details={result.details} currency={company.currency} />}
               {(result.applicable || valuation.providerMode) && (
                 <Button

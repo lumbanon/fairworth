@@ -5,7 +5,8 @@ import math
 
 from app.core.exceptions import ApiError
 from app.valuation.assumptions import generate_assumptions, estimate_cost_of_equity, estimate_wacc
-from app.valuation.confidence import assess_confidence
+from app.valuation.confidence import assess_confidence, valuation_diagnostics
+from app.valuation.completeness import build_data_completeness
 from app.valuation.classification import classify_model, classify_summary
 from app.valuation.provenance import ASSUMPTION_METHODOLOGY_VERSION, complete_metadata
 from app.valuation.eligibility import MODEL_NAMES, eligibility
@@ -16,7 +17,7 @@ from app.valuation.schemas import MODEL_IDS, ValuationRequest
 from app.valuation.sensitivity import calculate_sensitivity
 from app.valuation.weighting import GROUPS, GROUP_BUDGETS, combine_valuations, comparisons, suggest_weights
 
-ENGINE_VERSION = "1.0.0"
+ENGINE_VERSION = "1.1.0"
 
 
 def comparison_market(inputs, manual=None):
@@ -30,6 +31,7 @@ def comparison_market(inputs, manual=None):
               "price_timestamp": observed.get("price_timestamp"), "retrieved_at": observed.get("retrieved_at"),
               "provider": observed.get("provider"), "status": observed.get("status", "unavailable"),
               "provider_price": raw_price, "provider_currency": observed.get("currency"),
+              "provider_price_timestamp": observed.get("price_timestamp"),
               "warnings": observed.get("warnings", [])}
     if manual is not None:
         if manual.currency != currency:
@@ -122,6 +124,17 @@ def evaluate_model(model_id, inputs, assumptions, overridden=()):
         result = {"status": "unavailable", "fair_value": None, "warnings": [selection["reason"]], "details": {}}
     else:
         result = MODEL_FUNCTIONS[model_id](values)
+        if result["status"] == "valid" and model_id in {"fcff", "fcfe", "dividend", "residual"}:
+            # A quality safeguard, not a replacement perpetuity formula or a
+            # hidden adjustment to explicit user assumptions.
+            details = result["details"]
+            rate = details.get("discount_rate", details.get("cost_of_equity", values.get("cost_of_equity")))
+            terminal = details.get("terminal_growth", details.get("dividend_growth"))
+            if rate is not None and terminal is not None:
+                details.setdefault("discount_rate", rate)
+                details["discount_terminal_spread"] = rate - terminal
+                if rate - terminal <= 0.01:
+                    result["warnings"].append("The discount rate exceeds terminal growth by at most one percentage point; the perpetuity is highly sensitive and valuation confidence is limited.")
         if result["status"] != "valid":
             selection = {**selection, "status": "unavailable" if result["status"] == "unavailable" else "ineligible", "reason": "; ".join(result["warnings"]), "reason_codes": ["missing_inputs" if result["status"] == "unavailable" else "invalid_model_assumptions"]}
     name, short_name = MODEL_NAMES[model_id]
@@ -160,7 +173,11 @@ def calculate_valuation(inputs, request=None, policy=None):
             model["eligibility"]["weight_explanation"] = explanations.get(model["id"], "Inactive until required inputs are available; the configured preference is retained.")
         summary = combine_valuations(models[name], enabled, configured, market["price"])
         summary.update(classify_summary(summary, models[name]))
-        scenarios[name] = {"models": models[name], "summary": summary, "assumptions": resolved[name], "confidence": assess_confidence(inputs, models[name], summary, resolved[name])}
+        confidence = assess_confidence(inputs, models[name], summary, resolved[name])
+        diagnostics = valuation_diagnostics(inputs, models[name], summary, resolved[name], confidence, request.weights)
+        scenarios[name] = {"models": models[name], "summary": summary, "assumptions": resolved[name], "confidence": confidence,
+                           "diagnostics": diagnostics,
+                           "data_completeness": build_data_completeness(inputs, resolved[name], models[name], market)}
     reverse_inputs = calculation_values(inputs, resolved["base"])
     # The growth variable is solved, rather than required as an existing forecast.
     reverse_check = {**reverse_inputs}
@@ -195,4 +212,6 @@ def calculate_valuation(inputs, request=None, policy=None):
             "calculated_at": datetime.now(UTC).isoformat(), "company": inputs["company"], "currency": inputs.get("currency"),
             "financials": {"reporting_period": inputs.get("reporting_period"), "retrieved_at": inputs.get("financial_retrieved_at"), "source_references": inputs.get("source_references", []), "facts": inputs.get("facts", {}), "basis": inputs.get("basis", {})},
             "defaults": defaults, "scenarios": scenarios, "suggested_weights": recommended, "configured_weights": configured,
-            "enabled_models": enabled, "market": market, "reverse_dcf": reverse, "sensitivity": grid, "warnings": warnings, "confidence": scenarios["base"]["confidence"]}
+            "enabled_models": enabled, "market": market, "reverse_dcf": reverse, "sensitivity": grid, "warnings": warnings,
+            "confidence": scenarios["base"]["confidence"], "diagnostics": scenarios["base"]["diagnostics"],
+            "data_completeness": scenarios["base"]["data_completeness"]}

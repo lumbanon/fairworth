@@ -15,7 +15,7 @@ def test_defaults_models_sources_and_openapi(client):
     response = client.get(BASE + "/defaults")
     assert response.status_code == 200
     body = response.json()
-    assert body["engine_version"] == "1.0.0"
+    assert body["engine_version"] == "1.1.0"
     assert body["currency"] == "USD"
     assert body["financials"]["facts"]["revenue"]["value"] == 1000
     assert body["financials"]["facts"]["revenue"]["provenance"]

@@ -1,5 +1,6 @@
 import { dollars, percent, direction } from "@/lib/financialFormatting";
 import { providerClassificationLabel } from "@/lib/providerValuation";
+import { formatObservationDate } from "@/lib/researchPresentation";
 
 export default function ValuationSummary({ company, valuation }) {
   const { summary, scenarios, activeScenario } = valuation;
@@ -11,6 +12,7 @@ export default function ValuationSummary({ company, valuation }) {
     scenarios.bull.summary.fairValue,
   ];
   const finiteRange = range.every(Number.isFinite);
+  const quoteDate = formatObservationDate(valuation.market?.price_timestamp);
   return (
     <section className="research-summary" aria-labelledby="summary-title">
       <div className="research-section-heading">
@@ -38,6 +40,7 @@ export default function ValuationSummary({ company, valuation }) {
                 : valuation.market?.label || "Provider price · timestamp above"
               : "Fictional reference price"}
           </small>
+          {valuation.providerMode && valuation.market?.source_type !== "user" && valuation.comparisonPrice != null && <small data-testid="valuation-quote-observation">Quote observed: {quoteDate || "Date unavailable"}{valuation.market?.status && ` · ${valuation.market.status.replaceAll("_", " ")}`}</small>}
         </div>
         <div>
           <span>Weighted fair value</span>
@@ -48,6 +51,7 @@ export default function ValuationSummary({ company, valuation }) {
             {enabledCount} enabled · {summary.count} contributing
           </small>
           {valuation.providerMode && summary.classification && <small data-testid="weighted-classification">{providerClassificationLabel(summary.classification) || "Classification unavailable"}</small>}
+          {valuation.providerMode && valuation.diagnostics && <small>Confidence: {valuation.confidence?.level || "unavailable"} · {valuation.diagnostics.coverage?.method_family_count ?? "Unavailable"} method {valuation.diagnostics.coverage?.method_family_count === 1 ? "family" : "families"}</small>}
         </div>
         <div>
           <span>Potential upside / downside</span>

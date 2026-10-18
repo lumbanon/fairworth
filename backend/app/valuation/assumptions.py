@@ -326,8 +326,14 @@ def estimate_wacc(cost_of_equity: float, cost_of_debt: dict, tax_rate: float, ma
     equity_currency, debt_currency = equity_record.get("currency"), debt_record.get("currency")
     if not equity_currency or equity_currency != debt_currency:
         raise ValueError("Capital-structure amounts require explicit compatible currencies.")
+    equity_date, debt_date = day(equity_record["observation_date"]), day(debt_record["observation_date"])
+    if debt_basis == "market_value" and abs((equity_date - debt_date).days) > 7:
+        raise ValueError("Market equity and debt observations must be within seven calendar days; incompatible dated capital structures are not combined.")
+    if debt_basis == "book_value" and not 0 <= (equity_date - debt_date).days <= 550:
+        raise ValueError("An explicitly permitted book-debt proxy must precede market equity by no more than 550 days; future or stale annual balances are not combined.")
     value = equity / (debt + equity) * ke + debt / (debt + equity) * kd * (1 - tax)
     warnings = ["WACC is a financial-model estimate and depends on the supplied capital structure."]
+    warnings.append("Capital-date compatibility policy: market values within seven calendar days; an explicitly permitted annual book-debt proxy at most 550 days old.")
     if debt_basis == "book_value":
         warnings.append("Complete book debt is an explicitly permitted proxy for market debt; book equity is not substituted.")
     return {"value": value, "unit": "fraction", "source_type": "market_derived_estimate",

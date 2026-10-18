@@ -11,11 +11,14 @@ import re
 from app.core.database import utcnow
 from app.providers.base import ProviderError
 from app.services.cache_service import CachedResult
-from app.services.normalization import extract_observations, normalize_company_facts
+from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
 from app.valuation.inputs import normalize_annual_period, number, day
 
 
-EVIDENCE_VERSION = "1.0.0"
+EVIDENCE_VERSION = "2.0.0"
+# Raw provider contracts are unchanged. Reuse these dated caches while native
+# annual reconstructions are isolated by the new interpretation versions.
+PROVIDER_CACHE_VERSION = "1.0.0"
 OPTIONAL_SOURCE_BUDGET_SECONDS = 3.0
 TREASURY_CACHED_OBSERVATION_MAX_AGE_DAYS = 7
 
@@ -196,7 +199,7 @@ class AutomaticInputsService:
         market = self.companies.market
         if not hasattr(market, "splits"):
             return {"splits": [], "complete": False, "status": "unavailable", "provider": market.name}
-        result = await self._optional(f"market:{market.name}:splits:{ticker}:v{EVIDENCE_VERSION}", market.name, lambda: market.splits(ticker))
+        result = await self._optional(f"market:{market.name}:splits:{ticker}:v{PROVIDER_CACHE_VERSION}", market.name, lambda: market.splits(ticker))
         return {**result, "splits": result.get("data", []), "complete": bool(result.get("available")),
                 "adjustment_date": str(result.get("retrieved_at", ""))[:10]}
 
@@ -204,7 +207,7 @@ class AutomaticInputsService:
         if self.treasury is None or not self.settings.valuation_treasury_enabled:
             return _record(unit="fraction", provider="us-treasury", description="Automatic Treasury yield retrieval is disabled or unavailable.", status="unavailable")
         today = datetime.now(UTC).date()
-        result = await self._optional(f"treasury:10year:{today.isoformat()}:v{EVIDENCE_VERSION}",
+        result = await self._optional(f"treasury:10year:{today.isoformat()}:v{PROVIDER_CACHE_VERSION}",
                                       self.treasury.name, self.treasury.risk_free_rate)
         if not result.get("available"):
             fallback = self._cached_treasury_observation(today, result)
@@ -226,7 +229,7 @@ class AutomaticInputsService:
         """
         candidates = []
         for offset in range(1, TREASURY_CACHED_OBSERVATION_MAX_AGE_DAYS + 1):
-            key = f"treasury:10year:{(today - timedelta(days=offset)).isoformat()}:v{EVIDENCE_VERSION}"
+            key = f"treasury:10year:{(today - timedelta(days=offset)).isoformat()}:v{PROVIDER_CACHE_VERSION}"
             entry = self.cache._read(key)
             if entry is None or entry.provider != self.treasury.name or not isinstance(entry.payload, dict) or not entry.payload.get("available"):
                 continue
@@ -284,7 +287,7 @@ class AutomaticInputsService:
         if not hasattr(market, "financial_statements"):
             return {}
         async def load(kind):
-            result = await self._optional(f"market:{market.name}:statement:{ticker}:{kind}:annual:v{EVIDENCE_VERSION}", market.name,
+            result = await self._optional(f"market:{market.name}:statement:{ticker}:{kind}:annual:v{PROVIDER_CACHE_VERSION}", market.name,
                                           lambda: market.financial_statements(ticker, kind))
             return kind, result
         return dict(await asyncio.gather(load("balance_sheet"), load("cash_flow")))
@@ -310,7 +313,7 @@ class AutomaticInputsService:
         raw = await self.cache.get_or_load(f"sec:facts:{company['cik']}", self.settings.sec_cache_ttl_seconds,
                                            "sec-edgar", lambda: self.financials.sec.facts(company["cik"]))
         # Native vintage reconstruction is a separate versioned analytics layer.
-        native = await self.cache.get_or_load(f"sec:annual-publications:{company['cik']}:{ticker}:{raw.retrieved_at.isoformat()}:v{EVIDENCE_VERSION}",
+        native = await self.cache.get_or_load(f"sec:annual-publications:{company['cik']}:{ticker}:{raw.retrieved_at.isoformat()}:v{EVIDENCE_VERSION}:n{NORMALIZATION_VERSION}",
                                               self.settings.sec_cache_ttl_seconds, "sec-edgar",
                                               lambda: self._native(raw.payload, normalized, company, raw.retrieved_at))
         # All independent optional sources share one parallel retrieval phase;
@@ -345,7 +348,8 @@ class AutomaticInputsService:
         for kind, result in supplemental.items():
             provider_status[kind] = result.get("error_code") or result["status"]
         warnings = [item for item in raw.warnings + native.warnings]
-        return {"methodology_version": EVIDENCE_VERSION, "historical_prices": prices, "splits": splits,
+        return {"methodology_version": EVIDENCE_VERSION, "normalization_version": NORMALIZATION_VERSION,
+                "historical_prices": prices, "splits": splits,
                 "historical_annual_periods": native.payload, "observations": observations,
                 "supplemental_statements": supplemental, "provider_status": provider_status, "warnings": warnings,
                 "financial_snapshot_date": _instant(raw.retrieved_at)}

@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from app.valuation.inputs import day
 
-ASSUMPTION_METHODOLOGY_VERSION = "automatic-assumptions-1"
+ASSUMPTION_METHODOLOGY_VERSION = "automatic-assumptions-2"
 POLICY_TYPES = {"policy", "benchmark", "benchmark_assumption", "policy_estimate"}
 USER_TYPES = {"user", "user_override", "user_assumption"}
 FACT_TYPES = {"reported", "reported_input", "market_observation"}

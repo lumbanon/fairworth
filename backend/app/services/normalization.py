@@ -14,11 +14,12 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
-NORMALIZATION_VERSION = 3
+NORMALIZATION_VERSION = 4
 
 # Ordered alternatives are never summed. Explicit total revenue takes priority
 # over a contract-revenue subtotal; differing aliases produce a quality warning.
-# Separate current debt components avoid double-counting LongTermDebtCurrent.
+# Debt and lease scopes are deliberately separate. DebtCurrent can include
+# capital leases, while CommercialPaper does not establish all short borrowing.
 METRIC_DEFINITIONS = {
     "revenue": (("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "RevenueFromContractWithCustomerIncludingAssessedTax", "SalesRevenueNet"), "USD", "duration"),
     "cost_of_revenue": (("CostOfRevenue", "CostOfGoodsAndServicesSold", "CostOfGoodsSold"), "USD", "duration"),
@@ -35,10 +36,22 @@ METRIC_DEFINITIONS = {
     "short_term_investments": (("ShortTermInvestments", "MarketableSecuritiesCurrent"), "USD", "instant"),
     "total_current_assets": (("AssetsCurrent",), "USD", "instant"),
     "total_assets": (("Assets",), "USD", "instant"),
-    "short_term_debt": (("DebtCurrent", "ShortTermBorrowings", "CommercialPaper"), "USD", "instant"),
+    "short_term_debt": (("ShortTermBorrowings",), "USD", "instant"),
+    "current_debt_including_lease_obligations": (("DebtCurrent",), "USD", "instant"),
+    "commercial_paper": (("CommercialPaper",), "USD", "instant"),
     "current_long_term_debt": (("LongTermDebtCurrent",), "USD", "instant"),
     "long_term_debt": (("LongTermDebtNoncurrent",), "USD", "instant"),
+    "long_term_debt_including_current": (("LongTermDebt",), "USD", "instant"),
+    "gross_debt_instrument_carrying_amount": (("DebtInstrumentCarryingAmount",), "USD", "instant"),
     "reported_total_debt": (("DebtLongtermAndShorttermCombinedAmount",), "USD", "instant"),
+    "long_term_investments": (("LongTermInvestments",), "USD", "instant"),
+    "noncurrent_marketable_securities": (("MarketableSecuritiesNoncurrent",), "USD", "instant"),
+    "finance_lease_liability": (("FinanceLeaseLiability",), "USD", "instant"),
+    "finance_lease_liability_current": (("FinanceLeaseLiabilityCurrent",), "USD", "instant"),
+    "finance_lease_liability_noncurrent": (("FinanceLeaseLiabilityNoncurrent",), "USD", "instant"),
+    "operating_lease_liability": (("OperatingLeaseLiability",), "USD", "instant"),
+    "operating_lease_liability_current": (("OperatingLeaseLiabilityCurrent",), "USD", "instant"),
+    "operating_lease_liability_noncurrent": (("OperatingLeaseLiabilityNoncurrent",), "USD", "instant"),
     "total_liabilities": (("Liabilities",), "USD", "instant"),
     "liabilities_and_equity": (("LiabilitiesAndStockholdersEquity",), "USD", "instant"),
     "total_equity_including_noncontrolling_interests": (("StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",), "USD", "instant"),
@@ -58,6 +71,15 @@ METRIC_DEFINITIONS = {
     "dividends_paid": (("PaymentsOfDividends", "PaymentsOfDividendsCommonStock"), "USD", "duration"),
     "share_repurchases": (("PaymentsForRepurchaseOfCommonStock",), "USD", "duration"),
     "interest_expense": (("InterestExpense", "InterestExpenseNonoperating"), "USD", "duration"),
+    "stock_based_compensation": (("ShareBasedCompensation",), "USD", "duration"),
+    "long_term_debt_proceeds": (("ProceedsFromIssuanceOfLongTermDebt",), "USD", "duration"),
+    "long_term_debt_repayments": (("RepaymentsOfLongTermDebt",), "USD", "duration"),
+    "total_debt_repayments": (("RepaymentsOfDebt",), "USD", "duration"),
+    "debt_repayments_maturing_over_three_months": (("RepaymentsOfDebtMaturingInMoreThanThreeMonths",), "USD", "duration"),
+    "net_commercial_paper_borrowing": (("ProceedsFromRepaymentsOfCommercialPaper",), "USD", "duration"),
+    "change_in_accounts_receivable": (("IncreaseDecreaseInAccountsReceivable",), "USD", "duration"),
+    "change_in_inventory": (("IncreaseDecreaseInInventories",), "USD", "duration"),
+    "change_in_accounts_payable": (("IncreaseDecreaseInAccountsPayable",), "USD", "duration"),
 }
 CONCEPT_METRICS = {
     concept: metric for metric, (concepts, _, _) in METRIC_DEFINITIONS.items() for concept in concepts
@@ -73,6 +95,12 @@ NON_NEGATIVE = {
     "dividends_paid", "share_repurchases",
     "weighted_average_basic_shares", "preferred_stock_value_outstanding", "preferred_stock_stated_value",
     "accounts_receivable", "inventory", "accounts_payable",
+    "current_debt_including_lease_obligations", "commercial_paper", "long_term_debt_including_current",
+    "gross_debt_instrument_carrying_amount", "long_term_investments", "noncurrent_marketable_securities",
+    "finance_lease_liability", "finance_lease_liability_current", "finance_lease_liability_noncurrent",
+    "operating_lease_liability", "operating_lease_liability_current", "operating_lease_liability_noncurrent",
+    "long_term_debt_proceeds", "long_term_debt_repayments", "total_debt_repayments",
+    "debt_repayments_maturing_over_three_months",
 }
 
 
@@ -243,6 +271,50 @@ def _compatible(sources: list[list[dict]], *, cumulative: bool = False, fiscal_y
     return True
 
 
+def complete_conventional_debt_provenance(records: list[dict], *, end_date: str | None = None) -> bool:
+    """Check SEC debt scope, independently of a caller's numeric reconciliation.
+
+    Old snapshots may contain DebtCurrent (including lease obligations), or a
+    commercial-paper subtotal labeled total debt. Retain those original facts,
+    but do not reuse that aggregate as complete conventional financial debt.
+    This function does not validate user overrides or license provider records.
+    """
+    if not isinstance(records, list) or not records:
+        return False
+    groups = defaultdict(list)
+    ends = set()
+    for record in records:
+        if not isinstance(record, dict):
+            return False
+        value = record.get("value", record.get("val"))
+        end, filed = _day(record.get("end")), _day(record.get("filed"))
+        if (record.get("taxonomy") != "us-gaap" or record.get("source") != "sec"
+                or record.get("unit") != "USD" or record.get("start") is not None
+                or record.get("form") not in FORMS or isinstance(record.get("coefficient", 1), bool)
+                or record.get("coefficient", 1) != 1
+                or isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value < 0 or end is None or filed is None or filed < end
+                or not re.fullmatch(r"\d{10}-\d{2}-\d{6}", str(record.get("accn") or ""))):
+            return False
+        ends.add(record["end"])
+        groups[record.get("concept")].append(record)
+    if len(ends) != 1 or (end_date is not None and ends != {end_date}):
+        return False
+    concepts = frozenset(groups)
+    allowed = {
+        frozenset({"DebtLongtermAndShorttermCombinedAmount"}),
+        frozenset({"ShortTermBorrowings", "LongTermDebt"}),
+        frozenset({"ShortTermBorrowings", "LongTermDebtCurrent", "LongTermDebtNoncurrent"}),
+    }
+    if concepts not in allowed:
+        return False
+    if any(len({record.get("value", record.get("val")) for record in group}) != 1 for group in groups.values()):
+        return False
+    years = {record.get("fy") for record in records}
+    year = next(iter(years)) if len(years) == 1 else None
+    return _compatible(list(groups.values()), fiscal_year=year)
+
+
 def _new_period(start: str, end: str, year: int, fp: str) -> dict:
     return {
         "fiscal_year": year,
@@ -302,18 +374,45 @@ def _derive_period(period: dict) -> None:
         if liability_value >= 0:
             derive("total_liabilities", ("liabilities_and_equity", "total_equity_including_noncontrolling_interests"), liability_value, (1, -1))
 
-    short, long = metrics["short_term_debt"], metrics["long_term_debt"]
+    # These are scope-matched identities, not financial-debt fallbacks. A
+    # reported aggregate always remains the original reported observation.
+    conflicting_aggregates = set()
+    for target, components in (
+        ("long_term_debt_including_current", ("current_long_term_debt", "long_term_debt")),
+        ("finance_lease_liability", ("finance_lease_liability_current", "finance_lease_liability_noncurrent")),
+        ("operating_lease_liability", ("operating_lease_liability_current", "operating_lease_liability_noncurrent")),
+    ):
+        if any(metrics[component] is None for component in components):
+            continue
+        component_sources = [sources.get(component, []) for component in components]
+        if not _compatible(component_sources, fiscal_year=period["fiscal_year"]):
+            _warn(warnings, target, "incompatible_source_context", f"{label}: aggregate components do not share a compatible filing context; no reconciliation or derivation was applied.")
+            continue
+        amount = sum(metrics[component] for component in components)
+        if metrics[target] is None:
+            derive(target, components, amount)
+        elif not math.isfinite(amount) or not math.isclose(metrics[target], amount, rel_tol=1e-9, abs_tol=1):
+            conflicting_aggregates.add(target)
+            _warn(warnings, target, "conflicting_aggregate_components", f"{label}: the reported aggregate differs from its compatible current/noncurrent components; original amounts are retained and the aggregate is not used to derive complete debt.")
+
+    short, long = metrics["short_term_debt"], metrics["long_term_debt_including_current"]
     if metrics["reported_total_debt"] is not None:
         metrics["total_debt"] = metrics["reported_total_debt"]
         sources["total_debt"] = sources["reported_total_debt"]
-    elif short is not None and long is not None:
-        short_concept = sources["short_term_debt"][0]["concept"]
-        if short_concept == "DebtCurrent":
-            derive("total_debt", ("short_term_debt", "long_term_debt"), short + long)
-        elif metrics["current_long_term_debt"] is not None:
-            derive("total_debt", ("short_term_debt", "current_long_term_debt", "long_term_debt"), short + metrics["current_long_term_debt"] + long)
-        else:
-            _warn(warnings, "total_debt", "incomplete_debt_components", f"{label}: current maturities of long-term debt are unavailable; total debt is not assumed from partial components.")
+        if short is not None and long is not None:
+            groups = [sources.get("short_term_debt", []), sources.get("long_term_debt_including_current", []),
+                      sources.get("reported_total_debt", [])]
+            if (_compatible(groups, fiscal_year=period["fiscal_year"])
+                    and not math.isclose(metrics["total_debt"], short + long, rel_tol=1e-9, abs_tol=1)):
+                _warn(warnings, "total_debt", "conflicting_debt_components", f"{label}: reported complete debt differs from compatible short-term borrowing and long-term debt totals; the reported amount and all original components are retained for review.")
+    elif short is not None and long is not None and "long_term_debt_including_current" not in conflicting_aggregates:
+        derive("total_debt", ("short_term_debt", "long_term_debt_including_current"), short + long)
+        if metrics["total_debt"] is not None and not complete_conventional_debt_provenance(sources["total_debt"], end_date=period["end_date"]):
+            metrics["total_debt"] = None
+            sources.pop("total_debt", None)
+            _warn(warnings, "total_debt", "unverified_debt_scope", f"{label}: source records do not establish complete conventional financial-debt scope.")
+    elif metrics["current_debt_including_lease_obligations"] is not None or metrics["commercial_paper"] is not None:
+        _warn(warnings, "total_debt", "unverified_debt_scope", f"{label}: DebtCurrent can include capital leases and commercial paper is only a short-term borrowing subtotal; neither establishes complete conventional financial debt.")
     else:
         _warn(warnings, "total_debt", "missing_debt_components", f"{label}: complete current and noncurrent debt components are unavailable.")
 
