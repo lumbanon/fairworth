@@ -13,7 +13,7 @@ from app.ai.schemas import ReportDraft, ChatDraft, Finding
 from app.ai.safety import sanitize, check_question
 from app.ai.validation import validate_findings, render_finding, validation_diagnostic, QUALITATIVE_WARNING
 from app.ai.client import input_size
-from app.ai.evidence import stable_snapshot_id
+from app.ai.evidence import stable_snapshot_id, same_security
 from app.ai.bindings import binding_catalog
 from app.core.exceptions import ApiError
 from sqlalchemy.engine import make_url
@@ -56,15 +56,27 @@ class ResearchService:
             while len(collection) > 64:
                 collection.popitem(last=False)
 
-    async def _context(self, ticker, valuation):
-        package = sanitize(await self.assembler.assemble(ticker, valuation), self.private_values)
+    async def _context(self, ticker, valuation, instrument_id=None, listing_id=None):
+        scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
+        package = sanitize(await self.assembler.assemble(ticker, valuation, **scope), self.private_values)
         if package["ticker"] != ticker:
             raise ApiError("ai_identity_mismatch", "The research evidence does not match this company.", 502)
+        identity = package.get("identity")
+        if instrument_id is not None and (not identity or identity.get("instrument_id") != instrument_id):
+            raise ApiError("ai_identity_mismatch", "The research evidence does not match the selected instrument.", 502)
+        if listing_id is not None and (not identity or identity.get("listing_id") != listing_id):
+            raise ApiError("ai_identity_mismatch", "The research evidence does not match the selected listing.", 502)
+        for item in package["registry"].values():
+            selected = item.get("identity")
+            if (bool(identity) != bool(selected) or identity and not same_security(identity, selected)):
+                raise ApiError("ai_identity_mismatch", "The research evidence contains incompatible security identities.", 502)
         # The fixed methodology entry supports conceptual answers without recalled facts.
         method = {"category": "historical_metric", "provider": "Fairworth", "title": "Deterministic valuation methodology",
                   "ticker": ticker, "metric": "valuation_methodology", "value": "FCFF discounts unlevered cash flows at WACC and bridges enterprise to common equity. FCFE discounts equity cash flows at cost of equity without deducting net debt again. Historical P/E benchmarks and growth caps are disclosed research policies. Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool.",
                   "unit": "text", "period": None, "observation_date": None, "retrieved_at": None,
                   "source_url": None, "accession": None, "derivation": None, "quality_warnings": [], "excerpt": None}
+        if identity:
+            method["identity"] = deepcopy(identity)
         method["id"] = "e_" + hashlib.sha256(json.dumps(method, sort_keys=True).encode()).hexdigest()[:24]
         package["registry"][method["id"]] = method
         package["binding_catalog"] = binding_catalog(package["registry"])
@@ -73,7 +85,8 @@ class ResearchService:
     def _key(self, owner, package):
         content = [owner, package["ticker"], package["financial_snapshot_id"], package["valuation_snapshot_id"],
                    stable_snapshot_id({"registry": package["registry"], "limitations": package["limitations"],
-                                       "adapter_version": package.get("evidence_adapter_version")}),
+                                       "adapter_version": package.get("evidence_adapter_version"),
+                                       "identity": package.get("identity")}),
                    self.settings.openai_model, PROMPT_VERSION, self.settings.openai_max_output_tokens]
         return hashlib.sha256(json.dumps(content).encode()).hexdigest()
 
@@ -108,24 +121,26 @@ class ResearchService:
         token = secrets.token_urlsafe(32)
         # Only cited public evidence is available using the session-bound capability.
         registry = {key: package["registry"][key] for key in ids}
-        self.snapshots[token] = (time.monotonic() + self.settings.ai_report_cache_ttl, owner, package["ticker"], registry)
+        identity = deepcopy(package.get("identity"))
+        self.snapshots[token] = (time.monotonic() + self.settings.ai_report_cache_ttl, owner, package["ticker"], registry, identity)
         self._prune()
         return {"ticker": package["ticker"], "company_name": package["company_name"],
                 "generated_at": datetime.now(UTC).isoformat(), "financial_snapshot_id": package["financial_snapshot_id"],
                 "valuation_snapshot_id": package["valuation_snapshot_id"], "snapshot_dates": package["snapshot_dates"],
-                "evidence_references": list(registry.values()), "snapshot_token": token}
+                "evidence_references": list(registry.values()), "snapshot_token": token,
+                **({"identity": identity} if identity else {})}
 
-    async def report(self, ticker, body, owner):
+    async def report(self, ticker, body, owner, instrument_id=None, listing_id=None):
         self.require_available()
         async with self.limits.admission():
-            package = await self._context(ticker, body.valuation)
+            package = await self._context(ticker, body.valuation, instrument_id, listing_id)
             self._fit_context(ReportDraft, package, REPORT_TASK)
             key = self._key(owner, package)
             self._prune()
             if not body.regenerate and key in self.reports:
                 cached = deepcopy(self.reports[key][1])
                 self.snapshots[cached["snapshot_token"]] = (self.reports[key][0], owner, ticker,
-                    {item["id"]: item for item in cached["evidence_references"]})
+                    {item["id"]: item for item in cached["evidence_references"]}, deepcopy(cached.get("identity")))
                 self._prune()
                 cached["cache_status"] = "hit"
                 return cached
@@ -147,13 +162,13 @@ class ResearchService:
             finally:
                 self.generating.discard(key)
 
-    async def chat(self, ticker, body, owner):
+    async def chat(self, ticker, body, owner, instrument_id=None, listing_id=None):
         self.require_available()
         check_question(body.question, self.private_values)
         for turn in body.history:
             check_question(turn.content, self.private_values)
         async with self.limits.admission():
-            package = await self._context(ticker, body.valuation)
+            package = await self._context(ticker, body.valuation, instrument_id, listing_id)
             # Do not ask the model to recalculate requested hypothetical prices.
             import re
             hypothetical = re.search(r"\b(?:what if|worth if|value if|assuming|recalculate)\b", body.question, re.I)
@@ -211,9 +226,14 @@ class ResearchService:
             raise ApiError("unsupported_ai_number", "No research findings passed numerical-evidence validation. No report was substituted.", 502)
         return sections, sorted(references), withheld
 
-    def evidence(self, ticker, evidence_id, token, owner):
+    def evidence(self, ticker, evidence_id, token, owner, instrument_id=None, listing_id=None):
         self._prune()
         record = self.snapshots.get(token)
         if record is None or record[1] != owner or record[2] != ticker or evidence_id not in record[3]:
             raise ApiError("ai_evidence_not_found", "The research evidence is unavailable for this session or has expired.", 404)
+        identity = record[4] if len(record) > 4 else None
+        if (identity and identity.get("instrument_id") != instrument_id) or (instrument_id is not None and not identity):
+            raise ApiError("ai_evidence_not_found", "The research evidence does not belong to the selected instrument.", 404)
+        if listing_id is not None and (not identity or identity.get("listing_id") != listing_id):
+            raise ApiError("ai_evidence_not_found", "The research evidence does not belong to the selected listing.", 404)
         return deepcopy(record[3][evidence_id])

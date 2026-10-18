@@ -1,3 +1,5 @@
+import { matchingSecurity } from "./securityIdentity.js";
+
 // Presentation adapter only: every Provider valuation number comes from Python.
 // Reported statement values continue to use the separate financial-fact adapter.
 export const providerModelIds = ["fcff", "fcfe", "pe", "evEbitda", "evRevenue", "peg", "graham", "dividend", "residual", "pb", "affo"];
@@ -74,8 +76,7 @@ export function providerPeriodLabel(period) {
 export function adaptProviderValuation(response, expectedTicker) {
   if (!response?.scenarios?.base?.summary || !Array.isArray(response.scenarios.base.models))
     throw new Error("The valuation service returned an incomplete Python calculation response.");
-  const canonicalTicker = (value) => String(value ?? "").toUpperCase().replaceAll(".", "-");
-  if (expectedTicker && canonicalTicker(response.company?.ticker) !== canonicalTicker(expectedTicker))
+  if (expectedTicker && !matchingSecurity(response.company, expectedTicker))
     throw new Error("The Python valuation response does not match the requested company.");
   const scenarios = Object.fromEntries(providerScenarioNames.map((name) => {
     const scenario = response.scenarios[name];

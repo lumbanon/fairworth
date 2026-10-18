@@ -23,15 +23,24 @@ async def status(ticker: Ticker, research=Depends(service)):
 
 
 @router.post("/{ticker}/ai/report", response_model=ResearchReport)
-async def report(ticker: Ticker, body: ReportRequest, identity=Depends(owner), research=Depends(service)):
-    return await research.report(ticker.upper(), body, identity)
+async def report(ticker: Ticker, body: ReportRequest, identity=Depends(owner), research=Depends(service),
+                 instrument_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$"),
+                 listing_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$")):
+    scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
+    return await research.report(ticker.upper(), body, identity, **scope)
 
 
 @router.post("/{ticker}/ai/chat", response_model=ResearchAnswer)
-async def chat(ticker: Ticker, body: ChatRequest, identity=Depends(owner), research=Depends(service)):
-    return await research.chat(ticker.upper(), body, identity)
+async def chat(ticker: Ticker, body: ChatRequest, identity=Depends(owner), research=Depends(service),
+               instrument_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$"),
+               listing_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$")):
+    scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
+    return await research.chat(ticker.upper(), body, identity, **scope)
 
 
 @router.get("/{ticker}/ai/evidence/{evidence_id}", response_model=EvidenceItem)
-async def evidence(ticker: Ticker, evidence_id: str, snapshot_token: str = Query(min_length=20, max_length=100), identity=Depends(owner), research=Depends(service)):
-    return research.evidence(ticker.upper(), evidence_id, snapshot_token, identity)
+async def evidence(ticker: Ticker, evidence_id: str, snapshot_token: str = Query(min_length=20, max_length=100), identity=Depends(owner), research=Depends(service),
+                   instrument_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$"),
+                   listing_id: str | None = Query(default=None, min_length=1, max_length=100, pattern=r"^[A-Za-z0-9:_-]+$")):
+    scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
+    return research.evidence(ticker.upper(), evidence_id, snapshot_token, identity, **scope)

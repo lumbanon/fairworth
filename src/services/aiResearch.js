@@ -1,4 +1,5 @@
 import { ApiError, fetchJson } from "./api.js";
+import { matchingSecurity } from "../lib/securityIdentity.js";
 
 const storageKey = "fairworth.research.session";
 let fallbackSession;
@@ -35,9 +36,8 @@ export function safeEvidenceUrl(value) {
   } catch { return null; }
 }
 
-export function validateResearchResponse(response, ticker, kind = "report") {
-  const normalize = (value) => String(value ?? "").toUpperCase().replaceAll(".", "-");
-  if (normalize(response?.ticker) !== normalize(ticker))
+export function validateResearchResponse(response, ticker, kind = "report", identity) {
+  if (!matchingSecurity(response, identity ?? ticker))
     throw new ApiError("The research response does not match the selected company.", 0, "incompatible_response");
   const findings = kind === "chat" ? [response.answer] : Object.values(response.sections ?? {});
   const sources = response.evidence_references;
@@ -45,7 +45,7 @@ export function validateResearchResponse(response, ticker, kind = "report") {
     || typeof finding.category !== "string" || typeof finding.uncertainty !== "string"
     || !Array.isArray(finding.evidence_ids) || finding.evidence_ids.some((id) => !sources.some((source) => source.id === id))
     || !Array.isArray(finding.quantitative_claims) || finding.quantitative_claims.some((claim) => typeof claim?.metric !== "string" || typeof claim?.unit !== "string" || !Number.isFinite(claim.value));
-  if (!Array.isArray(sources) || sources.some((source) => typeof source?.id !== "string" || typeof source?.title !== "string" || typeof source?.metric !== "string") || !findings.length || findings.some((section) => !Array.isArray(section) || section.some(invalidFinding)))
+  if (!Array.isArray(sources) || sources.some((source) => typeof source?.id !== "string" || typeof source?.title !== "string" || typeof source?.metric !== "string" || (identity?.instrument_id && !matchingSecurity(source, identity))) || !findings.length || findings.some((section) => !Array.isArray(section) || section.some(invalidFinding)))
     throw new ApiError("The research service returned an incomplete response. Please try again.", 0, "invalid_response");
   return response;
 }
@@ -65,12 +65,12 @@ export function loadResearchStatus(ticker, options) {
 
 export async function generateResearchReport(ticker, valuation, { regenerate = false, ...options } = {}) {
   const result = await request(ticker, "report", { ...options, method: "POST", body: { ...(valuation ? { valuation } : {}), regenerate } });
-  return validateResearchResponse(result, ticker);
+  return validateResearchResponse(result, ticker, "report", options.expectedIdentity);
 }
 
 export async function askResearchQuestion(ticker, question, history, valuation, options) {
   const result = await request(ticker, "chat", { ...options, method: "POST", body: {
     question, history: history.slice(-8).map(({ role, content }) => ({ role, content: content.slice(0, 2000) })), ...(valuation ? { valuation } : {}),
   } });
-  return validateResearchResponse(result, ticker, "chat");
+  return validateResearchResponse(result, ticker, "chat", options?.expectedIdentity);
 }

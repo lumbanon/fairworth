@@ -1,6 +1,8 @@
-# Fairworth — Phase 6
+# Fairworth — Phase 6.5
 
 A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
+
+The [Phase 6.5 market coverage report](docs/phase65-market-coverage.md) documents the indexed issuer/instrument/listing registry, explicit identity selection, independent coverage stages, on-demand cache coordination, conservative instrument gates, and the dated 25-security reference audit. An SEC ticker reference does not prove an active common-stock listing or an eligible valuation. Provider mode now requires an imported reference registry; see the report's migration/import commands. Automatic reference fetching is disabled by default. No OpenAI requests are part of Phase 6.5 verification.
 
 The [Phase 6 implementation and verification report](docs/phase6-valuation-accuracy.md) documents verified financial scope mappings, complete-debt safeguards, fiscal forecast alignment, versioned evidence, coverage/quality/confidence diagnostics and the expandable data-completeness dashboard. The [internal audit](docs/phase6-internal-audit.md) records the evidence and priorities established before implementation. Four-company results use explicitly dated public fixtures: additional fields improve inspection while AAPL/MSFT retain single-model policy estimates and NVDA/ORCL retain legitimate blockers. No fresh provider or OpenAI requests are part of Phase 6 verification.
 

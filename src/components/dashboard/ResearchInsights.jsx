@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router";
 
 export default function ResearchInsights({ company }) {
   const provider = company.dataMode === "provider";
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   return (
     <section
       id="insights"
@@ -15,7 +15,7 @@ export default function ResearchInsights({ company }) {
           <p>
             A static checklist for reviewing business quality, source evidence,
             and valuation assumptions.
-            {provider && <> <Link className="research-insights-ai-link" to={`${pathname}#ai-research`}>Open {company.ticker} AI Research</Link> for source-cited generated analysis.</>}
+            {provider && <> <Link className="research-insights-ai-link" to={`${pathname}${search}#ai-research`}>Open {company.ticker} AI Research</Link> for source-cited generated analysis.</>}
           </p>
         </div>
         <span className="research-caption">

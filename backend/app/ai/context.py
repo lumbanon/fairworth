@@ -5,12 +5,12 @@ financial forecast or make a valuation available when its engine result is null.
 """
 from __future__ import annotations
 
-import asyncio
 from copy import deepcopy
 import re
 
 from app.ai.evidence import (EvidenceRegistry, context_token_upper_bound, json_value, period_label,
-                             public_text, safe_source_url, stable_snapshot_id, warning_texts)
+                             public_text, safe_source_url, stable_snapshot_id, warning_texts,
+                             same_security, security_identity)
 from app.core.exceptions import ApiError
 from app.providers.base import ProviderError
 from app.valuation.history import analyze_history
@@ -21,7 +21,7 @@ from app.valuation.schemas import ValuationRequest
 _FACTS = ("revenue", "net_income", "operating_income", "diluted_eps", "operating_cash_flow", "capital_expenditures",
           "free_cash_flow", "cash_and_cash_equivalents", "total_debt", "total_assets", "total_liabilities",
           "shareholders_equity", "weighted_average_diluted_shares", "basic_eps", "dividends_paid")
-EVIDENCE_ADAPTER_VERSION = "financial-evidence-2"
+EVIDENCE_ADAPTER_VERSION = "financial-evidence-3"
 _ADDITIONAL_FACTS = ("stock_based_compensation", "noncurrent_marketable_securities", "long_term_investments",
                      "finance_lease_liability", "operating_lease_liability", "long_term_debt_including_current",
                      "current_debt_including_lease_obligations", "commercial_paper", "gross_debt_instrument_carrying_amount",
@@ -71,7 +71,7 @@ class EvidenceContextAssembler:
         self.valuations, self.companies, self.financials = valuation_service, company_service, financial_service
         self.filings, self.settings = filing_service, settings
 
-    async def assemble(self, ticker, valuation_request=None):
+    async def assemble(self, ticker, valuation_request=None, instrument_id=None, listing_id=None):
         ticker = str(ticker).strip().upper()
         if not re.fullmatch(r"[A-Z][A-Z0-9.-]{0,9}", ticker):
             raise ApiError("invalid_ticker", "A valid US stock ticker is required.", 422)
@@ -80,25 +80,48 @@ class EvidenceContextAssembler:
             request = ValuationRequest.model_validate(request)
         limitations = []
         valuation = None
+        scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
         try:
-            inputs = await self.valuations.inputs(ticker)
+            inputs = await self.valuations.inputs(ticker, **scope)
         except (ApiError, ProviderError, TimeoutError):
             # Failure of optional valuation inputs must not prevent a structured
             # financial report. The existing financial validator remains authority.
-            profile, dataset = await asyncio.gather(self.companies.profile(ticker), self.financials.dataset(ticker))
-            identity, snapshot, warnings, _status = dataset
-            if profile.get("company", {}).get("cik") != identity.get("cik"):
-                raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the requested company.", 502)
-            inputs = build_valuation_inputs(profile, {**snapshot.payload, "warnings": warnings}, snapshot.retrieved_at)
+            profile = await self.companies.profile(ticker, **scope)
+            try:
+                identity, snapshot, warnings, _status = await self.financials.dataset(ticker, **scope)
+            except (ApiError, ProviderError, TimeoutError):
+                # A profile-only response is useful, but an absent statement is
+                # never a successful zero-filled financial snapshot.
+                inputs = build_valuation_inputs(profile, {"currency": None, "annual": [], "warnings": [
+                    {"field": "financials", "code": "financial_evidence_unavailable",
+                     "message": "Financial statements could not be obtained; no financial values are inferred."}]})
+                limitations.append("Financial statements are unavailable; only registered profile evidence can support this response.")
+            else:
+                if not same_security(profile.get("company", {}), identity):
+                    raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the requested company.", 502)
+                inputs = build_valuation_inputs(profile, {**snapshot.payload, "warnings": warnings}, snapshot.retrieved_at)
             limitations.append("Automatic valuation inputs were unavailable; verified structured financial evidence is retained.")
         inputs = deepcopy(inputs)
         company = inputs.get("company", {})
-        if company.get("ticker", "").upper() != ticker:
+        # Search aliases (including company names) are not security identifiers.
+        aliases = company.get("symbol_aliases", []) if company.get("instrument_id") else company.get("aliases", [])
+        verified_aliases = ({str(alias).upper() for alias in company.get("verified_aliases", []) if isinstance(alias, str)}
+                            if not company.get("instrument_id") else set())
+        for alias in aliases or []:
+            if isinstance(alias, str):
+                verified_aliases.add(alias.upper())
+            elif isinstance(alias, dict) and alias.get("verified") is True:
+                verified_aliases.add(str(alias.get("alias", alias.get("symbol", alias.get("ticker", "")))).upper())
+        if company.get("ticker", "").upper() != ticker and ticker not in verified_aliases:
             raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the requested company.", 502)
+        if instrument_id is not None and company.get("instrument_id") != instrument_id:
+            raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the selected instrument.", 502)
+        if listing_id is not None and company.get("listing_id") != listing_id:
+            raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the selected listing.", 502)
         try:
-            valuation = json_value(await self.valuations.calculate(ticker, request))
-            if (valuation.get("company", {}).get("ticker", "").upper() != ticker
-                    or valuation.get("company", {}).get("cik") != company.get("cik")):
+            valuation = json_value(await self.valuations.calculate(ticker, request, **scope))
+            if (valuation.get("company", {}).get("ticker", "").upper() != company.get("ticker", "").upper()
+                    or not same_security(valuation.get("company", {}), company)):
                 raise ApiError("incompatible_financial_identity", "The valuation snapshot does not match the requested company.", 502)
             # A service reload can otherwise mix a newer valuation with older
             # history. Re-read the cached immutable inputs and verify exact facts.
@@ -107,10 +130,10 @@ class EvidenceContextAssembler:
                 return (financials.get("facts") == json_value(candidate.get("facts", {}))
                         and financials.get("reporting_period") == json_value(candidate.get("reporting_period"))
                         and valuation.get("currency") == candidate.get("currency")
-                        and valuation.get("company", {}).get("cik") == candidate.get("company", {}).get("cik")
-                        and candidate.get("company", {}).get("ticker", "").upper() == ticker)
+                        and same_security(valuation.get("company", {}), candidate.get("company", {}))
+                        and candidate.get("company", {}).get("ticker", "").upper() == company.get("ticker", "").upper())
             if not matches_snapshot(inputs):
-                refreshed = await self.valuations.inputs(ticker)
+                refreshed = await self.valuations.inputs(ticker, **scope)
                 if not matches_snapshot(refreshed):
                     raise ApiError("incompatible_valuation_snapshot", "Financial and valuation snapshots do not match.", 503)
                 inputs = deepcopy(refreshed)
@@ -123,7 +146,8 @@ class EvidenceContextAssembler:
             limitations.append("The deterministic valuation service is unavailable; no intrinsic value is supplied.")
             valuation = None
 
-        registry = EvidenceRegistry(ticker)
+        identity = security_identity(company)
+        registry = EvidenceRegistry(ticker, company)
         currency = inputs.get("currency")
         reporting_period = inputs.get("reporting_period")
         observed_period = (reporting_period or {}).get("end_date")
@@ -149,6 +173,8 @@ class EvidenceContextAssembler:
                        "market": (inputs.get("market") or {}).get("price_timestamp")}),
                    "registry": registry.registry, "limitations": []}
         package["snapshot_dates"]["valuation"] = valuation.get("calculated_at") if valuation else None
+        if identity:
+            package["identity"] = identity
 
         def add(**kwargs):
             return registry.add(period=reporting_period, retrieved_at=retrieved, **kwargs)

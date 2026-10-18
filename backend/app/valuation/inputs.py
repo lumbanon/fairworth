@@ -186,6 +186,12 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
                       or company.get("share_class_basis_verified") is False)
                      and re.search(r"[.-][A-Z]$", str(company.get("ticker") or "").upper()) is not None)
     share_basis = not (multiple or unknown_class) or company.get("share_class_basis_verified") is True
+    if company.get("instrument_id"):
+        from app.services.security_identity import applicability
+        share_basis = (company.get("share_class_basis_verified") is True
+                       or company.get("has_multiple_share_classes") is False and company.get("instrument_type") in
+                       {"common_stock", "reit", "financial_institution", "insurance"}
+                       or not applicability(company) and company.get("instrument_type") in {"foreign_ordinary", "adr"})
     income_basis = shares is not None and shares > 0 and income is not None and eps is not None and abs(income / shares - eps) <= 0.02
     if not income_basis and income is not None and eps is not None:
         warnings.append(_warning("net_income", "incompatible_earnings_basis", "Consolidated net income and diluted EPS do not reconcile on the reported diluted share denominator; common-equity earnings are not inferred."))

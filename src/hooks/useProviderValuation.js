@@ -40,9 +40,9 @@ export default function useProviderValuation(company) {
 
   useEffect(() => {
     const controller = new AbortController();
-    loadValuationDefaults(company.ticker, { signal: controller.signal })
+    loadValuationDefaults(company.ticker, { signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId })
       .then((response) => {
-        adaptProviderValuation(response, company.ticker);
+        adaptProviderValuation(response, company.identity ?? company.ticker);
         if (!controller.signal.aborted)
           setState({ status: "ready", response, defaults: response.defaults, error: null });
       })
@@ -50,16 +50,16 @@ export default function useProviderValuation(company) {
         if (!controller.signal.aborted) setState({ status: "error", response: null, defaults: null, error });
       });
     return () => controller.abort();
-  }, [company.ticker, defaultsAttempt]);
+  }, [company.ticker, company.identity, company.instrumentId, company.listingId, defaultsAttempt]);
 
   useEffect(() => {
     if (!ready || !validInputs) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setState((previous) => ({ ...previous, status: "calculating", error: null }));
-      calculateValuation(company.ticker, JSON.parse(requestKey), { signal: controller.signal })
+      calculateValuation(company.ticker, JSON.parse(requestKey), { signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId })
         .then((response) => {
-          adaptProviderValuation(response, company.ticker);
+          adaptProviderValuation(response, company.identity ?? company.ticker);
           if (!controller.signal.aborted)
             setState((previous) => ({ ...previous, status: "ready", response, error: null }));
         })
@@ -72,7 +72,7 @@ export default function useProviderValuation(company) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [company.ticker, requestKey, ready, validInputs, calculationAttempt]);
+  }, [company.ticker, company.identity, company.instrumentId, company.listingId, requestKey, ready, validInputs, calculationAttempt]);
 
   const unavailable = state.status === "error" || !validInputs;
   const scenarios = unavailable ? Object.fromEntries(providerScenarioNames.map((name) => [name, {

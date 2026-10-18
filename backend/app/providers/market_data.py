@@ -11,12 +11,14 @@ import math
 import asyncio
 import time
 from abc import ABC, abstractmethod
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
 from app.providers.base import JsonHttpProvider, ProviderError, validate_ticker
+from app.services.security_identity import cache_scope, check_provider_identity
 
 
 def _number(value: Any) -> float | None:
@@ -74,6 +76,7 @@ class DisabledMarketDataProvider(MarketDataProvider):
 
 
 class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
+    supports_security_identity = True
     name = "fmp"
     ORIGIN = "https://financialmodelingprep.com/stable"
 
@@ -95,14 +98,35 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         self._profiles: dict[str, tuple[float, dict]] = {}
         self._access_denials = {}
         self._endpoint_locks = {}
+        self._endpoint_users = {}
 
-    async def _records(self, endpoint: str, ticker: str, parameters: dict | None = None) -> list[dict]:
+    @staticmethod
+    def _remember(mapping, key, value):
+        mapping.pop(key, None)
+        mapping[key] = value
+        while len(mapping) > 1000:
+            mapping.pop(next(iter(mapping)))
+
+    @asynccontextmanager
+    async def _endpoint_lock(self, key):
+        lock = self._endpoint_locks.setdefault(key, asyncio.Lock())
+        self._endpoint_users[key] = self._endpoint_users.get(key, 0) + 1
+        try:
+            async with lock:
+                yield
+        finally:
+            self._endpoint_users[key] -= 1
+            if not self._endpoint_users[key]:
+                self._endpoint_users.pop(key)
+                self._endpoint_locks.pop(key)
+
+    async def _records(self, endpoint: str, ticker: str, parameters: dict | None = None, identity: dict | None = None) -> list[dict]:
         if not self.enabled:
             raise ProviderError("provider_disabled", "The market provider API key is not configured.", 503)
-        symbol = _market_symbol(ticker)
-        key = (endpoint, symbol)
+        symbol = self._symbol(ticker, identity)
+        key = (endpoint, cache_scope(identity) if identity else symbol)
         # Access can differ by symbol. Do not let an ORCL restriction disable AAPL.
-        async with self._endpoint_locks.setdefault(key, asyncio.Lock()):
+        async with self._endpoint_lock(key):
             denial = self._access_denials.get(key)
             if denial and time.monotonic() - denial[0] < self.access_denial_ttl_seconds:
                 raise ProviderError(denial[1], denial[2], 503)
@@ -117,19 +141,31 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                     )
             except ProviderError as error:
                 if error.code in {"provider_subscription_required", "provider_access_denied"}:
-                    self._access_denials[key] = (time.monotonic(), error.code, error.message)
+                    self._remember(self._access_denials, key, (time.monotonic(), error.code, error.message))
                 raise
             self._access_denials.pop(key, None)
         if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
             raise ProviderError("invalid_provider_response", "The market provider returned an unexpected response.", 502)
+        if identity:
+            for row in payload:
+                check_provider_identity(identity, row)
         return payload
 
-    async def profile(self, ticker: str) -> dict:
-        symbol = _market_symbol(ticker)
-        cached = self._profiles.get(symbol)
+    @staticmethod
+    def _symbol(ticker, identity):
+        symbols = (identity or {}).get("provider_symbols") or {}
+        alias = symbols.get("fmp") if isinstance(symbols, dict) else None
+        if identity:
+            return validate_ticker(alias if isinstance(alias, str) else identity.get("ticker", ticker))
+        return _market_symbol(ticker)
+
+    async def profile(self, ticker: str, identity: dict | None = None) -> dict:
+        symbol = self._symbol(ticker, identity)
+        profile_key = cache_scope(identity) if identity else symbol
+        cached = self._profiles.get(profile_key)
         if cached is not None and time.monotonic() - cached[0] < 3600:
             return dict(cached[1])
-        rows = await self._records("profile", symbol)
+        rows = await self._records("profile", symbol, identity=identity)
         row = next((item for item in rows if item.get("symbol") == symbol), None)
         if row is None:
             raise ProviderError("not_found", "The market provider has no company profile for this ticker.", 404)
@@ -148,12 +184,14 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             "retrieved_at": datetime.now(UTC).isoformat(),
             "provider": self.name,
         }
-        self._profiles[symbol] = (time.monotonic(), result)
+        if identity:
+            check_provider_identity(identity, result)
+        self._remember(self._profiles, profile_key, (time.monotonic(), result))
         return dict(result)
 
-    async def quote(self, ticker: str) -> dict:
-        symbol = _market_symbol(ticker)
-        rows = await self._records("quote", symbol)
+    async def quote(self, ticker: str, identity: dict | None = None) -> dict:
+        symbol = self._symbol(ticker, identity)
+        rows = await self._records("quote", symbol, identity=identity)
         row = next((item for item in rows if item.get("symbol") == symbol), None)
         if row is None:
             raise ProviderError("not_found", "The market provider has no quote for this ticker.", 404)
@@ -164,7 +202,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         profile = {}
         if not row.get("currency") or not row.get("exchange"):
             try:
-                profile = await self.profile(symbol)
+                profile = await self.profile(symbol, identity=identity)
             except ProviderError:
                 warnings.append({"field": "currency", "code": "missing_quote_metadata", "message": "Quote currency or exchange metadata is unavailable."})
         timestamp = _number(row.get("timestamp"))
@@ -210,11 +248,11 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             "warnings": warnings,
         }
 
-    async def historical_prices(self, ticker: str, limit: int = 365) -> list[dict]:
-        symbol = _market_symbol(ticker)
-        rows = await self._records("historical-price-eod/full", symbol)
+    async def historical_prices(self, ticker: str, limit: int = 365, identity: dict | None = None) -> list[dict]:
+        symbol = self._symbol(ticker, identity)
+        rows = await self._records("historical-price-eod/full", symbol, identity=identity)
         try:
-            profile = await self.profile(symbol)
+            profile = await self.profile(symbol, identity=identity)
         except ProviderError:
             profile = {}  # Preserve entitled history even if optional profile metadata is unavailable.
         result = []
@@ -245,11 +283,11 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         result.sort(key=lambda item: item["date"], reverse=True)
         return result[: min(2000, max(1, limit))]
 
-    async def dividends(self, ticker: str, limit: int = 100) -> list[dict]:
-        symbol = _market_symbol(ticker)
-        rows = await self._records("dividends", symbol)
+    async def dividends(self, ticker: str, limit: int = 100, identity: dict | None = None) -> list[dict]:
+        symbol = self._symbol(ticker, identity)
+        rows = await self._records("dividends", symbol, identity=identity)
         try:
-            profile = await self.profile(symbol)
+            profile = await self.profile(symbol, identity=identity)
         except ProviderError:
             profile = {}
         result = []
@@ -269,10 +307,10 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             })
         return result[: min(1000, max(1, limit))]
 
-    async def splits(self, ticker: str) -> list[dict]:
+    async def splits(self, ticker: str, identity: dict | None = None) -> list[dict]:
         """Full authorized split-event endpoint; a denied call is not no splits."""
-        symbol = _market_symbol(ticker)
-        rows = await self._records("splits", symbol)
+        symbol = self._symbol(ticker, identity)
+        rows = await self._records("splits", symbol, identity=identity)
         result = []
         for row in rows:
             if row.get("symbol", symbol) != symbol:
@@ -287,9 +325,9 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             result.append({"date": day, "numerator": numerator, "denominator": denominator, "provider": self.name})
         return sorted(result, key=lambda item: item["date"])
 
-    async def share_float(self, ticker: str) -> dict:
-        symbol = _market_symbol(ticker)
-        rows = await self._records("shares-float", symbol)
+    async def share_float(self, ticker: str, identity: dict | None = None) -> dict:
+        symbol = self._symbol(ticker, identity)
+        rows = await self._records("shares-float", symbol, identity=identity)
         row = next((item for item in rows if item.get("symbol") == symbol), None)
         if row is None:
             raise ProviderError("not_found", "The provider has no share-float observation for this ticker.", 404)
@@ -300,8 +338,8 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 "source_url": row.get("source"), "provider": self.name,
                 "retrieved_at": datetime.now(UTC).isoformat()}
 
-    async def financial_statements(self, ticker: str, kind: str, limit: int = 6) -> list[dict]:
+    async def financial_statements(self, ticker: str, kind: str, limit: int = 6, identity: dict | None = None) -> list[dict]:
         endpoints = {"balance_sheet": "balance-sheet-statement", "cash_flow": "cash-flow-statement"}
         if kind not in endpoints:
             raise ProviderError("unsupported_statement", "This supplemental statement type is unsupported.", 400)
-        return await self._records(endpoints[kind], ticker, {"period": "annual", "limit": min(10, max(1, limit))})
+        return await self._records(endpoints[kind], ticker, {"period": "annual", "limit": min(10, max(1, limit))}, identity=identity)

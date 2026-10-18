@@ -7,6 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 
 from app.core.database import as_utc, utcnow
+from app.core.exceptions import ApiError
 from app.models import Company, FinancialFact, FinancialSnapshot, MarketSnapshot
 
 
@@ -56,6 +57,8 @@ class FinancialRepository:
         with self.session_factory.begin() as session:
             insert_ignore(session, Company, [fields], ["ticker"])
             company = session.scalar(select(Company).where(Company.ticker == profile["ticker"]))
+            if company.cik != profile.get("cik"):
+                raise ApiError("incompatible_financial_identity", "This ticker has historical data for another issuer. Its existing observations cannot be reassigned.", 409)
             for key, value in fields.items():
                 if value is not None:
                     setattr(company, key, value)

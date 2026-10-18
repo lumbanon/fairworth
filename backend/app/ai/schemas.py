@@ -1,7 +1,7 @@
 """Strict generation contracts separate model prose from server-owned facts."""
 from typing import Any, Literal
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator, model_serializer
 from pydantic_core import PydanticCustomError
 from app.ai.classification import ALLOWED_UNCERTAINTIES, CLASSIFICATION_INSTRUCTIONS, valid_classification
 from app.valuation.schemas import ValuationRequest
@@ -100,7 +100,18 @@ class ChatRequest(Strict):
     valuation: ValuationRequest | None = None
 
 
-class EvidenceItem(Strict):
+class IdentityEnvelope(Strict):
+    identity: dict[str, Any] | None = None
+
+    @model_serializer(mode="wrap")
+    def omit_legacy_identity(self, handler):
+        data = handler(self)
+        if self.identity is None:
+            data.pop("identity", None)
+        return data
+
+
+class EvidenceItem(IdentityEnvelope):
     id: str
     category: str
     provider: str | None
@@ -127,7 +138,7 @@ class ResearchStatus(Strict):
     limitations: list[str]
 
 
-class ResearchResponse(Strict):
+class ResearchResponse(IdentityEnvelope):
     ticker: str
     company_name: str
     generated_at: datetime

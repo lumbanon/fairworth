@@ -10,6 +10,7 @@ import re
 
 from app.core.database import utcnow
 from app.providers.base import ProviderError
+from app.services.security_identity import cache_scope, market_call, check_provider_identity
 from app.services.cache_service import CachedResult
 from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
 from app.valuation.inputs import normalize_annual_period, number, day
@@ -175,31 +176,35 @@ class AutomaticInputsService:
                 "retrieved_at": _instant(result.retrieved_at), "warnings": result.warnings,
                 "provider": provider, "source_id": key}
 
-    async def _prices(self, ticker):
+    async def _prices(self, ticker, company=None):
+        company = company or {"ticker": ticker}
+        scope = cache_scope(company)
         market = self.companies.market
         if not getattr(market, "enabled", False) or not hasattr(market, "splits"):
             return {"prices": [], "provider": market.name, "status": "unavailable", "warnings": ["Compatible historical price/split evidence is unavailable."]}
         # Exactly the existing company-service key and loader, with the largest
         # supported history window. Provider rows retain their adjustment basis.
         try:
-            result = await self.cache.get_or_load(f"market:{market.name}:prices:{ticker}:2000", self.settings.historical_cache_ttl_seconds,
-                                                 market.name, lambda: self._bounded(lambda: market.historical_prices(ticker, 2000)))
+            result = await self.cache.get_or_load(f"market:{market.name}:prices:{scope}:2000", self.settings.historical_cache_ttl_seconds,
+                                                 market.name, lambda: self._bounded(lambda: market_call(market, "historical_prices", company, 2000)))
             rows = deepcopy(result.payload)
             return {"prices": rows, "provider": market.name, "retrieved_at": _instant(result.retrieved_at),
                     "status": result.status, "warnings": result.warnings,
                     "adjustment_basis": rows[0].get("adjustment_basis") if rows else None,
                     "adjustment_date": rows[0].get("adjustment_date") if rows else None,
                     "currency": rows[0].get("currency") if rows else None,
-                    "source_id": f"market:{market.name}:prices:{ticker}:2000"}
+                    "source_id": f"market:{market.name}:prices:{scope}:2000"}
         except ProviderError as error:
             return {"prices": [], "provider": market.name, "status": "unavailable", "error_code": error.code,
                     "warnings": [error.message]}
 
-    async def _splits(self, ticker):
+    async def _splits(self, ticker, company=None):
+        company = company or {"ticker": ticker}
+        scope = cache_scope(company)
         market = self.companies.market
         if not hasattr(market, "splits"):
             return {"splits": [], "complete": False, "status": "unavailable", "provider": market.name}
-        result = await self._optional(f"market:{market.name}:splits:{ticker}:v{PROVIDER_CACHE_VERSION}", market.name, lambda: market.splits(ticker))
+        result = await self._optional(f"market:{market.name}:splits:{scope}:v{PROVIDER_CACHE_VERSION}", market.name, lambda: market_call(market, "splits", company))
         return {**result, "splits": result.get("data", []), "complete": bool(result.get("available")),
                 "adjustment_date": str(result.get("retrieved_at", ""))[:10]}
 
@@ -255,22 +260,25 @@ class AutomaticInputsService:
                 "source_id": key, "retrieved_at": record.get("retrieved_at") or _instant(cached_at),
                 "status": "stale", "warnings": list(dict.fromkeys(warnings)), "editable": True}
 
-    async def _beta(self, ticker):
+    async def _beta(self, ticker, company=None):
+        company = company or {"ticker": ticker}
+        scope = cache_scope(company)
         market = self.companies.market
         if not getattr(market, "enabled", False):
             return _record(unit="ratio", description="An authorized beta provider is not configured.", status="unavailable")
         try:
-            enrichment = await self.cache.get_or_load(f"market:{market.name}:profile:{ticker}", self.settings.company_cache_ttl_seconds,
-                                                      market.name, lambda: self._bounded(lambda: market.profile(ticker)))
+            enrichment = await self.cache.get_or_load(f"market:{market.name}:profile:{scope}", self.settings.company_cache_ttl_seconds,
+                                                      market.name, lambda: self._bounded(lambda: market_call(market, "profile", company)))
             if market.name == "fmp" and "beta" not in enrichment.payload:
                 # Phase 3 persisted profiles predate beta metadata. Backfill
                 # once through the same authorized endpoint/key. A present null
                 # beta is genuine absence and does not trigger another call.
-                refreshed = await self._bounded(lambda: market.profile(ticker))
-                refreshed_at = self.cache._write(f"market:{market.name}:profile:{ticker}", refreshed,
+                refreshed = await self._bounded(lambda: market_call(market, "profile", company))
+                refreshed_at = self.cache._write(f"market:{market.name}:profile:{scope}", refreshed,
                                                    self.settings.company_cache_ttl_seconds, market.name)
                 enrichment = CachedResult(refreshed, "fresh", refreshed_at, [])
             beta = number(enrichment.payload.get("beta"))
+            check_provider_identity(company, enrichment.payload)
             valid = beta is not None and -5 <= beta <= 10
             warnings = ["Provider beta estimation lookback and return frequency are not exposed; retrieval date is not a separately supplied calculation date."]
             warnings.extend(item.get("message", "") if isinstance(item, dict) else str(item) for item in enrichment.warnings)
@@ -278,17 +286,19 @@ class AutomaticInputsService:
                            description="FMP profile current beta, observed when the profile snapshot was retrieved; provider estimation window/frequency unavailable.",
                            observation_date=enrichment.retrieved_at.date(), retrieved_at=enrichment.retrieved_at,
                            methodology=enrichment.payload.get("beta_methodology"), status=enrichment.status,
-                           warnings=warnings, source_id=f"market:{market.name}:profile:{ticker}")
+                           warnings=warnings, source_id=f"market:{market.name}:profile:{scope}")
         except ProviderError as error:
             return _record(unit="ratio", provider=market.name, description=error.message, warnings=[error.code], status="unavailable")
 
-    async def _supplemental(self, ticker):
+    async def _supplemental(self, ticker, company=None):
+        company = company or {"ticker": ticker}
+        scope = cache_scope(company)
         market = self.companies.market
         if not hasattr(market, "financial_statements"):
             return {}
         async def load(kind):
-            result = await self._optional(f"market:{market.name}:statement:{ticker}:{kind}:annual:v{PROVIDER_CACHE_VERSION}", market.name,
-                                          lambda: market.financial_statements(ticker, kind))
+            result = await self._optional(f"market:{market.name}:statement:{scope}:{kind}:annual:v{PROVIDER_CACHE_VERSION}", market.name,
+                                          lambda: market_call(market, "financial_statements", company, kind))
             return kind, result
         return dict(await asyncio.gather(load("balance_sheet"), load("cash_flow")))
 
@@ -309,17 +319,17 @@ class AutomaticInputsService:
     async def evidence(self, ticker, profile, normalized, retrieved_at):
         if not self.settings.valuation_automatic_inputs_enabled:
             return {}
-        company = profile.get("company", profile)
+        company = {"ticker": ticker, **profile.get("company", profile)}
         raw = await self.cache.get_or_load(f"sec:facts:{company['cik']}", self.settings.sec_cache_ttl_seconds,
                                            "sec-edgar", lambda: self.financials.sec.facts(company["cik"]))
         # Native vintage reconstruction is a separate versioned analytics layer.
-        native = await self.cache.get_or_load(f"sec:annual-publications:{company['cik']}:{ticker}:{raw.retrieved_at.isoformat()}:v{EVIDENCE_VERSION}:n{NORMALIZATION_VERSION}",
+        native = await self.cache.get_or_load(f"sec:annual-publications:{company['cik']}:{cache_scope(company)}:{raw.retrieved_at.isoformat()}:v{EVIDENCE_VERSION}:n{NORMALIZATION_VERSION}",
                                               self.settings.sec_cache_ttl_seconds, "sec-edgar",
                                               lambda: self._native(raw.payload, normalized, company, raw.retrieved_at))
         # All independent optional sources share one parallel retrieval phase;
         # one slow Treasury/statement cannot serially postpone successful P/E.
         prices, splits, treasury, beta, supplemental = await asyncio.gather(
-            self._prices(ticker), self._splits(ticker), self._treasury(), self._beta(ticker), self._supplemental(ticker))
+            self._prices(ticker, company), self._splits(ticker, company), self._treasury(), self._beta(ticker, company), self._supplemental(ticker, company))
         observations = {"current_shares": latest_sec_shares(raw.payload, company, raw.retrieved_at),
                         "risk_free_rate": treasury, "equity_risk_premium": self._erp(), "beta": beta}
         provider_status = {"historical_prices": prices.get("status"), "splits": splits.get("status")}

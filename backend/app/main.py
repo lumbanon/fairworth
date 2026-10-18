@@ -30,6 +30,8 @@ from app.services.company_service import CompanyService
 from app.services.financial_service import FinancialService
 from app.services.valuation_service import ValuationService
 from app.services.automatic_inputs_service import AutomaticInputsService
+from app.registry.service import SecurityRegistryService
+from app.services.coverage_service import CoverageService
 
 
 def error_response(code, message, status_code, details=None):
@@ -62,7 +64,10 @@ def create_app(settings=None, engine=None, providers=None):
                           else DisabledMarketDataProvider(client))
             cache = CacheService(session_factory)
             repository = FinancialRepository(session_factory)
-            company_service = CompanyService(sec, market, cache, repository, settings)
+            registry = SecurityRegistryService(session_factory, settings, sec=sec, cache=cache)
+            application.state.security_registry = registry
+            company_service = CompanyService(sec, market, cache, repository, settings,
+                                             registry=registry if hasattr(sec, "security_directory") else None)
             application.state.company_service = company_service
             application.state.financial_service = FinancialService(company_service, sec, cache, repository, settings)
             treasury = TreasuryYieldProvider(client, retries=settings.provider_retries, timeout=settings.provider_timeout_seconds) if not providers and settings.valuation_treasury_enabled else None
@@ -72,13 +77,15 @@ def create_app(settings=None, engine=None, providers=None):
             context_settings = settings.model_copy(update={"ai_max_context_tokens": settings.ai_max_context_tokens - 12000})
             assembler = EvidenceContextAssembler(application.state.valuation_service, company_service, application.state.financial_service, filings, context_settings)
             application.state.research_service = ResearchService(settings, assembler, ResearchClient(settings))
+            application.state.coverage_service = CoverageService(company_service, application.state.financial_service,
+                                                                 application.state.valuation_service, application.state.research_service)
             try:
                 yield
             finally:
                 await application.state.research_service.close()
         engine.dispose()
 
-    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.6.0", lifespan=lifespan,
+    application = FastAPI(title="Fairworth Financial Data and Valuation API", version="0.6.5", lifespan=lifespan,
                           description="Sourced financial data and transparent, bounded Python valuations for Provider mode.",
                           responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse},
                                      502: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})

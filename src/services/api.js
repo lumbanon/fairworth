@@ -1,20 +1,23 @@
+import { matchingSecurity } from "../lib/securityIdentity.js";
+
 // Provider credentials stay on FastAPI. The browser only calls this API boundary.
 const configuredBase =
   import.meta.env?.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 export const apiBaseUrl = configuredBase.replace(/\/+$/, "");
 
 export class ApiError extends Error {
-  constructor(message, status = 0, code = "network_error") {
+  constructor(message, status = 0, code = "network_error", details = null) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
 export async function fetchJson(
   path,
-  { signal, fetcher = fetch, timeoutMs = 20000, method = "GET", body: requestBody, headers = {} } = {},
+  { signal, fetcher = fetch, timeoutMs = 20000, method = "GET", body: requestBody, headers = {}, instrumentId, listingId } = {},
 ) {
   let response;
   const controller = new AbortController();
@@ -28,7 +31,11 @@ export async function fetchJson(
   }, timeoutMs);
   try {
     try {
-      response = await fetcher(`${apiBaseUrl}/api${path}`, {
+      const identityParameters = new URLSearchParams();
+      if (instrumentId) identityParameters.set("instrument_id", instrumentId);
+      if (listingId) identityParameters.set("listing_id", listingId);
+      const scopedPath = identityParameters.size ? `${path}${path.includes("?") ? "&" : "?"}${identityParameters}` : path;
+      response = await fetcher(`${apiBaseUrl}/api${scopedPath}`, {
         signal: controller.signal,
         method,
         headers: {
@@ -74,6 +81,7 @@ export async function fetchJson(
         message || "The financial data request failed. Please try again.",
         response.status,
         detail?.code || "request_failed",
+        detail?.details ?? null,
       );
     }
     return body;
@@ -103,42 +111,42 @@ export function loadValuationSensitivity(ticker, request, options) {
   });
 }
 
-export function searchStocks(query, options) {
-  return fetchJson(`/stocks/search?q=${encodeURIComponent(query)}`, options);
+export function searchStocks(query, { limit = 10, offset = 0, ...options } = {}) {
+  return fetchJson(`/stocks/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`, options);
+}
+
+export function loadStockCoverage(ticker, options) {
+  return fetchJson(`/stocks/${encodeURIComponent(ticker)}/coverage`, options);
 }
 
 export async function loadStock(ticker, options) {
   const path = `/stocks/${encodeURIComponent(ticker)}`;
-  const [profile, annual, quarterly, metrics, dataStatus] =
+  const [profile, annual, quarterly, metrics, dataStatus, coverage] =
     await Promise.allSettled([
       fetchJson(path, options),
       fetchJson(`${path}/financials?period=annual`, options),
       fetchJson(`${path}/financials?period=quarterly`, options),
       fetchJson(`${path}/metrics`, options),
       fetchJson(`${path}/data-status`, options),
+      loadStockCoverage(ticker, options),
     ]);
   if (profile.status === "rejected") throw profile.reason;
-  if (annual.status === "rejected") throw annual.reason;
-  const identity = (value) =>
-    String(value ?? "")
-      .toUpperCase()
-      .replace(".", "-");
-  if (
-    identity(profile.value?.company?.ticker) !== identity(ticker) ||
-    identity(annual.value?.ticker) !== identity(ticker)
-  )
+  const requested = { ticker, ...(options?.instrumentId ? { instrument_id: options.instrumentId } : {}), ...(options?.listingId ? { listing_id: options.listingId } : {}) };
+  if (!matchingSecurity(profile.value, requested))
     throw new ApiError(
       "The returned financial data does not match the requested company.",
       0,
       "incompatible_response",
     );
-  for (const result of [quarterly, metrics, dataStatus]) {
+  const expected = { ...requested, ...profile.value.company };
+  for (const result of [annual, quarterly, metrics, dataStatus, coverage]) {
     if (
       result.status === "fulfilled" &&
-      identity(result.value?.ticker) !== identity(ticker)
+      // Older API mocks may not implement the optional coverage endpoint.
+      !(result === coverage && !result.value?.stages) &&
+      !matchingSecurity(result.value, expected)
     ) {
-      result.status = "rejected";
-      result.reason = new ApiError(
+      throw new ApiError(
         "Optional source data does not match the requested company.",
         0,
         "incompatible_response",
@@ -148,20 +156,21 @@ export async function loadStock(ticker, options) {
   const optional = [quarterly, metrics, dataStatus];
   return {
     profile: profile.value,
-    annual: annual.value,
+    annual: annual.status === "fulfilled" ? annual.value : null,
     quarterly: quarterly.status === "fulfilled" ? quarterly.value : null,
     metrics: metrics.status === "fulfilled" ? metrics.value : null,
     dataStatus: dataStatus.status === "fulfilled" ? dataStatus.value : null,
-    requestWarnings: optional.flatMap((result, index) =>
+    coverage: coverage.status === "fulfilled" && coverage.value?.stages ? coverage.value : null,
+    requestWarnings: [...[annual, ...optional].flatMap((result, index) =>
       result.status === "rejected"
         ? [
             {
-              field: ["quarterly", "metrics", "data_status"][index],
-              code: "request_unavailable",
+              field: ["annual", "quarterly", "metrics", "data_status"][index],
+              code: result.reason.code || "request_unavailable",
               message: result.reason.message,
             },
           ]
         : [],
-    ),
+    ), ...(coverage.status === "rejected" && coverage.reason.status !== 404 ? [{ field: "coverage", code: coverage.reason.code || "coverage_unavailable", message: `Company coverage diagnostics are unavailable. ${coverage.reason.message}` }] : [])],
   };
 }

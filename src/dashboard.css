@@ -128,6 +128,39 @@
   font-weight: 500;
   white-space: nowrap;
 }
+.provider-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 20px 24px;
+  margin: 24px 0;
+}
+.provider-coverage-grid dt {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.provider-coverage-grid dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.provider-coverage-grid dd p {
+  margin: 5px 0 0;
+  color: var(--muted-foreground);
+}
+.provider-identity-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.provider-identity-candidates a {
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
 .company-classification {
   margin-top: 8px;
   font-size: 12px;

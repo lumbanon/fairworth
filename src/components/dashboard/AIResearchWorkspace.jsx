@@ -37,6 +37,7 @@ function SourceDialog({ source, onClose }) {
   const url = safeEvidenceUrl(source.source_url);
   const fields = [
     ["Provider", source.provider], ["Company", source.ticker], ["Evidence category", categoryLabels[source.category] ?? source.category?.replaceAll("_", " ")],
+    ["Instrument identity", source.identity?.instrument_id], ["Listing identity", source.identity?.listing_id], ["Issuer identity", source.identity?.issuer_id], ["Share class", source.identity?.share_class],
     ["Fiscal period", source.period], ["Observation / filing date", source.observation_date], ["Retrieved", source.retrieved_at],
     ["Metric", source.metric], ["Value", source.value === null || source.value === undefined ? null : `${readable(source.value)} ${source.unit ?? ""}`],
     ["Accession", source.accession], ["Derivation", source.derivation], ["Source excerpt", source.excerpt],
@@ -107,13 +108,13 @@ export default function AIResearchWorkspace({ company, valuation, active }) {
   useEffect(() => {
     if (!active || status.response) return;
     const controller = new AbortController();
-    loadResearchStatus(ticker, { signal: controller.signal }).then((response) => {
+    loadResearchStatus(ticker, { signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId }).then((response) => {
       if (!controller.signal.aborted) setStatus({ response, error: null });
     }).catch((error) => {
       if (!controller.signal.aborted) setStatus({ response: null, error });
     });
     return () => controller.abort();
-  }, [active, ticker, statusAttempt, status.response]);
+  }, [active, ticker, company.instrumentId, company.listingId, statusAttempt, status.response]);
 
   useEffect(() => {
     const current = controllers.current;
@@ -135,7 +136,7 @@ export default function AIResearchWorkspace({ company, valuation, active }) {
     controllers.current.add(controller);
     setReportState({ loading: true, error: null });
     try {
-      const response = await generateResearchReport(ticker, context, { regenerate, signal: controller.signal });
+      const response = await generateResearchReport(ticker, context, { regenerate, signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId, expectedIdentity: company.identity });
       if (!controller.signal.aborted) { setReport(response); setReportState({ loading: false, error: null }); }
     } catch (error) {
       if (!controller.signal.aborted) setReportState({ loading: false, error });
@@ -151,7 +152,7 @@ export default function AIResearchWorkspace({ company, valuation, active }) {
     setChatState({ loading: true, error: null });
     try {
       const history = turns.flatMap((turn) => [{ role: "user", content: turn.question }, { role: "assistant", content: turn.response.answer.map((finding) => finding.explanation).join("\n") }]);
-      const response = await askResearchQuestion(ticker, submitted, history, context, { signal: controller.signal });
+      const response = await askResearchQuestion(ticker, submitted, history, context, { signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId, expectedIdentity: company.identity });
       if (!controller.signal.aborted) { setTurns((previous) => [...previous.slice(-3), { question: submitted, response }]); setQuestion(""); setChatState({ loading: false, error: null }); }
     } catch (error) {
       if (!controller.signal.aborted) setChatState({ loading: false, error });

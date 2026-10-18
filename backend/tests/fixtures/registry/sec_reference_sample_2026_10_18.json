@@ -1,0 +1,1953 @@
+{
+  "description": "Approved SEC public reference excerpts. Not proof of common share type, active listing, ADR ratio, current capitalization, or financial coverage.",
+  "as_of": "2026-10-18T12:11:31.612064+00:00",
+  "directory_provenance": {
+    "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+    "status": 200,
+    "retrieved_at": "2026-10-18T12:11:32.351992+00:00",
+    "bytes": 523925,
+    "sha256": "d04923d674c6d0084dc56e67efd9cb5756f965366affe9d3e18d38b379ffd45f"
+  },
+  "directory_record_count": 10444,
+  "samples": [
+    {
+      "requested_symbol": "AAPL",
+      "directory_records": [
+        {
+          "ticker": "AAPL",
+          "name": "Apple Inc.",
+          "cik": "0000320193",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": null
+    },
+    {
+      "requested_symbol": "MSFT",
+      "directory_records": [
+        {
+          "ticker": "MSFT",
+          "name": "MICROSOFT CORP",
+          "cik": "0000789019",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000789019",
+        "name": "MICROSOFT CORP",
+        "tickers": [
+          "MSFT"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "7372",
+        "sicDescription": "Services-Prepackaged Software",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000789019.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:33.135083+00:00",
+        "bytes": 185024,
+        "sha256": "a5848ba348a3d3ae08c3c40bf4599379014be077911e6550ed3a8182a34a6a7b"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "144",
+        "25-NSE",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B3",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "IRANNOTICE",
+        "PX14A6G",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-8",
+        "S-8 POS",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "NVDA",
+      "directory_records": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA CORP",
+          "cik": "0001045810",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001045810",
+        "name": "NVIDIA CORP",
+        "tickers": [
+          "NVDA"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "3674",
+        "sicDescription": "Semiconductors & Related Devices",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "NVIDIA CORP/CA",
+            "from": "1998-05-07T04:00:00.000Z",
+            "to": "2002-06-04T04:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001045810.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:33.652276+00:00",
+        "bytes": 159761,
+        "sha256": "682c49d59116ae49b317eb4adddf3ef9142dfd97f59c5d8e5a5acad7f9058ab4"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "144/A",
+        "3",
+        "4",
+        "4/A",
+        "424B5",
+        "5",
+        "5/A",
+        "8-K",
+        "ARS",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "N-PX",
+        "PRE 14A",
+        "PX14A6G",
+        "S-3",
+        "S-3/A",
+        "S-3ASR",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "ORCL",
+      "directory_records": [
+        {
+          "ticker": "ORCL",
+          "name": "ORACLE CORP",
+          "cik": "0001341439",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001341439",
+        "name": "ORACLE CORP",
+        "tickers": [
+          "ORCL",
+          "ORCL-PD"
+        ],
+        "exchanges": [
+          "NYSE",
+          "NYSE"
+        ],
+        "sic": "7372",
+        "sicDescription": "Services-Prepackaged Software",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "Ozark Holding Inc.",
+            "from": "2005-10-19T00:00:00.000Z",
+            "to": "2006-02-01T00:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001341439.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:34.180058+00:00",
+        "bytes": 158606,
+        "sha256": "bed0ec89b0d273799517d3e332b3a4ba3612168f0e4e9b963759b507f857adec"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "144",
+        "25-NSE",
+        "3",
+        "4",
+        "4/A",
+        "424B2",
+        "424B5",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "CERT",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "NO ACT",
+        "POSASR",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SC 13D",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SC TO-C",
+        "SC TO-T",
+        "SC TO-T/A",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "AMZN",
+      "directory_records": [
+        {
+          "ticker": "AMZN",
+          "name": "AMAZON COM INC",
+          "cik": "0001018724",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001018724",
+        "name": "AMAZON COM INC",
+        "tickers": [
+          "AMZN"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "5961",
+        "sicDescription": "Retail-Catalog & Mail-Order Houses",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001018724.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:34.708181+00:00",
+        "bytes": 159904,
+        "sha256": "1f5bb6be4033e2378bfa0d14e0d9276a08d8dfb070b263f59ca0e77d68ced058"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "144/A",
+        "3",
+        "3/A",
+        "4",
+        "424B2",
+        "424B3",
+        "424B5",
+        "425",
+        "8-A12B",
+        "8-K",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "PRE 14A",
+        "PX14A6G",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "GOOG",
+      "directory_records": [
+        {
+          "ticker": "GOOG",
+          "name": "Alphabet Inc.",
+          "cik": "0001652044",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001652044",
+        "name": "Alphabet Inc.",
+        "tickers": [
+          "GOOGL",
+          "GOOG",
+          "GOOGM",
+          "GOOGN"
+        ],
+        "exchanges": [
+          "Nasdaq",
+          "Nasdaq",
+          "Nasdaq",
+          "Nasdaq"
+        ],
+        "sic": "7370",
+        "sicDescription": "Services-Computer Programming, Data Processing, Etc.",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001652044.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:35.228697+00:00",
+        "bytes": 152401,
+        "sha256": "648cea84d824309b518807fd7e7fdb72d6855e12e8afa221d2caa047d5c9f2ca"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "144/A",
+        "3",
+        "4",
+        "4/A",
+        "424B2",
+        "424B5",
+        "5",
+        "8-A12B",
+        "8-K",
+        "ARS",
+        "CERT",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD"
+      ]
+    },
+    {
+      "requested_symbol": "GOOGL",
+      "directory_records": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet Inc.",
+          "cik": "0001652044",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001652044",
+        "name": "Alphabet Inc.",
+        "tickers": [
+          "GOOGL",
+          "GOOG",
+          "GOOGM",
+          "GOOGN"
+        ],
+        "exchanges": [
+          "Nasdaq",
+          "Nasdaq",
+          "Nasdaq",
+          "Nasdaq"
+        ],
+        "sic": "7370",
+        "sicDescription": "Services-Computer Programming, Data Processing, Etc.",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001652044.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:35.528738+00:00",
+        "bytes": 152401,
+        "sha256": "648cea84d824309b518807fd7e7fdb72d6855e12e8afa221d2caa047d5c9f2ca"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "144/A",
+        "3",
+        "4",
+        "4/A",
+        "424B2",
+        "424B5",
+        "5",
+        "8-A12B",
+        "8-K",
+        "ARS",
+        "CERT",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD"
+      ]
+    },
+    {
+      "requested_symbol": "META",
+      "directory_records": [
+        {
+          "ticker": "META",
+          "name": "Meta Platforms, Inc.",
+          "cik": "0001326801",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001326801",
+        "name": "Meta Platforms, Inc.",
+        "tickers": [
+          "META"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "7370",
+        "sicDescription": "Services-Computer Programming, Data Processing, Etc.",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "Facebook Inc",
+            "from": "2005-05-06T04:00:00.000Z",
+            "to": "2021-10-27T04:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001326801.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:36.066706+00:00",
+        "bytes": 157373,
+        "sha256": "56a1c4d16bec6ec1e5a605d028f9be4495fc1fcca8f32dda9f88889fdcddac95"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "144",
+        "144/A",
+        "3",
+        "4",
+        "424B2",
+        "8-K",
+        "ARS",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD"
+      ]
+    },
+    {
+      "requested_symbol": "TSLA",
+      "directory_records": [
+        {
+          "ticker": "TSLA",
+          "name": "Tesla, Inc.",
+          "cik": "0001318605",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001318605",
+        "name": "Tesla, Inc.",
+        "tickers": [
+          "TSLA"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "3711",
+        "sicDescription": "Motor Vehicles & Passenger Car Bodies",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "TESLA MOTORS INC",
+            "from": "2005-02-17T00:00:00.000Z",
+            "to": "2017-01-27T00:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001318605.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:36.572626+00:00",
+        "bytes": 161958,
+        "sha256": "76ef728de78f5a7048154847052d1be4b76d32be9e790f57d8ce14a026be6c3a"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-K/A",
+        "10-Q",
+        "144",
+        "3",
+        "4",
+        "4/A",
+        "424B3",
+        "424B5",
+        "425",
+        "5",
+        "5/A",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CORRESP",
+        "CT ORDER",
+        "D",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "POS AM",
+        "PRE 14A",
+        "PX14A6G",
+        "PX14A6N",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-8",
+        "S-8 POS",
+        "SC 13G",
+        "SC 13G/A",
+        "SC TO-T",
+        "SC TO-T/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "SEC STAFF LETTER",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "AMD",
+      "directory_records": [
+        {
+          "ticker": "AMD",
+          "name": "ADVANCED MICRO DEVICES INC",
+          "cik": "0000002488",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000002488",
+        "name": "ADVANCED MICRO DEVICES INC",
+        "tickers": [
+          "AMD"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "3674",
+        "sicDescription": "Semiconductors & Related Devices",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000002488.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:37.095333+00:00",
+        "bytes": 162197,
+        "sha256": "59ed037aef7ecf2d39a2a317886461dfbe5888f9691c46609e526ec4891792a9"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-K/A",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "3",
+        "4",
+        "4/A",
+        "424B3",
+        "424B5",
+        "425",
+        "5",
+        "5/A",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CORRESP",
+        "CT ORDER",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "IRANNOTICE",
+        "POS EX",
+        "PRE 14A",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-4MEF",
+        "S-8",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "SEC STAFF LETTER",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "PLTR",
+      "directory_records": [
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies Inc.",
+          "cik": "0001321655",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001321655",
+        "name": "Palantir Technologies Inc.",
+        "tickers": [
+          "PLTR"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "7372",
+        "sicDescription": "Services-Prepackaged Software",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "Palantir Technologies Inc",
+            "from": "2005-03-22T05:00:00.000Z",
+            "to": "2011-09-07T04:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001321655.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:37.603155+00:00",
+        "bytes": 159603,
+        "sha256": "5a5793a2f21d31fcc7df22373a747fa68462a1a3d69551264933641a5f9a997f"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "13F-HR",
+        "144",
+        "25",
+        "3",
+        "4",
+        "4/A",
+        "424B3",
+        "424B4",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "D",
+        "D/A",
+        "DEF 14A",
+        "DEFA14A",
+        "DRS",
+        "DRS/A",
+        "DRSLTR",
+        "EFFECT",
+        "FWP",
+        "POS AM",
+        "PRE 14A",
+        "PX14A6G",
+        "REGDEX",
+        "REGDEX/A",
+        "S-1",
+        "S-1/A",
+        "S-3ASR",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "SOFI",
+      "directory_records": [
+        {
+          "ticker": "SOFI",
+          "name": "SoFi Technologies, Inc.",
+          "cik": "0001818874",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001818874",
+        "name": "SoFi Technologies, Inc.",
+        "tickers": [
+          "SOFI"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "6199",
+        "sicDescription": "Finance Services",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "Social Capital Hedosophia Holdings Corp. V",
+            "from": "2020-07-28T00:00:00.000Z",
+            "to": "2021-05-28T00:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001818874.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:38.125540+00:00",
+        "bytes": 157228,
+        "sha256": "e7c5385b53818377f6c227c294bfceeed0609e293a78914f8858e16ce45f34a9"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-K/A",
+        "10-Q",
+        "144",
+        "144/A",
+        "25",
+        "25-NSE",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B3",
+        "424B4",
+        "425",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "D",
+        "DEF 14A",
+        "DEFA14A",
+        "DRS",
+        "EFFECT",
+        "FWP",
+        "NT 10-Q",
+        "POS AM",
+        "PRE 14A",
+        "S-1",
+        "S-1/A",
+        "S-1MEF",
+        "S-3",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-8",
+        "SC 13D",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "JPM",
+      "directory_records": [
+        {
+          "ticker": "JPM",
+          "name": "JPMORGAN CHASE & CO",
+          "cik": "0000019617",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": null
+    },
+    {
+      "requested_symbol": "BAC",
+      "directory_records": [
+        {
+          "ticker": "BAC",
+          "name": "BANK OF AMERICA CORP /DE/",
+          "cik": "0000070858",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000070858",
+        "name": "BANK OF AMERICA CORP /DE/",
+        "tickers": [
+          "BAC",
+          "BML-PG",
+          "BML-PL",
+          "BAC-PB",
+          "BAC-PK",
+          "BAC-PE",
+          "BAC-PL",
+          "BAC-PM",
+          "BAC-PN",
+          "BAC-PO",
+          "BAC-PP",
+          "BAC-PQ",
+          "BAC-PS",
+          "BACRP",
+          "BML-PH",
+          "BML-PJ",
+          "MER-PK"
+        ],
+        "exchanges": [
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "NYSE",
+          "OTC",
+          "NYSE",
+          "NYSE",
+          "NYSE"
+        ],
+        "sic": "6021",
+        "sicDescription": "National Commercial Banks",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "BANKAMERICA CORP/DE/",
+            "from": "1998-10-30T05:00:00.000Z",
+            "to": "1999-04-23T04:00:00.000Z"
+          },
+          {
+            "name": "NATIONSBANK CORP",
+            "from": "1994-05-13T04:00:00.000Z",
+            "to": "1998-09-28T04:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000070858.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:39.440856+00:00",
+        "bytes": 1765276,
+        "sha256": "9fa04ede956e7f0b7275d848b780f37ad318b533d2936796a0adb0bd48bb86b8"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "13F-HR",
+        "13F-HR/A",
+        "144",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B2",
+        "424B3",
+        "424B4",
+        "424B5",
+        "424B8",
+        "8-K",
+        "ARS",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "S-3/A",
+        "S-8",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A"
+      ]
+    },
+    {
+      "requested_symbol": "KO",
+      "directory_records": [
+        {
+          "ticker": "KO",
+          "name": "COCA COLA CO",
+          "cik": "0000021344",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000021344",
+        "name": "COCA COLA CO",
+        "tickers": [
+          "KO"
+        ],
+        "exchanges": [
+          "NYSE"
+        ],
+        "sic": "2080",
+        "sicDescription": "Beverages",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000021344.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:40.027339+00:00",
+        "bytes": 159098,
+        "sha256": "8591f2d5a02913481a2bc76458ab5c905f94e72f0856a18b6fa57e3f46235e39"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "10-Q/A",
+        "11-K",
+        "11-K/A",
+        "144",
+        "25-NSE",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B2",
+        "424B5",
+        "5",
+        "8-A12B",
+        "8-K",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SC 13D/A",
+        "SC 13G/A",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "WMT",
+      "directory_records": [
+        {
+          "ticker": "WMT",
+          "name": "Walmart Inc.",
+          "cik": "0000104169",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000104169",
+        "name": "Walmart Inc.",
+        "tickers": [
+          "WMT"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "5331",
+        "sicDescription": "Retail-Variety Stores",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "Walmart Inc.",
+            "from": "2018-01-31T05:00:00.000Z",
+            "to": "2026-10-16T04:00:00.000Z"
+          },
+          {
+            "name": "WAL MART STORES INC",
+            "from": "1994-02-14T05:00:00.000Z",
+            "to": "2018-01-30T05:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000104169.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:40.548260+00:00",
+        "bytes": 158549,
+        "sha256": "cee6b3afbbc6f73de87056ecbf845e754c942d9c35a7b54406e423a905ed5407"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "13F-HR",
+        "13F-HR/A",
+        "144",
+        "144/A",
+        "25",
+        "25-NSE",
+        "3",
+        "4",
+        "424B2",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "PRE 14A",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13D",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G/A",
+        "SD"
+      ]
+    },
+    {
+      "requested_symbol": "BRK-B",
+      "directory_records": [
+        {
+          "ticker": "BRK-B",
+          "name": "BERKSHIRE HATHAWAY INC",
+          "cik": "0001067983",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001067983",
+        "name": "BERKSHIRE HATHAWAY INC",
+        "tickers": [
+          "BRK-B",
+          "BRK-A"
+        ],
+        "exchanges": [
+          "NYSE",
+          "NYSE"
+        ],
+        "sic": "6331",
+        "sicDescription": "Fire, Marine & Casualty Insurance",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": [
+          {
+            "name": "NBH INC",
+            "from": "1998-08-10T04:00:00.000Z",
+            "to": "1999-01-05T05:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001067983.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:41.068326+00:00",
+        "bytes": 161248,
+        "sha256": "ab313de3258a0251e6f41c0398573a0c5a94618fd2f67b9cf1d136f3eaad9da2"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "11-K/A",
+        "13F-HR",
+        "13F-HR/A",
+        "144",
+        "25-NSE",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B2",
+        "424B5",
+        "5",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "CERTNYS",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SC 13D",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "TSM",
+      "directory_records": [
+        {
+          "ticker": "TSM",
+          "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+          "cik": "0001046179",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001046179",
+        "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+        "tickers": [
+          "TSM",
+          "TSMWF"
+        ],
+        "exchanges": [
+          "NYSE",
+          "OTC"
+        ],
+        "sic": "3674",
+        "sicDescription": "Semiconductors & Related Devices",
+        "entityType": "other",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001046179.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:41.568176+00:00",
+        "bytes": 162358,
+        "sha256": "8fafb91b40c2c0bd75e3efd8977f177e69a566fa2700bebf150cc2820fadd272"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "20-F",
+        "3",
+        "3/A",
+        "4",
+        "424B2",
+        "424B5",
+        "6-K",
+        "6-K/A",
+        "CORRESP",
+        "F-3ASR",
+        "FWP",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "BABA",
+      "directory_records": [
+        {
+          "ticker": "BABA",
+          "name": "Alibaba Group Holding Ltd",
+          "cik": "0001577552",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001577552",
+        "name": "Alibaba Group Holding Ltd",
+        "tickers": [
+          "BABA",
+          "BABAF",
+          "BBAAY"
+        ],
+        "exchanges": [
+          "NYSE",
+          "OTC",
+          "OTC"
+        ],
+        "sic": "7389",
+        "sicDescription": "Services-Business Services, NEC",
+        "entityType": "other",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001577552.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:42.075621+00:00",
+        "bytes": 108883,
+        "sha256": "6ac9ebe730af8c2646bb69e3241bff37356192d0afa18c7849e4e605844ff918"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "13F-HR",
+        "144",
+        "20-F",
+        "20-F/A",
+        "3",
+        "4",
+        "424B2",
+        "424B3",
+        "424B4",
+        "424B5",
+        "6-K",
+        "8-A12B",
+        "CERTNYS",
+        "CORRESP",
+        "CT ORDER",
+        "DRS",
+        "EFFECT",
+        "F-1",
+        "F-1/A",
+        "F-3ASR",
+        "F-4",
+        "F-4/A",
+        "F-6",
+        "F-6EF",
+        "FWP",
+        "IRANNOTICE",
+        "N-PX",
+        "S-8",
+        "SC 13D",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "NVO",
+      "directory_records": [
+        {
+          "ticker": "NVO",
+          "name": "NOVO NORDISK A S",
+          "cik": "0000353278",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000353278",
+        "name": "NOVO NORDISK A S",
+        "tickers": [
+          "NVO",
+          "NONOF"
+        ],
+        "exchanges": [
+          "NYSE",
+          "OTC"
+        ],
+        "sic": "2834",
+        "sicDescription": "Pharmaceutical Preparations",
+        "entityType": "other",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000353278.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:42.582574+00:00",
+        "bytes": 163905,
+        "sha256": "e6b66d1752a9e36fb39fcd2d75c3183b6df4c43d22c0c6d43d41b698b2f10e02"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "11-K",
+        "144",
+        "20-F",
+        "6-K",
+        "CORRESP",
+        "EFFECT",
+        "F-6",
+        "F-6 POS",
+        "IRANNOTICE",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SC TO-C",
+        "SC TO-T",
+        "SC TO-T/A",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "O",
+      "directory_records": [
+        {
+          "ticker": "O",
+          "name": "REALTY INCOME CORP",
+          "cik": "0000726728",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000726728",
+        "name": "REALTY INCOME CORP",
+        "tickers": [
+          "O"
+        ],
+        "exchanges": [
+          "NYSE"
+        ],
+        "sic": "6798",
+        "sicDescription": "Real Estate Investment Trusts",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000726728.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:43.084887+00:00",
+        "bytes": 164592,
+        "sha256": "d764d15247fde35412c69d73905b22fbd34c7ae6bce0e5a02d2950e043157500"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-K/A",
+        "10-Q",
+        "144",
+        "25-NSE",
+        "3",
+        "4",
+        "424B3",
+        "424B5",
+        "424B7",
+        "425",
+        "8-A12B",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "FWP",
+        "PRE 14A",
+        "S-3ASR",
+        "S-4",
+        "S-4/A",
+        "S-8",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "PGR",
+      "directory_records": [
+        {
+          "ticker": "PGR",
+          "name": "PROGRESSIVE CORP/OH/",
+          "cik": "0000080661",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000080661",
+        "name": "PROGRESSIVE CORP/OH/",
+        "tickers": [
+          "PGR"
+        ],
+        "exchanges": [
+          "NYSE"
+        ],
+        "sic": "6331",
+        "sicDescription": "Fire, Marine & Casualty Insurance",
+        "entityType": "operating",
+        "category": "Large accelerated filer",
+        "formerNames": []
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000080661.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:43.604551+00:00",
+        "bytes": 156739,
+        "sha256": "b68501867b82f70f3f706ef8199084e36cf456d5ffa9f04a6d30f459fd53f14c"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "11-K",
+        "144",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "424B5",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "DEF 14A",
+        "DEFA14A",
+        "FWP",
+        "PX14A6G",
+        "S-3ASR",
+        "S-8",
+        "S-8 POS",
+        "SC 13G/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A"
+      ]
+    },
+    {
+      "requested_symbol": "CMT",
+      "directory_records": [
+        {
+          "ticker": "CMT",
+          "name": "CORE MOLDING TECHNOLOGIES INC",
+          "cik": "0001026655",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001026655",
+        "name": "CORE MOLDING TECHNOLOGIES INC",
+        "tickers": [
+          "CMT"
+        ],
+        "exchanges": [
+          "NYSE"
+        ],
+        "sic": "3089",
+        "sicDescription": "Plastics Products, NEC",
+        "entityType": "operating",
+        "category": "Accelerated filer<br>Smaller reporting company",
+        "formerNames": [
+          {
+            "name": "CORE MATERIALS CORP",
+            "from": "1996-11-25T00:00:00.000Z",
+            "to": "2002-08-22T00:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001026655.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:44.182519+00:00",
+        "bytes": 165745,
+        "sha256": "ec93ff1f9a86cc10e58af5000597d960c176f4a301ba82a84327a288b9633de6"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-K/A",
+        "10-Q",
+        "144",
+        "144/A",
+        "25-NSE",
+        "3",
+        "3/A",
+        "4",
+        "4/A",
+        "8-A12B",
+        "8-A12B/A",
+        "8-K",
+        "8-K/A",
+        "ARS",
+        "CERT",
+        "CORRESP",
+        "CT ORDER",
+        "DEF 14A",
+        "EFFECT",
+        "NT 10-K",
+        "NT 10-Q",
+        "PRE 14A",
+        "PRER14A",
+        "S-3",
+        "S-8",
+        "SC 13D/A",
+        "SC 13G",
+        "SC 13G/A",
+        "SCHEDULE 13D/A",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "SD",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "CRWV",
+      "directory_records": [
+        {
+          "ticker": "CRWV",
+          "name": "CoreWeave, Inc.",
+          "cik": "0001769628",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0001769628",
+        "name": "CoreWeave, Inc.",
+        "tickers": [
+          "CRWV"
+        ],
+        "exchanges": [
+          "Nasdaq"
+        ],
+        "sic": "7372",
+        "sicDescription": "Services-Prepackaged Software",
+        "entityType": "operating",
+        "category": "Non-accelerated filer",
+        "formerNames": [
+          {
+            "name": "Atlantic Crypto Corp",
+            "from": "2019-03-11T04:00:00.000Z",
+            "to": "2019-10-03T04:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0001769628.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:44.723945+00:00",
+        "bytes": 157296,
+        "sha256": "454dfe4c751ac174c7afb290e85a9fa6d7bbc5f20fa22034bc7a772e67a8f110"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "10-K",
+        "10-Q",
+        "144",
+        "3",
+        "4",
+        "4/A",
+        "424B3",
+        "424B5",
+        "425",
+        "8-K",
+        "ARS",
+        "CORRESP",
+        "DEF 14A",
+        "DEFA14A",
+        "EFFECT",
+        "S-3ASR",
+        "S-4/A",
+        "S-8",
+        "SCHEDULE 13G",
+        "SCHEDULE 13G/A",
+        "UPLOAD"
+      ]
+    },
+    {
+      "requested_symbol": "SPY",
+      "directory_records": [
+        {
+          "ticker": "SPY",
+          "name": "SPDR S&P 500 ETF TRUST",
+          "cik": "0000884394",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "submissions": {
+        "cik": "0000884394",
+        "name": "SPDR S&P 500 ETF TRUST",
+        "tickers": [
+          "SPY"
+        ],
+        "exchanges": [
+          "NYSE"
+        ],
+        "sic": "",
+        "sicDescription": "",
+        "entityType": "other",
+        "category": "",
+        "formerNames": [
+          {
+            "name": "SPDR TRUST SERIES 1",
+            "from": "1996-02-14T00:00:00.000Z",
+            "to": "2009-12-29T00:00:00.000Z"
+          }
+        ]
+      },
+      "submissions_provenance": {
+        "url": "https://data.sec.gov/submissions/CIK0000884394.json",
+        "status": 200,
+        "retrieved_at": "2026-10-18T12:11:45.232412+00:00",
+        "bytes": 49210,
+        "sha256": "22c35fdee3e6a4aac5ecce79e96b7c1c06d04474b868d8006cefaaecd25d6bf0"
+      },
+      "issuer_mapping_matches": true,
+      "recent_form_types": [
+        "24F-2NT",
+        "25",
+        "40-APP",
+        "40-APP/A",
+        "485APOS",
+        "485BPOS",
+        "485BXT",
+        "497",
+        "497J",
+        "8-A12B",
+        "CORRESP",
+        "N-30D",
+        "N-30D/A",
+        "N-CEN",
+        "N-CSR",
+        "N-PX",
+        "NPORT-EX",
+        "NPORT-P",
+        "NSAR-U",
+        "NSAR-U/A",
+        "NT N-CEN",
+        "S-6EL24/A",
+        "SC 13G",
+        "SC 13G/A"
+      ]
+    }
+  ]
+}

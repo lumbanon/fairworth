@@ -20,18 +20,22 @@ import ProviderValuationStatus from "./ProviderValuationStatus";
 import ProviderValuationDiagnostics from "./ProviderValuationDiagnostics";
 import ProviderDataCompleteness from "./ProviderDataCompleteness";
 import AIResearchWorkspace from "./AIResearchWorkspace";
+import ProviderCoverage from "./ProviderCoverage";
+import { ordinaryWorkflowRestriction } from "@/lib/securityIdentity";
 
 function Workspace({ company, valuation }) {
   const [selectedModel, setSelectedModel] = useState(() => valuation.providerMode ? "pe" : valuation.results.find((result) => result.applicable)?.id ?? "fcff");
-  const { pathname, hash } = useLocation();
+  const { pathname, search, hash } = useLocation();
+  const location = `${pathname}${search}`;
   const navigate = useNavigate();
   const researchActive = valuation.providerMode && hash === "#ai-research";
   return (
     <DashboardLayout showAIResearch={valuation.providerMode}>
       <DataModeControl />
       <CompanyHeader company={company} />
+      {valuation.providerMode && <ProviderCoverage company={company} />}
       {company.dataMode === "provider" && (
-        <><DataQualityNotice company={company} /><div className="ai-view-tabs" role="group" aria-label="Company workspace view"><button type="button" aria-pressed={!researchActive} onClick={() => navigate(`${pathname}#overview`)}>Valuation</button><button type="button" aria-pressed={researchActive} onClick={() => navigate(`${pathname}#ai-research`)}>AI Research</button></div></>
+        <><DataQualityNotice company={company} /><div className="ai-view-tabs" role="group" aria-label="Company workspace view"><button type="button" aria-pressed={!researchActive} onClick={() => navigate(`${location}#overview`)}>Valuation</button><button type="button" aria-pressed={researchActive} onClick={() => navigate(`${location}#ai-research`)}>AI Research</button></div></>
       )}
       <div hidden={researchActive}>
       {valuation.providerMode && <ProviderValuationStatus company={company} valuation={valuation} />}
@@ -75,7 +79,7 @@ function Workspace({ company, valuation }) {
       <ReverseDCF company={company} valuation={valuation} />
       <ResearchInsights company={company} />
       </div>
-      {valuation.providerMode && <AIResearchWorkspace key={JSON.stringify([company.ticker, valuation.valuationRequest])} company={company} valuation={valuation} active={researchActive} />}
+      {valuation.providerMode && <AIResearchWorkspace key={JSON.stringify([company.instrumentId ?? company.ticker, company.issuerId, company.listingId, valuation.valuationRequest])} company={company} valuation={valuation} active={researchActive} />}
     </DashboardLayout>
   );
 }
@@ -90,6 +94,12 @@ function ProviderWorkspace({ company }) {
   return <Workspace company={company} valuation={valuation} />;
 }
 
+function ProfileWorkspace({ company, reason }) {
+  return <DashboardLayout><DataModeControl /><CompanyHeader company={company} /><ProviderCoverage company={company} /><DataQualityNotice company={company} /><section className="research-section" aria-labelledby="security-applicability-heading"><h2 id="security-applicability-heading">Ordinary-stock valuation unavailable</h2><p>{reason}</p><p className="research-caption">Search and profile coverage are separate from financial-model applicability. No ordinary-stock estimate is substituted for this security.</p></section><FinancialStatements company={company} /></DashboardLayout>;
+}
+
 export default function AnalysisWorkspace({ company }) {
+  const restriction = ordinaryWorkflowRestriction(company.coverage);
+  if (company.dataMode === "provider" && restriction) return <ProfileWorkspace company={company} reason={restriction} />;
   return company.dataMode === "provider" ? <ProviderWorkspace company={company} /> : <DemoWorkspace company={company} />;
 }

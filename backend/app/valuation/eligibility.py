@@ -1,5 +1,8 @@
 """Financial applicability and missing-input explanations precede calculations."""
 from app.valuation.models import missing_inputs, required_inputs
+from app.services.security_identity import applicability
+
+ELIGIBILITY_METHODOLOGY_VERSION = "instrument-eligibility-1"
 
 MODEL_NAMES = {
     "fcff": ("Discounted Cash Flow (FCFF)", "FCFF DCF"),
@@ -20,8 +23,19 @@ def eligibility(model_id, inputs, values, overridden=()):
     company, basis = inputs.get("company", {}), inputs.get("basis", {})
     reasons, warnings, missing = [], [], list(missing_inputs(model_id, values))
     unsuitable = False
-    bank = values.get("is_bank") if isinstance(values.get("is_bank"), bool) else company.get("is_bank")
-    reit = values.get("is_reit") if isinstance(values.get("is_reit"), bool) else company.get("is_reit")
+    instrument_gate = applicability(company)
+    if instrument_gate:
+        code, message = instrument_gate
+        reasons.append(code)
+        if code in {"unsupported_instrument_type", "inactive_listing"}:
+            unsuitable = True
+        else:
+            missing.append(code)
+        warnings.append(message)
+    bank = company.get("is_bank") if company.get("instrument_id") else values.get("is_bank") if isinstance(values.get("is_bank"), bool) else company.get("is_bank")
+    reit = company.get("is_reit") if company.get("instrument_id") else values.get("is_reit") if isinstance(values.get("is_reit"), bool) else company.get("is_reit")
+    bank = True if company.get("instrument_type") == "financial_institution" else bank
+    reit = True if company.get("instrument_type") == "reit" else reit
     share_verified = basis.get("share_basis_verified") or values.get("share_basis_confirmed") is True
     explicit_per_share = model_id in {"pe", "peg"} and "forward_eps" in overridden and values.get("forward_eps") is not None
     explicit_dividend = model_id == "dividend" and "dividend_per_share" in overridden and values.get("dividend_per_share") is not None
@@ -42,7 +56,7 @@ def eligibility(model_id, inputs, values, overridden=()):
         financial_sic = 6000 <= int(company.get("sic") or 0) <= 6999
     except (TypeError, ValueError):
         financial_sic = False
-    financial = bank or (financial_sic and not reit)
+    financial = bank or (financial_sic and not reit) or company.get("instrument_type") == "insurance"
     if model_id in {"fcff", "evEbitda", "evRevenue"} and financial:
         reasons.append("financial_institution_enterprise_framework")
         unsuitable = True
@@ -104,6 +118,7 @@ def eligibility(model_id, inputs, values, overridden=()):
               "available_inputs": [key for key in path if values.get(key) is not None],
               "missing_inputs": [key for key in path if values.get(key) is None]}
              for path in required_inputs(model_id)]
-    return {"status": status, "reason": reason, "reason_codes": reasons or (["missing_inputs"] if missing else ["inputs_complete"]),
+    return {"status": status, "reason": reason, "methodology_version": ELIGIBILITY_METHODOLOGY_VERSION,
+            "reason_codes": reasons or (["missing_inputs"] if missing else ["inputs_complete"]),
             "required_inputs": required_inputs(model_id), "input_paths": paths,
             "missing_inputs": missing, "warnings": warnings}

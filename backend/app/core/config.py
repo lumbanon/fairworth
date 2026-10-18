@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     historical_cache_ttl_seconds: int = Field(default=3600, ge=1)
     market_max_age_seconds: int = Field(default=172800, ge=1)
     api_history_limit: int = Field(default=365, ge=1, le=2000)
+    # Search reads persistent reference data; new directory access is opt-in.
+    registry_bootstrap_enabled: bool = False
+    registry_cache_ttl_seconds: int = Field(default=86400, ge=60, le=604800)
     valuation_input_cache_seconds: int = Field(default=60, ge=1, le=300)
     valuation_calculation_timeout_seconds: float = Field(default=8, ge=1, le=30)
     valuation_forecast_years: int = Field(default=5, ge=1, le=20)

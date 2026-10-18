@@ -108,9 +108,10 @@ export function adaptProviderStock({
   quarterly,
   metrics,
   dataStatus,
+  coverage,
   requestWarnings = [],
 }) {
-  if (!profile?.company || !Array.isArray(annual?.periods))
+  if (!profile?.company || (annual != null && !Array.isArray(annual.periods)))
     throw new Error(
       "The financial data service returned an incomplete company response.",
     );
@@ -132,7 +133,7 @@ export function adaptProviderStock({
   const quarterlyFinancials = periods(quarterly);
   const latest = financials.at(-1) ?? adaptFinancialPeriod({ metrics: {} });
   const market = profile.market;
-  const currency = annual.currency ?? sourceCompany.currency;
+  const currency = annual?.currency ?? sourceCompany.currency;
   const warnings = collectWarnings(
     profile,
     market,
@@ -226,7 +227,7 @@ export function adaptProviderStock({
       message,
     });
   }
-  const incompatibleFinancialUnits = (annual.periods ?? []).some((period) =>
+  const incompatibleFinancialUnits = (annual?.periods ?? []).some((period) =>
     Object.entries(period.provenance ?? {}).some(([field, sources]) => {
       const expectedUnit = field.includes("shares") ? "shares" : field.includes("eps") ? `${currency}/shares` : currency;
       return Array.isArray(sources) && sources.some((source) => source.unit != null && source.unit !== expectedUnit);
@@ -247,6 +248,16 @@ export function adaptProviderStock({
   }
   return {
     ticker: sourceCompany.ticker,
+    instrumentId: sourceCompany.instrument_id ?? coverage?.identity?.instrument_id ?? null,
+    listingId: sourceCompany.listing_id ?? coverage?.identity?.listing_id ?? null,
+    issuerId: sourceCompany.issuer_id ?? coverage?.identity?.issuer_id ?? null,
+    identity: { ...sourceCompany, ...(coverage?.identity ?? {}) },
+    instrumentType: sourceCompany.instrument_type ?? coverage?.identity?.instrument_type,
+    shareClass: sourceCompany.share_class ?? coverage?.identity?.share_class,
+    listingStatus: sourceCompany.listing_status ?? coverage?.identity?.listing_status,
+    identityStatus: sourceCompany.identity_status ?? coverage?.identity?.identity_status,
+    adrMetadata: sourceCompany.adr_metadata ?? coverage?.identity?.adr_metadata ?? {},
+    coverage,
     companyName: sourceCompany.name,
     exchange: sourceCompany.exchange,
     sector: sourceCompany.sector,
@@ -279,14 +290,14 @@ export function adaptProviderStock({
     quarterlyFinancials,
     dataStatus,
     profileStatus: profile.status,
-    financialStatus: annual.status,
+    financialStatus: annual?.status ?? "unavailable",
     warnings,
     modelCompatibility,
     sourceReferences: [
       ...(profile.source_references ?? []),
-      ...(annual.source_references ?? []),
+      ...(annual?.source_references ?? []),
     ],
-    financialRetrievedAt: annual.retrieved_at,
+    financialRetrievedAt: annual?.retrieved_at,
     updatedLabel: latest.periodEnd
       ? `Latest annual period ended ${latest.periodEnd}`
       : "Annual financial statements unavailable",

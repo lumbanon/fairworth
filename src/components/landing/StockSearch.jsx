@@ -6,6 +6,7 @@ import { mockStocks } from "@/data/mockStocks";
 import { isValidTicker, normalizeTicker } from "@/lib/format";
 import { useDataMode } from "@/context/dataMode";
 import { searchStocks } from "@/services/api";
+import { securityLabel, stockLocation } from "@/lib/securityIdentity";
 
 export default function StockSearch({ compact = false, dashboard = false }) {
   const id = useId();
@@ -14,6 +15,7 @@ export default function StockSearch({ compact = false, dashboard = false }) {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [offset, setOffset] = useState(0);
   const inputRef = useRef(null);
   const { mode } = useDataMode();
   const [providerSearch, setProviderSearch] = useState({
@@ -40,16 +42,18 @@ export default function StockSearch({ compact = false, dashboard = false }) {
     if (mode !== "provider" || !query) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      setProviderSearch({ query, status: "loading", results: [] });
-      searchStocks(query, { signal: controller.signal })
+      setProviderSearch((previous) => ({ query, status: "loading", results: offset && previous.query === query ? previous.results : [] }));
+      searchStocks(query, { signal: controller.signal, limit: 10, offset })
         .then((response) => {
           if (!controller.signal.aborted)
             setProviderSearch({
               query,
               status: "ready",
-              results: response.results ?? [],
+              results: [...new Map((response.results ?? []).map((stock) => [stock.listing_id ?? stock.instrument_id ?? `${stock.ticker}:${stock.exchange ?? ""}`, stock])).values()],
               warnings: response.warnings ?? [],
               providerStatus: response.status,
+              hasMore: response.has_more === true,
+              asOf: response.as_of,
             });
         })
         .catch((requestError) => {
@@ -66,23 +70,34 @@ export default function StockSearch({ compact = false, dashboard = false }) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [mode, query]);
+  }, [mode, query, offset]);
 
-  function choose(ticker) {
-    navigate(`/stocks/${ticker}`);
+  function choose(stock) {
+    navigate(stockLocation(stock));
     setOpen(false);
+  }
+  function changePage(delta) {
+    setActive(-1);
+    setOffset((previous) => Math.max(0, previous + delta));
+    inputRef.current?.focus();
+    setOpen(true);
   }
   function submit(event) {
     event.preventDefault();
     if (open && active >= 0 && suggestions[active]) {
-      choose(suggestions[active].ticker);
+      choose(suggestions[active]);
       return;
     }
-    const company = (mode === "provider" ? suggestions : mockStocks).find(
-      (stock) => stock.name.toUpperCase() === query,
+    const matches = (mode === "provider" ? suggestions : mockStocks).filter(
+      (stock) => stock.name.toUpperCase() === query || stock.ticker.toUpperCase() === query,
     );
-    if (company) {
-      choose(company.ticker);
+    if (matches.length > 1 || (mode === "provider" && matches.length === 1 && providerSearch.hasMore)) {
+      setError("Several securities match. Choose the exchange and share class from the suggestions.");
+      setOpen(true);
+      return;
+    }
+    if (matches.length === 1) {
+      choose(matches[0]);
       return;
     }
     if (!query) {
@@ -90,9 +105,9 @@ export default function StockSearch({ compact = false, dashboard = false }) {
       inputRef.current?.focus();
       return;
     }
-    if (!isValidTicker(query)) {
+    if (!isValidTicker(query, mode === "provider")) {
       setError(
-        "Use 1–5 letters, with an optional share class (for example, BRK.B).",
+        mode === "provider" ? "Enter a valid listing symbol or choose a company from the suggestions (for example, BRK.B)." : "Use 1–5 letters, with an optional share class (for example, BRK.B).",
       );
       setOpen(false);
       inputRef.current?.focus();
@@ -119,6 +134,12 @@ export default function StockSearch({ compact = false, dashboard = false }) {
   return (
     <div
       className={`stock-search ${compact ? "stock-search-compact" : ""} ${dashboard ? "dashboard-search" : ""}`}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setOpen(false);
+          setActive(-1);
+        }
+      }}
     >
       <form onSubmit={submit} noValidate>
         <label htmlFor={id} className="sr-only">
@@ -153,12 +174,9 @@ export default function StockSearch({ compact = false, dashboard = false }) {
               setError("");
               setOpen(true);
               setActive(-1);
+              setOffset(0);
             }}
             onFocus={() => setOpen(true)}
-            onBlur={() => {
-              setOpen(false);
-              setActive(-1);
-            }}
             onKeyDown={onKeyDown}
           />
           <button
@@ -170,6 +188,7 @@ export default function StockSearch({ compact = false, dashboard = false }) {
           </button>
         </div>
         {open && suggestions.length > 0 && (
+          <div className="search-results">
           <ul
             id={`${id}-suggestions`}
             role="listbox"
@@ -183,19 +202,22 @@ export default function StockSearch({ compact = false, dashboard = false }) {
             {suggestions.map((stock, index) => (
               <li
                 id={`${id}-option-${index}`}
-                key={stock.ticker}
+                key={stock.listing_id ?? stock.instrument_id ?? `${stock.ticker}:${stock.exchange ?? ""}`}
                 role="option"
                 aria-selected={active === index}
                 className={active === index ? "suggestion-active" : ""}
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={() => choose(stock.ticker)}
+                onClick={() => choose(stock)}
               >
                 <span className="suggestion-ticker">{stock.ticker}</span>
-                <span>{stock.name}</span>
+                <span className="suggestion-company"><span>{stock.name}</span>{mode === "provider" && <small>{[stock.exchange || "Exchange unverified", securityLabel(stock.instrument_type), stock.share_class && `Class ${stock.share_class}`, stock.listing_status && stock.listing_status !== "active" && stock.listing_status.replaceAll("_", " ")].filter(Boolean).join(" · ")}</small>}</span>
                 <ArrowRight size={14} aria-hidden="true" />
               </li>
             ))}
           </ul>
+          {mode === "provider" && offset > 0 && providerSearch.status === "ready" && <button className="search-more" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => changePage(-10)}>Previous matching securities</button>}
+          {mode === "provider" && providerSearch.query === query && providerSearch.hasMore && providerSearch.status === "ready" && <button className="search-more" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => changePage(10)}>Show more matching securities</button>}
+          </div>
         )}
         {error && (
           <p role="alert" id={`${id}-error`} className="search-error">
@@ -204,7 +226,7 @@ export default function StockSearch({ compact = false, dashboard = false }) {
         )}
         {open && providerLoading && (
           <p role="status" className="search-help">
-            Searching the provider company directory…
+            Searching the security registry…
           </p>
         )}
         {open &&
@@ -236,7 +258,7 @@ export default function StockSearch({ compact = false, dashboard = false }) {
           !suggestions.length &&
           query && (
             <p role="status" className="search-help">
-              No provider directory matches.
+              No matching securities in the available registry. A listing may be unavailable or unverified.
             </p>
           )}
       </form>
@@ -254,9 +276,9 @@ export default function StockSearch({ compact = false, dashboard = false }) {
       <p id={`${id}-help`} className={dashboard ? "sr-only" : "search-help"}>
         {dashboard
           ? mode === "provider"
-            ? "Search the provider-backed company directory. Financial data is loaded through FastAPI."
+            ? "Search the security registry. Exchange, instrument and evidence coverage are checked separately."
             : "Search the 10 fictional company datasets. No live market data."
-          : "Phase 1 preview. Live stock analysis is coming in a future phase."}
+          : mode === "provider" ? "Search the security registry. Search coverage does not guarantee an available valuation." : "Explore fictional demonstration datasets. Switch to provider data in the dashboard for verified source coverage."}
       </p>
     </div>
   );

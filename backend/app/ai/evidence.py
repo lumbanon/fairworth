@@ -11,6 +11,9 @@ from urllib.parse import unquote, urlsplit, urlunsplit
 
 CATEGORIES = frozenset({"reported_fact", "historical_metric", "valuation_output", "policy_estimate",
                         "user_assumption", "filing_excerpt", "company_profile", "unavailable"})
+SECURITY_IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "cik", "ticker", "exchange",
+                            "instrument_type", "listing_status", "identity_status", "share_class",
+                            "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status")
 _VOLATILE_KEYS = frozenset({"generated_at", "calculated_at", "retrieved_at", "expires_at"})
 _SOURCE_PATHS = {
     "data.sec.gov": ("/api/xbrl/companyfacts/", "/submissions/"),
@@ -96,6 +99,21 @@ def warning_texts(items):
     return result
 
 
+def security_identity(company):
+    """Only public, resolved identifiers; no inferred identity from ticker text."""
+    if not isinstance(company, dict) or not company.get("instrument_id"):
+        return None
+    return {key: public_text(company.get(key), 150) for key in SECURITY_IDENTITY_FIELDS}
+
+
+def same_security(left, right):
+    """A stable identity must not disappear when crossing a service boundary."""
+    if left.get("cik") != right.get("cik"):
+        return False
+    return all(left.get(key) == right.get(key) for key in ("issuer_id", "instrument_id", "listing_id")
+               if left.get(key) is not None or right.get(key) is not None)
+
+
 def period_label(value):
     if not value:
         return None
@@ -116,8 +134,9 @@ def period_label(value):
 class EvidenceRegistry:
     """Small immutable-value registry, deterministically ordered by insertion."""
 
-    def __init__(self, ticker):
+    def __init__(self, ticker, identity=None):
         self.ticker = ticker
+        self.identity = security_identity(identity)
         self.registry = {}
 
     def add(self, *, category, provider, title, metric, value, unit="text", period=None,
@@ -133,6 +152,8 @@ class EvidenceRegistry:
                 "source_url": safe_source_url(source_url), "accession": public_text(accession, 100),
                 "derivation": public_text(derivation, 700), "quality_warnings": warning_texts(quality_warnings)[:8],
                 "excerpt": public_text(excerpt, 4500)}
+        if self.identity:
+            item["identity"] = json_value(self.identity)
         identifier = stable_snapshot_id(item, "e")
         item = {"id": identifier, **item}
         self.registry.setdefault(identifier, item)
