@@ -208,7 +208,7 @@ async def test_exact_msft_question_through_mocked_sdk_passes_every_independent_v
     before = deepcopy(research.assembler.assemble.return_value)
     result = await research.chat("MSFT", ChatRequest(question=captured()["question"]), "offline-binding-review")
     sdk.responses.create.assert_awaited_once()
-    assert PROMPT_VERSION == "fairworth-research-9"
+    assert PROMPT_VERSION == "fairworth-research-10"
     first = result["answer"][0]
     assert "$619.56" in first["explanation"] and "$539.44" in first["explanation"]
     assert "2026-10-15" in first["explanation"] and "Only 1 model contributes" in first["explanation"]

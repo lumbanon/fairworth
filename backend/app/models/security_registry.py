@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, JSON, String
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, JSON, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,8 @@ class SecurityIssuer(Base):
     cik: Mapped[str | None] = mapped_column(String(10), unique=True)
     name: Mapped[str] = mapped_column(String(300))
     source_refs: Mapped[list] = mapped_column(JsonType, default=list)
+    business_category: Mapped[str] = mapped_column(String(40), default="unknown")
+    classification_evidence: Mapped[dict] = mapped_column(JsonType, default=dict)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -33,11 +35,36 @@ class SecurityInstrument(Base):
     issuer_id: Mapped[str | None] = mapped_column(ForeignKey("security_issuers.id"), index=True)
     issuer: Mapped[SecurityIssuer | None] = relationship()
     instrument_type: Mapped[str] = mapped_column(String(40), default="unknown")
+    security_form: Mapped[str] = mapped_column(String(40), default="unknown")
     share_class: Mapped[str | None] = mapped_column(String(100))
     classification_evidence: Mapped[dict] = mapped_column(JsonType, default=dict)
     adr_metadata: Mapped[dict] = mapped_column(JsonType, default=dict)
     source_refs: Mapped[list] = mapped_column(JsonType, default=list)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class SecurityListingObservation(Base):
+    """Immutable source assertions; directory symbols are not permanent IDs."""
+    __tablename__ = "security_listing_observations"
+    __table_args__ = (
+        UniqueConstraint("refresh_id", "source_record_key", name="uq_registry_observation_refresh_record"),
+        Index("ix_registry_observation_source_key", "source", "source_record_key"),
+        Index("ix_registry_observation_listing_date", "listing_id", "observed_on"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    listing_id: Mapped[str] = mapped_column(ForeignKey("security_listings.id"))
+    listing: Mapped["SecurityListing"] = relationship()
+    refresh_id: Mapped[str] = mapped_column(ForeignKey("security_registry_refreshes.id"))
+    refresh: Mapped["SecurityRegistryRefresh"] = relationship()
+    source: Mapped[str] = mapped_column(String(100))
+    source_record_key: Mapped[str] = mapped_column(String(300))
+    source_kind: Mapped[str] = mapped_column(String(30), default="reference")
+    observed_on: Mapped[date] = mapped_column(Date)
+    published_at: Mapped[str | None] = mapped_column(String(100))
+    retrieved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    record_hash: Mapped[str] = mapped_column(String(64))
+    record: Mapped[dict] = mapped_column(JsonType)
+    provenance: Mapped[dict] = mapped_column(JsonType)
 
 
 class SecurityListing(Base):
@@ -64,6 +91,11 @@ class SecurityListing(Base):
     as_of: Mapped[date] = mapped_column(Date)
     refresh_id: Mapped[str] = mapped_column(ForeignKey("security_registry_refreshes.id"), index=True)
     source_refs: Mapped[list] = mapped_column(JsonType, default=list)
+
+    display_symbol: Mapped[str | None] = mapped_column(String(40))
+    security_description: Mapped[str | None] = mapped_column(String(500))
+    source_security_identifier: Mapped[str | None] = mapped_column(String(100))
+    verification: Mapped[dict] = mapped_column(JsonType, default=dict)
 
 
 class SecurityAlias(Base):

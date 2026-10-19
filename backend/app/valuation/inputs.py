@@ -154,6 +154,16 @@ def normalize_annual_period(period: dict, currency: str | None, retrieved_at: An
 def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = None) -> dict:
     """Build auditable inputs without fetching or persisting any data."""
     company = deepcopy(profile.get("company", profile))
+    if company.get("instrument_id"):
+        annual_sources = [item for item in normalized.get("source_references", []) if isinstance(item, dict)
+                          and item.get("form") in {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}]
+        if annual_sources:
+            latest_source = max(annual_sources, key=lambda item: str(item.get("filed") or ""))
+            source_regime = "foreign_private_issuer" if latest_source["form"].startswith(("20-F", "40-F")) else "us_domestic_reporter"
+            # A foreign annual statement cannot acquire domestic share/currency
+            # assumptions merely because the directory describes common shares.
+            if source_regime == "foreign_private_issuer" or not company.get("filing_regime"):
+                company["filing_regime"] = source_regime
     currency = normalized.get("currency")
     periods = []
     warnings = list(profile.get("warnings", [])) + list(normalized.get("warnings", []))
@@ -188,10 +198,14 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
     share_basis = not (multiple or unknown_class) or company.get("share_class_basis_verified") is True
     if company.get("instrument_id"):
         from app.services.security_identity import applicability
-        share_basis = (company.get("share_class_basis_verified") is True
-                       or company.get("has_multiple_share_classes") is False and company.get("instrument_type") in
-                       {"common_stock", "reit", "financial_institution", "insurance"}
-                       or not applicability(company) and company.get("instrument_type") in {"foreign_ordinary", "adr"})
+        kind = company.get("security_form", company.get("instrument_type"))
+        foreign = kind in {"foreign_ordinary", "foreign_ordinary_share", "adr", "ads"} or company.get("filing_regime") in {"foreign_private_issuer", "20-F", "40-F"}
+        if foreign:
+            share_basis = not applicability(company) and company.get("share_basis_verified", (company.get("adr_metadata") or {}).get("share_basis_verified")) is True
+        else:
+            share_basis = (company.get("share_class_basis_verified") is True
+                           or company.get("has_multiple_share_classes") is False and kind in
+                           {"common_stock", "reit", "financial_institution", "insurance"})
     income_basis = shares is not None and shares > 0 and income is not None and eps is not None and abs(income / shares - eps) <= 0.02
     if not income_basis and income is not None and eps is not None:
         warnings.append(_warning("net_income", "incompatible_earnings_basis", "Consolidated net income and diluted EPS do not reconcile on the reported diluted share denominator; common-equity earnings are not inferred."))

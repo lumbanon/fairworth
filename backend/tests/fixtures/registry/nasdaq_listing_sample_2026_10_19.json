@@ -1,0 +1,2103 @@
+{
+  "description": "Actual approved Nasdaq directory excerpts, 19 October 2026; issuer reference is separately retained and dated. No new financial request.",
+  "data_mode": "real_listing_observations",
+  "sources": [
+    {
+      "source": "nasdaq-trader-nasdaqlisted",
+      "source_kind": "listing_authority",
+      "as_of": "2026-10-19",
+      "published_at": "1019202607:00",
+      "source_timezone": null,
+      "retrieved_at": "2026-10-19T11:45:39.025685+00:00",
+      "source_url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+      "content_hash": "e53df7b657e8d358300234b78323f3d62db0d30b70e20ebb8f76c8d8bde6f487",
+      "complete_scope": true,
+      "scope": "Dated non-test directory membership; omitted securities are not inferred delisted.",
+      "rights": "Local audited use; public display and redistribution rights require operator confirmation.",
+      "version": "nasdaq-directory-1",
+      "quality": {
+        "input_rows": 5629,
+        "accepted_rows": 5621,
+        "excluded_test_issues": 8,
+        "unsupported_symbol_count": 0,
+        "unsupported_symbols": []
+      },
+      "notes": [
+        "Source footer timezone is undocumented; publication is preserved without an invented UTC offset.",
+        "Directory symbols are source identifiers, not permanent security identifiers."
+      ]
+    },
+    {
+      "source": "nasdaq-trader-otherlisted",
+      "source_kind": "listing_authority",
+      "as_of": "2026-10-19",
+      "published_at": "1019202607:00",
+      "source_timezone": null,
+      "retrieved_at": "2026-10-19T11:45:39.787934+00:00",
+      "source_url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+      "content_hash": "5c301c1313e61742bc6c9536eafc214949df76c9276ccb8df12c849115dde94e",
+      "complete_scope": true,
+      "scope": "Dated non-test directory membership; omitted securities are not inferred delisted.",
+      "rights": "Local audited use; public display and redistribution rights require operator confirmation.",
+      "version": "nasdaq-directory-1",
+      "quality": {
+        "input_rows": 7675,
+        "accepted_rows": 7646,
+        "excluded_test_issues": 29,
+        "unsupported_symbol_count": 0,
+        "unsupported_symbols": []
+      },
+      "notes": [
+        "Source footer timezone is undocumented; publication is preserved without an invented UTC offset.",
+        "Directory symbols are source identifiers, not permanent security identifiers."
+      ]
+    }
+  ],
+  "sec_reference_provenance": {
+    "source": "sec-edgar-reference",
+    "source_kind": "reference",
+    "as_of": "2026-10-19",
+    "retrieved_at": "2026-10-19T11:55:33.555239+00:00",
+    "source_url": "https://www.sec.gov/files/company_tickers_exchange.json",
+    "complete_scope": false,
+    "scope": "Official SEC issuer-symbol reference observed at acquisition; not active listing proof.",
+    "rights": "Official SEC public reference; observe SEC fair-access policy.",
+    "version": "sec-exchange-reference-1",
+    "notes": [
+      "Source SHA256 6c29e2e3db973d4479875164603c2434f81ad22e14c9f1694999aca9cca246cb",
+      "The source publication clock is not supplied; acquisition observes this reference snapshot."
+    ]
+  },
+  "samples": [
+    {
+      "requested_symbol": "AAPL",
+      "listing_record": {
+        "ticker": "AAPL",
+        "display_symbol": "AAPL",
+        "name": "Apple Inc. - Common Stock",
+        "security_description": "Apple Inc. - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "AAPL|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "80fa95fa049cca3c98ee243e2a1d143fd61af996acec17fce59b7b26dd43bdbf",
+        "original_record": {
+          "Symbol": "AAPL",
+          "Security Name": "Apple Inc. - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Apple Inc. - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "80fa95fa049cca3c98ee243e2a1d143fd61af996acec17fce59b7b26dd43bdbf",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "AAPL",
+          "name": "Apple Inc.",
+          "cik": "0000320193",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "MSFT",
+      "listing_record": {
+        "ticker": "MSFT",
+        "display_symbol": "MSFT",
+        "name": "Microsoft Corporation - Common Stock",
+        "security_description": "Microsoft Corporation - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "MSFT|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "851a6881fb2a535cf3d53408b94aadbfd966939b856d77ca7cf6816febbfb72e",
+        "original_record": {
+          "Symbol": "MSFT",
+          "Security Name": "Microsoft Corporation - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Microsoft Corporation - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "851a6881fb2a535cf3d53408b94aadbfd966939b856d77ca7cf6816febbfb72e",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "MSFT",
+          "name": "MICROSOFT CORP",
+          "cik": "0000789019",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "NVDA",
+      "listing_record": {
+        "ticker": "NVDA",
+        "display_symbol": "NVDA",
+        "name": "NVIDIA Corporation - Common Stock",
+        "security_description": "NVIDIA Corporation - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "NVDA|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "925eeb89cd5235b33e053cfb82b00f380194dd5de86ad01cfc03e21591157328",
+        "original_record": {
+          "Symbol": "NVDA",
+          "Security Name": "NVIDIA Corporation - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "NVIDIA Corporation - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "925eeb89cd5235b33e053cfb82b00f380194dd5de86ad01cfc03e21591157328",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA CORP",
+          "cik": "0001045810",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "ORCL",
+      "listing_record": {
+        "ticker": "ORCL",
+        "display_symbol": "ORCL",
+        "name": "Oracle Corporation Common Stock",
+        "security_description": "Oracle Corporation Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "ORCL|N",
+        "source_security_identifier": null,
+        "source_record_hash": "1a359d49443efb426756f07b64429b1ecd96f867290fa581819d6bddf36e5671",
+        "original_record": {
+          "ACT Symbol": "ORCL",
+          "Security Name": "Oracle Corporation Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "ORCL",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "ORCL"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Oracle Corporation Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "1a359d49443efb426756f07b64429b1ecd96f867290fa581819d6bddf36e5671",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "ORCL",
+          "name": "ORACLE CORP",
+          "cik": "0001341439",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "AMZN",
+      "listing_record": {
+        "ticker": "AMZN",
+        "display_symbol": "AMZN",
+        "name": "Amazon.com, Inc. - Common Stock",
+        "security_description": "Amazon.com, Inc. - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "AMZN|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "280b34f92415747bbfc061f162547f1ac50ab577363de4c1e24d29f89996d746",
+        "original_record": {
+          "Symbol": "AMZN",
+          "Security Name": "Amazon.com, Inc. - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Amazon.com, Inc. - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "280b34f92415747bbfc061f162547f1ac50ab577363de4c1e24d29f89996d746",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "AMZN",
+          "name": "AMAZON COM INC",
+          "cik": "0001018724",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "GOOG",
+      "listing_record": {
+        "ticker": "GOOG",
+        "display_symbol": "GOOG",
+        "name": "Alphabet Inc. - Class C Capital Stock",
+        "security_description": "Alphabet Inc. - Class C Capital Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "GOOG|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "0d20cbe6916edb3c22dd1076f86400467abbb9a9bcec131d8ff0b6d50470bd9f",
+        "original_record": {
+          "Symbol": "GOOG",
+          "Security Name": "Alphabet Inc. - Class C Capital Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "unknown",
+        "security_form": "unknown",
+        "share_class": "C",
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {},
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date.",
+          "Security description and ETF flag do not establish an instrument classification."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "0d20cbe6916edb3c22dd1076f86400467abbb9a9bcec131d8ff0b6d50470bd9f",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "GOOG",
+          "name": "Alphabet Inc.",
+          "cik": "0001652044",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "GOOGL",
+      "listing_record": {
+        "ticker": "GOOGL",
+        "display_symbol": "GOOGL",
+        "name": "Alphabet Inc. - Class A Common Stock",
+        "security_description": "Alphabet Inc. - Class A Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "GOOGL|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "fe41c8ff073e16bf4a1eee96dd7d0d681ceaef14c0e48c6210b1496df450cc9c",
+        "original_record": {
+          "Symbol": "GOOGL",
+          "Security Name": "Alphabet Inc. - Class A Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": "A",
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Alphabet Inc. - Class A Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "fe41c8ff073e16bf4a1eee96dd7d0d681ceaef14c0e48c6210b1496df450cc9c",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet Inc.",
+          "cik": "0001652044",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "META",
+      "listing_record": {
+        "ticker": "META",
+        "display_symbol": "META",
+        "name": "Meta Platforms, Inc. - Class A Common Stock",
+        "security_description": "Meta Platforms, Inc. - Class A Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "META|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "949b3910319c1535d9bb2bed51cd857b7f88c68d79126110741852dd2f83436c",
+        "original_record": {
+          "Symbol": "META",
+          "Security Name": "Meta Platforms, Inc. - Class A Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": "A",
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Meta Platforms, Inc. - Class A Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "949b3910319c1535d9bb2bed51cd857b7f88c68d79126110741852dd2f83436c",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "META",
+          "name": "Meta Platforms, Inc.",
+          "cik": "0001326801",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "TSLA",
+      "listing_record": {
+        "ticker": "TSLA",
+        "display_symbol": "TSLA",
+        "name": "Tesla, Inc.  - Common Stock",
+        "security_description": "Tesla, Inc.  - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "TSLA|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "16ee63486a1678c5920d8b10126fd8a40069ab7ad2c7a92a55cea39fd20d32b1",
+        "original_record": {
+          "Symbol": "TSLA",
+          "Security Name": "Tesla, Inc.  - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "40",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Tesla, Inc.  - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "16ee63486a1678c5920d8b10126fd8a40069ab7ad2c7a92a55cea39fd20d32b1",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "TSLA",
+          "name": "Tesla, Inc.",
+          "cik": "0001318605",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "AMD",
+      "listing_record": {
+        "ticker": "AMD",
+        "display_symbol": "AMD",
+        "name": "Advanced Micro Devices, Inc. - Common Stock",
+        "security_description": "Advanced Micro Devices, Inc. - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "AMD|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "3f601f5dc1b9cb5bd9513d71a61ae604571171227bf235997a74aa9c1d61f24b",
+        "original_record": {
+          "Symbol": "AMD",
+          "Security Name": "Advanced Micro Devices, Inc. - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Advanced Micro Devices, Inc. - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "3f601f5dc1b9cb5bd9513d71a61ae604571171227bf235997a74aa9c1d61f24b",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "AMD",
+          "name": "ADVANCED MICRO DEVICES INC",
+          "cik": "0000002488",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "PLTR",
+      "listing_record": {
+        "ticker": "PLTR",
+        "display_symbol": "PLTR",
+        "name": "Palantir Technologies Inc. - Class A Common Stock",
+        "security_description": "Palantir Technologies Inc. - Class A Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "PLTR|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "970b838e27f93055e2b76ab63e7638f448db8034cfc9b2ab12fd89d0d989075e",
+        "original_record": {
+          "Symbol": "PLTR",
+          "Security Name": "Palantir Technologies Inc. - Class A Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": "A",
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Palantir Technologies Inc. - Class A Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "970b838e27f93055e2b76ab63e7638f448db8034cfc9b2ab12fd89d0d989075e",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies Inc.",
+          "cik": "0001321655",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "SOFI",
+      "listing_record": {
+        "ticker": "SOFI",
+        "display_symbol": "SOFI",
+        "name": "SoFi Technologies, Inc.  - Common Stock",
+        "security_description": "SoFi Technologies, Inc.  - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "SOFI|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "a86646ad16e3cac5abbc983950d3cdf5f3df9cced067be4be1072173382ebbd3",
+        "original_record": {
+          "Symbol": "SOFI",
+          "Security Name": "SoFi Technologies, Inc.  - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "SoFi Technologies, Inc.  - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "a86646ad16e3cac5abbc983950d3cdf5f3df9cced067be4be1072173382ebbd3",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "SOFI",
+          "name": "SoFi Technologies, Inc.",
+          "cik": "0001818874",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "KO",
+      "listing_record": {
+        "ticker": "KO",
+        "display_symbol": "KO",
+        "name": "Coca-Cola Company (The) Common Stock",
+        "security_description": "Coca-Cola Company (The) Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "KO|N",
+        "source_security_identifier": null,
+        "source_record_hash": "5ae1231653ac3e2b98cdb4a62e2352f2809e4002a6cff9c810b14a3fcdfda4b2",
+        "original_record": {
+          "ACT Symbol": "KO",
+          "Security Name": "Coca-Cola Company (The) Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "KO",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "KO"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Coca-Cola Company (The) Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "5ae1231653ac3e2b98cdb4a62e2352f2809e4002a6cff9c810b14a3fcdfda4b2",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "KO",
+          "name": "COCA COLA CO",
+          "cik": "0000021344",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "WMT",
+      "listing_record": {
+        "ticker": "WMT",
+        "display_symbol": "WMT",
+        "name": "Walmart Inc. - Common Stock",
+        "security_description": "Walmart Inc. - Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "WMT|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "52e80bcbfc533108e663b95e2330148c669eb373f140d6df96b73e81d4570524",
+        "original_record": {
+          "Symbol": "WMT",
+          "Security Name": "Walmart Inc. - Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "Walmart Inc. - Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "52e80bcbfc533108e663b95e2330148c669eb373f140d6df96b73e81d4570524",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "WMT",
+          "name": "Walmart Inc.",
+          "cik": "0000104169",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "PG",
+      "listing_record": {
+        "ticker": "PG",
+        "display_symbol": "PG",
+        "name": "Procter & Gamble Company (The) Common Stock",
+        "security_description": "Procter & Gamble Company (The) Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "PG|N",
+        "source_security_identifier": null,
+        "source_record_hash": "99a48bfe96ad05c018cbb005e298105422dce286d92f9e677d5a62b16cb59d72",
+        "original_record": {
+          "ACT Symbol": "PG",
+          "Security Name": "Procter & Gamble Company (The) Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "PG",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "PG"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Procter & Gamble Company (The) Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "99a48bfe96ad05c018cbb005e298105422dce286d92f9e677d5a62b16cb59d72",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "PG",
+          "name": "PROCTER & GAMBLE Co",
+          "cik": "0000080424",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "JNJ",
+      "listing_record": {
+        "ticker": "JNJ",
+        "display_symbol": "JNJ",
+        "name": "Johnson & Johnson Common Stock",
+        "security_description": "Johnson & Johnson Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "JNJ|N",
+        "source_security_identifier": null,
+        "source_record_hash": "bf386ddfd1130acf6b49382fb287e7c4d85de34ff23a554dac0ac9195d58c985",
+        "original_record": {
+          "ACT Symbol": "JNJ",
+          "Security Name": "Johnson & Johnson Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "JNJ",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "JNJ"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Johnson & Johnson Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "bf386ddfd1130acf6b49382fb287e7c4d85de34ff23a554dac0ac9195d58c985",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "JNJ",
+          "name": "JOHNSON & JOHNSON",
+          "cik": "0000200406",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "JPM",
+      "listing_record": {
+        "ticker": "JPM",
+        "display_symbol": "JPM",
+        "name": "JP Morgan Chase & Co. Common Stock",
+        "security_description": "JP Morgan Chase & Co. Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "JPM|N",
+        "source_security_identifier": null,
+        "source_record_hash": "1085bba7491215998c9947898bc9f0721d4c07fb3929f15816a6a90c044950b4",
+        "original_record": {
+          "ACT Symbol": "JPM",
+          "Security Name": "JP Morgan Chase & Co. Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "JPM",
+          "ETF": "N",
+          "Round Lot Size": "40",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "JPM"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "JP Morgan Chase & Co. Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "1085bba7491215998c9947898bc9f0721d4c07fb3929f15816a6a90c044950b4",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "JPM",
+          "name": "JPMORGAN CHASE & CO",
+          "cik": "0000019617",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "BAC",
+      "listing_record": {
+        "ticker": "BAC",
+        "display_symbol": "BAC",
+        "name": "Bank of America Corporation Common Stock",
+        "security_description": "Bank of America Corporation Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "BAC|N",
+        "source_security_identifier": null,
+        "source_record_hash": "b4c9968f287437ea17daf8c36464e681adbb9619c1f1c967a4128ac6fc81d7ca",
+        "original_record": {
+          "ACT Symbol": "BAC",
+          "Security Name": "Bank of America Corporation Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "BAC",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "BAC"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Bank of America Corporation Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "b4c9968f287437ea17daf8c36464e681adbb9619c1f1c967a4128ac6fc81d7ca",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "BAC",
+          "name": "BANK OF AMERICA CORP /DE/",
+          "cik": "0000070858",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "GS",
+      "listing_record": {
+        "ticker": "GS",
+        "display_symbol": "GS",
+        "name": "Goldman Sachs Group, Inc. (The) Common Stock",
+        "security_description": "Goldman Sachs Group, Inc. (The) Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "GS|N",
+        "source_security_identifier": null,
+        "source_record_hash": "9467121bf0c73eec0cff22e8365b871a536766733d521604be0b806971ee3d6c",
+        "original_record": {
+          "ACT Symbol": "GS",
+          "Security Name": "Goldman Sachs Group, Inc. (The) Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "GS",
+          "ETF": "N",
+          "Round Lot Size": "40",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "GS"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Goldman Sachs Group, Inc. (The) Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "9467121bf0c73eec0cff22e8365b871a536766733d521604be0b806971ee3d6c",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "GS",
+          "name": "GOLDMAN SACHS GROUP INC",
+          "cik": "0000886982",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "PGR",
+      "listing_record": {
+        "ticker": "PGR",
+        "display_symbol": "PGR",
+        "name": "Progressive Corporation (The) Common Stock",
+        "security_description": "Progressive Corporation (The) Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "PGR|N",
+        "source_security_identifier": null,
+        "source_record_hash": "51d82a50548a73841136dbf477c7707b42891258e2bd1c131a159deda25d70ed",
+        "original_record": {
+          "ACT Symbol": "PGR",
+          "Security Name": "Progressive Corporation (The) Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "PGR",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "PGR"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Progressive Corporation (The) Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "51d82a50548a73841136dbf477c7707b42891258e2bd1c131a159deda25d70ed",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "PGR",
+          "name": "PROGRESSIVE CORP/OH/",
+          "cik": "0000080661",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "O",
+      "listing_record": {
+        "ticker": "O",
+        "display_symbol": "O",
+        "name": "Realty Income Corporation Common Stock",
+        "security_description": "Realty Income Corporation Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "O|N",
+        "source_security_identifier": null,
+        "source_record_hash": "fa9ae1f8d64f0cc78dd10b7d1c93a43ae839ba0361f851108e6e5c99c6c82d76",
+        "original_record": {
+          "ACT Symbol": "O",
+          "Security Name": "Realty Income Corporation Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "O",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "O"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Realty Income Corporation Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "fa9ae1f8d64f0cc78dd10b7d1c93a43ae839ba0361f851108e6e5c99c6c82d76",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "O",
+          "name": "REALTY INCOME CORP",
+          "cik": "0000726728",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "PLD",
+      "listing_record": {
+        "ticker": "PLD",
+        "display_symbol": "PLD",
+        "name": "Prologis, Inc. Common Stock",
+        "security_description": "Prologis, Inc. Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "PLD|N",
+        "source_security_identifier": null,
+        "source_record_hash": "014a779bd38f91d25b7a4498a495608ebcc455cad7d7bac348606861ef14b0c2",
+        "original_record": {
+          "ACT Symbol": "PLD",
+          "Security Name": "Prologis, Inc. Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "PLD",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "PLD"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Prologis, Inc. Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "014a779bd38f91d25b7a4498a495608ebcc455cad7d7bac348606861ef14b0c2",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "PLD",
+          "name": "Prologis, Inc.",
+          "cik": "0001045609",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "TSM",
+      "listing_record": {
+        "ticker": "TSM",
+        "display_symbol": "TSM",
+        "name": "Taiwan Semiconductor Manufacturing Company Ltd.",
+        "security_description": "Taiwan Semiconductor Manufacturing Company Ltd.",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "TSM|N",
+        "source_security_identifier": null,
+        "source_record_hash": "a8a8118658d1559964d41f77c61a9af584aa6cbc1abe3b885ead06cca8e01a19",
+        "original_record": {
+          "ACT Symbol": "TSM",
+          "Security Name": "Taiwan Semiconductor Manufacturing Company Ltd.",
+          "Exchange": "N",
+          "CQS Symbol": "TSM",
+          "ETF": "N",
+          "Round Lot Size": "40",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "TSM"
+        },
+        "instrument_type": "unknown",
+        "security_form": "unknown",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {},
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date.",
+          "Security description and ETF flag do not establish an instrument classification."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "a8a8118658d1559964d41f77c61a9af584aa6cbc1abe3b885ead06cca8e01a19",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "TSM",
+          "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+          "cik": "0001046179",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "BABA",
+      "listing_record": {
+        "ticker": "BABA",
+        "display_symbol": "BABA",
+        "name": "Alibaba Group Holding Limited American Depositary Shares each representing eight Ordinary share",
+        "security_description": "Alibaba Group Holding Limited American Depositary Shares each representing eight Ordinary share",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "BABA|N",
+        "source_security_identifier": null,
+        "source_record_hash": "ecffa34283ba67e909df164362bea4a8cf0f53f3463c5f01b8b964cff18e4bb6",
+        "original_record": {
+          "ACT Symbol": "BABA",
+          "Security Name": "Alibaba Group Holding Limited American Depositary Shares each representing eight Ordinary share",
+          "Exchange": "N",
+          "CQS Symbol": "BABA",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "BABA"
+        },
+        "instrument_type": "adr",
+        "security_form": "adr",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Alibaba Group Holding Limited American Depositary Shares each representing eight Ordinary share",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "ecffa34283ba67e909df164362bea4a8cf0f53f3463c5f01b8b964cff18e4bb6",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "BABA",
+          "name": "Alibaba Group Holding Ltd",
+          "cik": "0001577552",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "NVO",
+      "listing_record": {
+        "ticker": "NVO",
+        "display_symbol": "NVO",
+        "name": "Novo Nordisk A/S Common Stock",
+        "security_description": "Novo Nordisk A/S Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "NVO|N",
+        "source_security_identifier": null,
+        "source_record_hash": "e8149c62a04a1fa1de346db9c46e1d6884a4dddf98d1ff4073ca8b5528ad6c10",
+        "original_record": {
+          "ACT Symbol": "NVO",
+          "Security Name": "Novo Nordisk A/S Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "NVO",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "NVO"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Novo Nordisk A/S Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "e8149c62a04a1fa1de346db9c46e1d6884a4dddf98d1ff4073ca8b5528ad6c10",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "NVO",
+          "name": "NOVO NORDISK A S",
+          "cik": "0000353278",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "BRK.B",
+      "listing_record": {
+        "ticker": "BRK.B",
+        "display_symbol": "BRK.B",
+        "name": "Berkshire Hathaway Inc. New Common Stock",
+        "security_description": "Berkshire Hathaway Inc. New Common Stock",
+        "exchange": "NYSE",
+        "exchange_mic": "XNYS",
+        "source_record_key": "BRK.B|N",
+        "source_security_identifier": null,
+        "source_record_hash": "26d48171dffaf7a0b036d6adad52e1a362822094623d63c3215997d76c63446d",
+        "original_record": {
+          "ACT Symbol": "BRK.B",
+          "Security Name": "Berkshire Hathaway Inc. New Common Stock",
+          "Exchange": "N",
+          "CQS Symbol": "BRK.B",
+          "ETF": "N",
+          "Round Lot Size": "40",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "BRK.B"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Berkshire Hathaway Inc. New Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "26d48171dffaf7a0b036d6adad52e1a362822094623d63c3215997d76c63446d",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": []
+    },
+    {
+      "requested_symbol": "SPY",
+      "listing_record": {
+        "ticker": "SPY",
+        "display_symbol": "SPY",
+        "name": "State Street SPDR S&P 500 ETF Trust",
+        "security_description": "State Street SPDR S&P 500 ETF Trust",
+        "exchange": "NYSE Arca",
+        "exchange_mic": "ARCX",
+        "source_record_key": "SPY|P",
+        "source_security_identifier": null,
+        "source_record_hash": "411e73e2943b3a3e13d101450e89adc3b9b9a7720b0e3b4a49d29a86b4789d5d",
+        "original_record": {
+          "ACT Symbol": "SPY",
+          "Security Name": "State Street SPDR S&P 500 ETF Trust",
+          "Exchange": "P",
+          "CQS Symbol": "SPY",
+          "ETF": "Y",
+          "Round Lot Size": "40",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "SPY"
+        },
+        "instrument_type": "etf",
+        "security_form": "etf",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "State Street SPDR S&P 500 ETF Trust",
+          "ETF": "Y",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "411e73e2943b3a3e13d101450e89adc3b9b9a7720b0e3b4a49d29a86b4789d5d",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "SPY",
+          "name": "SPDR S&P 500 ETF TRUST",
+          "cik": "0000884394",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "AGNCN",
+      "listing_record": {
+        "ticker": "AGNCN",
+        "display_symbol": "AGNCN",
+        "name": "AGNC Investment Corp. - Depositary Shares Each Representing a 1/1,000th Interest in a Share of 7.00% Series C Fixed-To-Floating Rate Cumulative Redeemable Preferred Stock",
+        "security_description": "AGNC Investment Corp. - Depositary Shares Each Representing a 1/1,000th Interest in a Share of 7.00% Series C Fixed-To-Floating Rate Cumulative Redeemable Preferred Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "AGNCN|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "ff4029676f699edf720077248d56fc3d66a65fd845f4a8aa366e2f50eda6eff2",
+        "original_record": {
+          "Symbol": "AGNCN",
+          "Security Name": "AGNC Investment Corp. - Depositary Shares Each Representing a 1/1,000th Interest in a Share of 7.00% Series C Fixed-To-Floating Rate Cumulative Redeemable Preferred Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "preferred",
+        "security_form": "preferred",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "AGNC Investment Corp. - Depositary Shares Each Representing a 1/1,000th Interest in a Share of 7.00% Series C Fixed-To-Floating Rate Cumulative Redeemable Preferred Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "ff4029676f699edf720077248d56fc3d66a65fd845f4a8aa366e2f50eda6eff2",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "AGNCN",
+          "name": "AGNC Investment Corp.",
+          "cik": "0001423689",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "CMT",
+      "listing_record": {
+        "ticker": "CMT",
+        "display_symbol": "CMT",
+        "name": "Core Molding Technologies Inc Common Stock",
+        "security_description": "Core Molding Technologies Inc Common Stock",
+        "exchange": "NYSE American",
+        "exchange_mic": "XASE",
+        "source_record_key": "CMT|A",
+        "source_security_identifier": null,
+        "source_record_hash": "5191e7791141d92f34f667376eaf247a34b937d2b4c724ba1a4d6713fdd5cd04",
+        "original_record": {
+          "ACT Symbol": "CMT",
+          "Security Name": "Core Molding Technologies Inc Common Stock",
+          "Exchange": "A",
+          "CQS Symbol": "CMT",
+          "ETF": "N",
+          "Round Lot Size": "100",
+          "Test Issue": "N",
+          "NASDAQ Symbol": "CMT"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": null,
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+          "description": "Core Molding Technologies Inc Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "5191e7791141d92f34f667376eaf247a34b937d2b4c724ba1a4d6713fdd5cd04",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "CMT",
+          "name": "CORE MOLDING TECHNOLOGIES INC",
+          "cik": "0001026655",
+          "exchange": "NYSE",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "requested_symbol": "CRWV",
+      "listing_record": {
+        "ticker": "CRWV",
+        "display_symbol": "CRWV",
+        "name": "CoreWeave, Inc. - Class A Common Stock",
+        "security_description": "CoreWeave, Inc. - Class A Common Stock",
+        "exchange": "NASDAQ",
+        "exchange_mic": "XNAS",
+        "source_record_key": "CRWV|NASDAQ",
+        "source_security_identifier": null,
+        "source_record_hash": "0f0f117c42bda162b009118e7bb0b75c58baa23433b9b81d6e23281d5bc5c27c",
+        "original_record": {
+          "Symbol": "CRWV",
+          "Security Name": "CoreWeave, Inc. - Class A Common Stock",
+          "Market Category": "Q",
+          "Test Issue": "N",
+          "Financial Status": "N",
+          "Round Lot Size": "100",
+          "ETF": "N",
+          "NextShares": "N"
+        },
+        "instrument_type": "common_stock",
+        "security_form": "common_stock",
+        "share_class": "A",
+        "listing_status": "active",
+        "identity_status": "reference_only",
+        "symbol_aliases": [],
+        "classification_evidence": {
+          "provider": "nasdaq-trader",
+          "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+          "description": "CoreWeave, Inc. - Class A Common Stock",
+          "ETF": "N",
+          "parser_version": "nasdaq-directory-1",
+          "type_verified": true
+        },
+        "warnings": [
+          "Directory membership does not prove uninterrupted trading or a listing commencement date."
+        ],
+        "source_refs": [
+          {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "observed_on": "2026-10-19",
+            "record_hash": "0f0f117c42bda162b009118e7bb0b75c58baa23433b9b81d6e23281d5bc5c27c",
+            "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+          }
+        ]
+      },
+      "sec_reference_records": [
+        {
+          "ticker": "CRWV",
+          "name": "CoreWeave, Inc.",
+          "cik": "0001769628",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "audit_as_of": "2026-10-19T11:56:54.533345+00:00",
+  "unlinked_sec_reference_records": [
+    {
+      "ticker": "BRK-B",
+      "name": "BERKSHIRE HATHAWAY INC",
+      "cik": "0001067983",
+      "exchange": "NYSE",
+      "instrument_type": "unknown",
+      "listing_status": "unknown",
+      "identity_status": "reference_only",
+      "source_refs": [
+        {
+          "provider": "sec-edgar",
+          "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+          "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+        }
+      ]
+    }
+  ]
+}

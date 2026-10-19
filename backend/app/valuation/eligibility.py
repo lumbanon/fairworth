@@ -2,7 +2,7 @@
 from app.valuation.models import missing_inputs, required_inputs
 from app.services.security_identity import applicability
 
-ELIGIBILITY_METHODOLOGY_VERSION = "instrument-eligibility-1"
+ELIGIBILITY_METHODOLOGY_VERSION = "instrument-eligibility-2"
 
 MODEL_NAMES = {
     "fcff": ("Discounted Cash Flow (FCFF)", "FCFF DCF"),
@@ -36,6 +36,16 @@ def eligibility(model_id, inputs, values, overridden=()):
     reit = company.get("is_reit") if company.get("instrument_id") else values.get("is_reit") if isinstance(values.get("is_reit"), bool) else company.get("is_reit")
     bank = True if company.get("instrument_type") == "financial_institution" else bank
     reit = True if company.get("instrument_type") == "reit" else reit
+    business = company.get("issuer_business_category")
+    bank = True if business == "bank" else bank
+    reit = True if business == "reit" else reit
+    if bank is None and business in {"operating_company", "insurance", "reit"}:
+        bank = False
+    if reit is None and business in {"operating_company", "bank", "insurance", "financial_institution"}:
+        reit = False
+    if company.get("instrument_id") and reit is None and model_id in {"pe", "peg", "graham"}:
+        reasons.append("business_classification_unavailable")
+        missing.append("business_classification")
     share_verified = basis.get("share_basis_verified") or values.get("share_basis_confirmed") is True
     explicit_per_share = model_id in {"pe", "peg"} and "forward_eps" in overridden and values.get("forward_eps") is not None
     explicit_dividend = model_id == "dividend" and "dividend_per_share" in overridden and values.get("dividend_per_share") is not None
@@ -56,7 +66,7 @@ def eligibility(model_id, inputs, values, overridden=()):
         financial_sic = 6000 <= int(company.get("sic") or 0) <= 6999
     except (TypeError, ValueError):
         financial_sic = False
-    financial = bank or (financial_sic and not reit) or company.get("instrument_type") == "insurance"
+    financial = bank or (financial_sic and not reit) or company.get("instrument_type") == "insurance" or business in {"insurance", "financial_institution"}
     if model_id in {"fcff", "evEbitda", "evRevenue"} and financial:
         reasons.append("financial_institution_enterprise_framework")
         unsuitable = True

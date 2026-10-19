@@ -6,7 +6,7 @@ import { mockStocks } from "@/data/mockStocks";
 import { isValidTicker, normalizeTicker } from "@/lib/format";
 import { useDataMode } from "@/context/dataMode";
 import { searchStocks } from "@/services/api";
-import { securityLabel, stockLocation } from "@/lib/securityIdentity";
+import { listingVerificationSummary, securityFormLabel, securityFormRestriction, stockLocation } from "@/lib/securityIdentity";
 
 export default function StockSearch({ compact = false, dashboard = false }) {
   const id = useId();
@@ -89,7 +89,7 @@ export default function StockSearch({ compact = false, dashboard = false }) {
       return;
     }
     const matches = (mode === "provider" ? suggestions : mockStocks).filter(
-      (stock) => stock.name.toUpperCase() === query || stock.ticker.toUpperCase() === query,
+      (stock) => stock.name.toUpperCase() === query || stock.ticker.toUpperCase() === query || stock.display_symbol?.toUpperCase() === query,
     );
     if (matches.length > 1 || (mode === "provider" && matches.length === 1 && providerSearch.hasMore)) {
       setError("Several securities match. Choose the exchange and share class from the suggestions.");
@@ -209,8 +209,8 @@ export default function StockSearch({ compact = false, dashboard = false }) {
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(stock)}
               >
-                <span className="suggestion-ticker">{stock.ticker}</span>
-                <span className="suggestion-company"><span>{stock.name}</span>{mode === "provider" && <small>{[stock.exchange || "Exchange unverified", securityLabel(stock.instrument_type), stock.share_class && `Class ${stock.share_class}`, stock.listing_status && stock.listing_status !== "active" && stock.listing_status.replaceAll("_", " ")].filter(Boolean).join(" · ")}</small>}</span>
+                <span className="suggestion-ticker">{stock.display_symbol ?? stock.ticker}</span>
+                <span className="suggestion-company"><span>{stock.name}</span>{mode === "provider" && <><small>{[stock.exchange || "Exchange unverified", securityFormLabel(stock), stock.share_class && `Class ${stock.share_class}`].filter(Boolean).join(" · ")}</small><small>{[listingVerificationSummary(stock).label, listingVerificationSummary(stock).observed_on && `Observed ${listingVerificationSummary(stock).observed_on}`, securityFormRestriction(stock)].filter(Boolean).join(" · ")}</small></>}</span>
                 <ArrowRight size={14} aria-hidden="true" />
               </li>
             ))}

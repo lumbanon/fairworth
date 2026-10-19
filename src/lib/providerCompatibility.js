@@ -248,11 +248,15 @@ export function adaptProviderStock({
   }
   return {
     ticker: sourceCompany.ticker,
+    displaySymbol: coverage?.identity?.display_symbol ?? sourceCompany.display_symbol ?? sourceCompany.ticker,
     instrumentId: sourceCompany.instrument_id ?? coverage?.identity?.instrument_id ?? null,
     listingId: sourceCompany.listing_id ?? coverage?.identity?.listing_id ?? null,
     issuerId: sourceCompany.issuer_id ?? coverage?.identity?.issuer_id ?? null,
     identity: { ...sourceCompany, ...(coverage?.identity ?? {}) },
     instrumentType: sourceCompany.instrument_type ?? coverage?.identity?.instrument_type,
+    securityForm: coverage?.identity?.security_form ?? sourceCompany.security_form,
+    issuerBusinessCategory: coverage?.identity?.issuer_business_category ?? sourceCompany.issuer_business_category,
+    listingVerification: coverage?.identity?.listing_verification ?? sourceCompany.listing_verification,
     shareClass: sourceCompany.share_class ?? coverage?.identity?.share_class,
     listingStatus: sourceCompany.listing_status ?? coverage?.identity?.listing_status,
     identityStatus: sourceCompany.identity_status ?? coverage?.identity?.identity_status,

@@ -8,6 +8,7 @@ from app.registry.audit import summarize, markdown_matrix
 from app.services.coverage_service import stage
 from app.services.coverage_service import failure_stage
 from app.services.coverage_service import CoverageService
+from app.schemas.coverage import CoverageStages
 from app.providers.base import ProviderError
 from coverage_sample_helpers import FIXTURES, replay_reference_sample
 
@@ -32,7 +33,7 @@ def test_sample_audit_preserves_missing_counts_status_and_denominators():
     assert result["groups"]["exchange"]["TEST"]["sample_denominator"] == 1
     assert source == bundle()
     assert result["samples"][0]["valuation_quality"] is None
-    assert len(result["samples"][0]["unresolved_blockers"]) == 8
+    assert len(result["samples"][0]["unresolved_blockers"]) == len(CoverageStages.model_fields)
 
 
 def test_audit_matrix_preserves_exact_quality_counts_and_scoped_restrictions():

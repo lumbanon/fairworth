@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchingSecurity, ordinaryWorkflowRestriction, securityLabel, stockLocation } from "../../src/lib/securityIdentity.js";
+import { issuerCategoryLabel, listingSourceUrl, listingVerificationSummary, matchingSecurity, ordinaryWorkflowRestriction, securityFormLabel, securityFormRestriction, securityLabel, stockLocation } from "../../src/lib/securityIdentity.js";
 import { isValidTicker } from "../../src/lib/format.js";
 import { loadStock, searchStocks, calculateValuation, ApiError } from "../../src/services/api.js";
 import { adaptProviderStock } from "../../src/lib/providerCompatibility.js";
@@ -165,4 +165,81 @@ test("temporary coverage failures are disclosed without fabricating coverage or 
     if (status !== 404) assert.match(warnings[0].message, /coverage diagnostics are unavailable/);
     assert.equal(adaptProviderStock(loaded).coverage, null);
   }
+});
+
+test("active status, verified identity, quotes and retrieval clocks cannot independently verify a listing", () => {
+  for (const value of [identity, { ...identity, identity_status: "verified", registry_retrieved_at: "2026-10-19T12:00:00Z", market: { price: 100 } }, { ...identity, listing_verification: { status: "verified", confidence: "unverified" } }]) {
+    const summary = listingVerificationSummary(value);
+    assert.equal(summary.verified, false);
+    assert.equal(summary.label, "Reference only · listing unverified");
+  }
+});
+
+test("explicit source-backed listing verification retains independent clocks and exposes conflicts", () => {
+  const listing = { ...identity, listing_verification: { status: "verified", confidence: "source_backed", freshness: "fresh", source: "synthetic_exchange_directory", observed_on: "2026-10-16", published_at: "1016202617:03", source_timezone: null, retrieved_at: "2026-10-19T12:00:00Z", conflicts: [] } };
+  const summary = listingVerificationSummary(listing);
+  assert.equal(summary.label, "Verified active listing");
+  assert.equal(summary.observed_on, "2026-10-16");
+  assert.equal(summary.published_at, "1016202617:03");
+  assert.equal(summary.retrieved_at, "2026-10-19T12:00:00Z");
+  for (const conflict of [{ status: "conflicting" }, { confidence: "conflicted" }, { conflicts: [{ field: "listing_status", values: ["active", "inactive"] }] }]) {
+    const result = listingVerificationSummary({ ...listing, listing_verification: { ...listing.listing_verification, ...conflict } });
+    assert.equal(result.verified, false);
+    assert.equal(result.label, "Listing sources conflict");
+  }
+});
+
+test("dated and suspended source observations are not presented as current active listings", () => {
+  const listing = { ...identity, listing_verification: { status: "verified", confidence: "source_backed", freshness: "fresh", observed_on: "2026-09-01" } };
+  assert.equal(listingVerificationSummary({ ...listing, registry_status: "stale" }).label, "Dated active-listing observation");
+  assert.equal(listingVerificationSummary({ ...listing, listing_status: "suspended" }).label, "Verified suspended listing");
+  assert.equal(listingVerificationSummary({ ...listing, listing_status: "suspended", registry_status: "stale" }).label, "Dated suspended-listing observation");
+  assert.equal(listingVerificationSummary({ ...listing, listing_status: "unknown" }).label, "Listing status unverified");
+});
+
+test("security form and issuer business category are presented independently", () => {
+  const bank = { ...identity, security_form: "common_stock", issuer_business_category: "bank", instrument_type: "financial_institution" };
+  assert.equal(securityFormLabel(bank), "Common stock");
+  assert.equal(issuerCategoryLabel(bank), "Bank");
+  assert.equal(securityFormLabel({ security_form: "adr", issuer_business_category: "operating_company" }), "ADR / ADS");
+  assert.equal(issuerCategoryLabel({}), "Issuer category unverified");
+  assert.equal(securityFormLabel({ security_form: "unknown", instrument_type: "common_stock" }), "Classification unverified");
+  assert.equal(securityFormRestriction(bank), null);
+  assert.equal(securityFormRestriction({ security_form: "adr" }), null);
+  assert.equal(securityFormRestriction({ security_form: "etf" }), "Operating-company models inapplicable");
+  assert.equal(securityFormRestriction({ security_form: "warrant" }), "Common-share valuation does not apply");
+});
+
+test("provider adaptation preserves exact verification provenance without changing financial values", () => {
+  const fixture = scopedFixture();
+  const original = adaptProviderStock(fixture);
+  const verification = { status: "verified", confidence: "source_backed", observed_on: "2026-10-16", published_at: "1016202617:03", source_timezone: null, retrieved_at: "2026-10-19T12:00:00Z", record_hash: "synthetic-record-hash" };
+  fixture.coverage.identity = { ...identity, display_symbol: "SYNTH.A", security_form: "common_stock", issuer_business_category: "bank", listing_verification: verification };
+  const result = adaptProviderStock(fixture);
+  assert.equal(result.securityForm, "common_stock");
+  assert.equal(result.issuerBusinessCategory, "bank");
+  assert.deepEqual(result.listingVerification, verification);
+  assert.equal(result.displaySymbol, "SYNTH.A");
+  assert.equal(result.ticker, "GOOGL");
+  assert.deepEqual(result.financials, original.financials);
+  assert.equal(result.price, original.price);
+});
+
+test("listing provenance links permit only public HTTPS URLs without embedded credentials", () => {
+  assert.equal(listingSourceUrl("https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"), "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt");
+  for (const value of ["https://data.sec.gov/submissions/CIK0000000001.json", "https://www.sec.gov/files/company_tickers_exchange.json", "https://www.nyse.com/market-data/reference"]) assert.equal(listingSourceUrl(value), value);
+  for (const value of [undefined, "javascript:alert(1)", "http://example.com/", "https://private:secret@example.com/", "/relative", "https://www.nyse.com/market-data/reference?secret=synthetic-private-value", "https://www.nyse.com/market-data/reference#private", "https://www.sec.gov:444/files/company_tickers_exchange.json", "https://untrusted.test/public", "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt.backup", "https://www.sec.gov/files/%2e%2e/private", "https://www.sec.gov/files/%5cprivate"]) assert.equal(listingSourceUrl(value), null);
+});
+
+test("current listing labels require a valid nonfuture observation date and explicit fresh status", () => {
+  const listing = { ...identity, listing_verification: { status: "verified", confidence: "source_backed", observed_on: "2026-10-16" } };
+  assert.equal(listingVerificationSummary(listing).label, "Dated listing observation");
+  assert.equal(listingVerificationSummary(listing).current, false);
+  assert.equal(listingVerificationSummary({ ...listing, registry_status: "fresh" }).label, "Verified active listing");
+  for (const observed_on of [null, "not-a-date", "2026-02-30", "9999-01-01"]) {
+    const summary = listingVerificationSummary({ ...listing, registry_status: "fresh", listing_verification: { ...listing.listing_verification, observed_on } });
+    assert.equal(summary.current, false);
+    assert.equal(summary.label, "Listing observation date unverified");
+  }
+  assert.equal(listingVerificationSummary({ ...listing, registry_status: "partial", listing_verification: { ...listing.listing_verification, freshness: "fresh" } }).current, false);
 });

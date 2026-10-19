@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Request
+from typing import Literal
 
 from app.api.dependencies import Ticker, company_service
 from app.schemas.common import ErrorResponse
@@ -12,8 +13,11 @@ router = APIRouter(prefix="/stocks", tags=["stocks"], responses={404: {"model": 
 
 @router.get("/search", response_model=SearchResponse)
 async def search_stocks(q: str = Query(min_length=1, max_length=80), limit: int = Query(default=10, ge=1, le=50),
-                        offset: int = Query(default=0, ge=0, le=100000), service=Depends(company_service)):
-    return await service.search(q, limit, offset)
+                        offset: int = Query(default=0, ge=0, le=100000),
+                        listing_status: Literal["active", "inactive", "delisted", "suspended", "unknown"] | None = Query(default=None),
+                        service=Depends(company_service)):
+    filters = {"listing_status": listing_status} if listing_status is not None else {}
+    return await service.search(q, limit, offset, **filters)
 
 
 @router.get("/{ticker}", response_model=CompanyResponse)

@@ -99,7 +99,7 @@ class ResearchService:
         """
         package = payload.get("evidence", payload)
         registry = package["registry"]
-        protected = {"valuation_methodology", "company_profile", "market_price", "base_fair_value",
+        protected = {"valuation_methodology", "company_profile", "listing_verification", "market_price", "base_fair_value",
                      "base_contributing_model_count", "base_model_name", "forward_eps", "target_pe",
                      "base_model_results", "debt", "wacc", "total_debt"}
         bounded = False

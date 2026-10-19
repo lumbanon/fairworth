@@ -68,7 +68,7 @@ async def test_selected_security_reaches_engine_and_every_evidence_record(synthe
     assert result["identity"] == security_identity(values.data["company"])
     assert values.calls == [("inputs", "SYN", "class-a", None), ("calculate", "SYN", "class-a", None)]
     assert all(item["identity"] == result["identity"] for item in result["registry"].values())
-    assert "financial-evidence-3" == result["evidence_adapter_version"]
+    assert "financial-evidence-4" == result["evidence_adapter_version"]
 
 
 @pytest.mark.asyncio

@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import select
 
 from app.core.exceptions import ApiError
-from app.models import Company, FinancialFact
+from app.models import Company, FinancialFact, SecurityIssuer
 from app.providers.base import ProviderError
 from app.providers.market_data import FmpMarketDataProvider
 from app.providers.sec_edgar import SecEdgarProvider
@@ -40,6 +40,11 @@ class Registry:
 
 def attach(client, **changes):
     company = synthetic_identity(**changes)
+    if company.get("cik"):
+        with client.app.state.session_factory.begin() as session:
+            if session.get(SecurityIssuer, company["issuer_id"]) is None:
+                session.add(SecurityIssuer(id=company["issuer_id"], source_key="synthetic:" + company["issuer_id"],
+                    cik=company["cik"], name=company["name"], source_refs=[]))
     client.app.state.company_service.registry = Registry(company)
     return company
 
@@ -126,6 +131,8 @@ def test_only_explicit_provider_alias_is_accepted():
 def test_repository_preserves_historical_issuer_on_symbol_reuse(session_factory):
     repo = FinancialRepository(session_factory)
     original = synthetic_identity()
+    with session_factory.begin() as session:
+        session.add(SecurityIssuer(id=original["issuer_id"], source_key="synthetic:original", cik=original["cik"], name=original["name"], source_refs=[]))
     company_id = repo.save_company(original)
     with pytest.raises(ApiError, match="historical data"):
         repo.save_company({**original, "cik": "0000000002", "issuer_id": "issuer-reused"})
@@ -170,7 +177,8 @@ def test_unsupported_etf_keeps_profile_but_never_fetches_issuer_facts(client, fa
     assert fake_providers[0].facts_calls == 0
     coverage = client.get("/api/stocks/SYN/coverage").json()
     assert coverage["stages"]["valuation"]["status"] == "financially_inapplicable"
-    assert coverage["stages"]["classification"]["status"] == "financially_inapplicable"
+    assert coverage["stages"]["classification"]["status"] == "available"
+    assert coverage["stages"]["classification"]["supported_operating_company_valuation"] is False
 
 
 def test_missing_cik_is_profile_only_without_invented_financials(client, fake_providers):
@@ -189,7 +197,7 @@ def test_stable_identity_does_not_read_legacy_symbol_quote_cache(client):
     identity = attach(client)
     result = client.get("/api/stocks/SYN").json()
     assert result["market"]["price"] == 100
-    assert service.cache._read(f"market:fixture-market:quote:{cache_scope(identity)}") is not None
+    assert service.cache._read(f"market:fixture-market:quote:{cache_scope(result['company'])}") is not None
     assert service.cache._read("market:fixture-market:quote:SYN").payload["price"] == 999
 
 
@@ -238,17 +246,17 @@ def test_provider_cik_conflict_does_not_publish_enrichment_or_financials(client,
     assert response.json()["error"]["code"] == "incompatible_financial_identity"
 
 
-def test_reused_symbol_profile_does_not_reassign_persisted_issuer(client, session_factory):
+def test_registered_reused_symbol_preserves_both_financial_owners(client, session_factory):
     attach(client)
     assert client.get("/api/stocks/SYN/financials").status_code == 200
     attach(client, cik="0000000002", issuer_id="issuer-reused", instrument_id="instrument-reused", listing_id="listing-reused")
     profile = client.get("/api/stocks/SYN").json()
     assert profile["company"]["cik"] == "0000000002"
-    assert any(row["code"] == "incompatible_financial_identity" for row in profile["warnings"])
+    assert not any(row["code"] == "incompatible_financial_identity" for row in profile["warnings"])
     response = client.get("/api/stocks/SYN/financials")
-    assert response.status_code == 409
+    assert response.status_code == 502  # Fixture facts still belong to the old CIK.
     with session_factory() as session:
-        company = session.scalar(select(Company).where(Company.ticker == "SYN"))
+        company = session.scalar(select(Company).where(Company.ticker == "SYN", Company.cik == "0000000001"))
         assert company.cik == "0000000001"
         assert session.scalar(select(FinancialFact).where(FinancialFact.company_id == company.id)) is not None
 
@@ -258,6 +266,8 @@ def test_reused_symbol_profile_does_not_reassign_persisted_issuer(client, sessio
     ("/valuation/defaults", "get"), ("/valuation/eligibility", "get"), ("/valuation/explain", "get"),
     ("/valuation/calculate", "post"), ("/valuation/scenarios", "post")])
 def test_all_analysis_routes_preserve_explicit_listing_selection(client, path, method):
+    with client.app.state.session_factory.begin() as session:
+        session.add(SecurityIssuer(id="issuer-test-1", source_key="synthetic:route-scope", cik="0000000001", name="Synthetic", source_refs=[]))
     class Listings:
         async def resolve(self, _ticker, instrument_id=None, listing_id=None):
             if listing_id not in {"listing-first", "listing-second"}:

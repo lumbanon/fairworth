@@ -25,12 +25,17 @@ class CompanyService:
         self.cache, self.repository, self.settings = cache, repository, settings
         self.registry = registry
 
-    async def search(self, query, limit, offset=0):
+    async def search(self, query, limit, offset=0, listing_status=None):
         if self.registry is not None:
-            result = await self.registry.search(query, limit, offset)
+            filters = {"listing_status": listing_status} if listing_status is not None else {}
+            result = await self.registry.search(query, limit, offset, **filters)
             result["registry_as_of"] = result.get("as_of")
             result["next_offset"] = result.get("offset", offset) + result.get("limit", limit) if result.get("has_more") else None
             return result
+        if listing_status is not None:
+            return {"results": [], "status": "partial", "warnings": [warning("security_registry", "listing_filter_unavailable",
+                    "A listing-status filter requires an imported security registry; issuer references do not prove listing status.")],
+                    "limit": limit, "offset": offset, "has_more": False, "next_offset": None}
         normalized_query = query.strip().upper()
         result = await self.cache.get_or_load(f"sec:search:{normalized_query}:{limit}",
                                              self.settings.company_cache_ttl_seconds, "sec-edgar",
@@ -57,6 +62,8 @@ class CompanyService:
                                                          "sec-edgar", lambda: self.sec.company_for_identity(identity))
                     check_provider_identity(identity, result.payload)
                     payload = {**result.payload, **identity}
+                    if not payload.get("filing_regime") and result.payload.get("filing_regime"):
+                        payload["filing_regime"] = result.payload["filing_regime"]
                     result = CachedResult(result.payload, combined_status(registry_status, result.status), result.retrieved_at,
                                           registry_warnings + result.warnings)
                 except ProviderError as error:
@@ -71,6 +78,14 @@ class CompanyService:
         sic = sic if len(sic) == 4 and sic.isdigit() else None
         payload["is_bank"] = True if payload.get("instrument_type") == "financial_institution" else sic in {"6021", "6022", "6029", "6035", "6036", "6061", "6062", "6081", "6082", "6099"} if sic else None
         payload["is_reit"] = True if payload.get("instrument_type") == "reit" else sic == "6798" if sic else None
+        business = payload.get("issuer_business_category")
+        if business in {None, "unknown"} and sic:
+            business = "bank" if payload["is_bank"] else "reit" if payload["is_reit"] else "insurance" if 6300 <= int(sic) <= 6399 else "other" if 6000 <= int(sic) <= 6999 else "operating_company"
+            payload["issuer_business_category"] = business
+            payload["issuer_classification_evidence"] = {"provider": "sec-edgar", "concept": "sic", "value": sic,
+                "cik": payload.get("cik"), "url": f"https://data.sec.gov/submissions/CIK{payload['cik']}.json"}
+        payload["is_bank"] = True if business == "bank" else payload["is_bank"]
+        payload["is_reit"] = True if business == "reit" else payload["is_reit"]
         return payload, result
 
     async def market_quote(self, ticker, financial_currency=None, identity=None):
@@ -145,7 +160,7 @@ class CompanyService:
             try:
                 company_id = self.repository.save_company(company)
                 if market:
-                    self.repository.save_market(company_id, market)
+                    self.repository.save_market(company_id, {**market, "security_identity": security_identity(company)})
             except ApiError as error:
                 if error.code != "incompatible_financial_identity":
                     raise

@@ -151,6 +151,55 @@
   margin: 5px 0 0;
   color: var(--muted-foreground);
 }
+.provider-listing-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.provider-source-freshness {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+  margin-bottom: 18px;
+}
+.provider-listing-provenance {
+  margin: 18px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+.provider-listing-provenance summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.provider-listing-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 14px 24px;
+  margin: 16px 0;
+}
+.provider-listing-dates dt {
+  font-weight: 500;
+}
+.provider-listing-dates dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+.provider-listing-dates a {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+.provider-listing-provenance ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin-top: 12px;
+}
+.company-listing-verification {
+  overflow-wrap: anywhere;
+}
 .provider-identity-candidates {
   display: flex;
   flex-direction: column;

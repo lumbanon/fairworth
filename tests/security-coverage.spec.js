@@ -12,9 +12,9 @@ const securities = [
   { ticker: "SPY", name: "SPDR S&P 500 ETF Trust", instrument_id: "fixture-spy", issuer_id: "fixture-spdr", listing_id: "fixture-arcx-spy", cik: "0000884394", exchange: "NYSE Arca", instrument_type: "etf", listing_status: "active", identity_status: "verified" },
 ];
 
-async function registryApi(page, { sparse = false, mismatch = false, paginated = false, searchError = false, staleSearch = false, multipleListings = false, coverageError = 0 } = {}) {
+async function registryApi(page, { sparse = false, mismatch = false, paginated = false, searchError = false, staleSearch = false, multipleListings = false, coverageError = 0, identityOverrides = {} } = {}) {
   const requests = [], unexpected = [];
-  const listingSamples = multipleListings ? [securities[0], { ...securities[0], exchange: "NYSE", listing_id: "fixture-xnys-googl" }] : securities;
+  const listingSamples = (multipleListings ? [securities[0], { ...securities[0], exchange: "NYSE", listing_id: "fixture-xnys-googl" }] : securities).map((security) => ({ ...security, ...(typeof identityOverrides === "function" ? identityOverrides(security) : identityOverrides) }));
   await page.addInitScript(() => sessionStorage.setItem("fairworth-data-mode", "provider"));
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
@@ -29,7 +29,7 @@ async function registryApi(page, { sparse = false, mismatch = false, paginated =
       const query = (url.searchParams.get("q") || "").toUpperCase();
       const offset = Number(url.searchParams.get("offset") || 0);
       const results = paginated ? Array.from({ length: 10 }, (_, index) => ({ ...securities[0], ticker: `ZZ${offset + index}`, name: `Synthetic security ${offset + index}`, instrument_id: `fixture-${offset + index}`, listing_id: `fixture-listing-${offset + index}` }))
-        : listingSamples.filter((item) => `${item.ticker} ${item.name}`.toUpperCase().includes(query));
+        : listingSamples.filter((item) => `${item.ticker} ${item.display_symbol ?? ""} ${item.name}`.toUpperCase().includes(query));
       return route.fulfill({ json: { results, limit: 10, offset, has_more: paginated && offset === 0, status: staleSearch ? "stale" : "fresh", warnings: staleSearch ? [{ message: "Registry observations are dated; current listing status requires confirmation." }] : [], as_of: "2026-10-18", registry_version: "fixture-registry-1" } });
     }
     const ticker = decodeURIComponent(url.pathname.split("/")[3]);
@@ -54,7 +54,7 @@ async function registryApi(page, { sparse = false, mismatch = false, paginated =
     if (url.pathname.endsWith("/coverage")) {
       if (coverageError) return route.fulfill({ status: coverageError, json: { error: { code: coverageError === 429 ? "provider_rate_limited" : "coverage_unavailable", message: "The mocked coverage service is temporarily unavailable." } } });
       const unsupported = identity.instrument_type === "etf";
-      const stages = Object.fromEntries(["symbol_resolution", "classification", "profile", "statements", "normalization", "freshness", "valuation", "ai_research"].map((key) => [key, { status: "available", reason: "Synthetic offline assessment; no provider request was made." }]));
+      const stages = Object.fromEntries(["symbol_resolution", "security_identity", "active_listing", "classification", "share_basis", "profile", "statements", "normalization", "freshness", "valuation", "ai_research"].map((key) => [key, { status: "available", reason: "Synthetic offline assessment; no provider request was made." }]));
       if (unsupported) { stages.classification = { status: "financially_inapplicable", reason: "Ordinary operating-company valuation models do not apply to an ETF." }; stages.valuation = stages.classification; }
       else { stages.valuation = { status: "missing_evidence", reason: "No supported model inputs are supplied by this synthetic fixture.", contributing_model_count: 0 }; }
       if (sparse) stages.statements = { status: "provider_restricted", reason: "The mocked provider restricts annual statements." };
@@ -181,7 +181,10 @@ test("complete statement absence keeps identity and coverage visible without a b
 
 test("unsupported ETF profiles explain applicability without requesting an ordinary-stock valuation", async ({ page }) => {
   const { requests, unexpected } = await registryApi(page);
-  await page.goto("/stocks/SPY?instrument_id=fixture-spy");
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Search by company or ticker", exact: true }).fill("SPY");
+  await expect(page.getByRole("option")).toContainText("Operating-company models inapplicable");
+  await page.getByRole("option").click();
   await expect(page.getByRole("heading", { name: "Ordinary-stock valuation unavailable", exact: true })).toBeVisible();
   await expect(page.locator(".company-classification")).toContainText("ETF");
   await expect(page.locator("#models")).toHaveCount(0);
@@ -248,9 +251,10 @@ test("same-instrument listings retain distinct search choices and isolate the se
   await expect(page.locator(".company-classification")).toContainText("NASDAQ");
   await page.getByRole("button", { name: "AI Research", exact: true }).click();
   await expect(page.locator(".ai-turn")).toHaveCount(0);
-  const aiCalls = requests.filter((request) => request.pathname.includes("/ai/"));
-  expect(aiCalls.some((request) => request.parameters.listing_id === "fixture-xnys-googl")).toBeTruthy();
-  expect(aiCalls.some((request) => request.parameters.listing_id === "fixture-xnas-googl")).toBeTruthy();
+  // Availability is fetched in an effect after the newly selected panel mounts.
+  // Wait for that actual request before taking the transport assertion snapshot.
+  await expect.poll(() => requests.some((request) => request.pathname.includes("/ai/") && request.parameters.listing_id === "fixture-xnys-googl")).toBeTruthy();
+  await expect.poll(() => requests.some((request) => request.pathname.includes("/ai/") && request.parameters.listing_id === "fixture-xnas-googl")).toBeTruthy();
   expect(unexpected).toEqual([]);
   await fitsViewport(page);
 });
@@ -292,4 +296,110 @@ test("coverage outages are explicit while legacy missing endpoints retain a usab
     expect(unexpected).toEqual([]);
     await fitsViewport(page);
   }
+});
+
+const syntheticListingVerification = {
+  status: "verified", confidence: "source_backed", source: "synthetic_exchange_directory",
+  freshness: "fresh", stale: false,
+  observed_on: "2026-10-16", published_at: "1016202617:03", source_timezone: null,
+  retrieved_at: "2026-10-19T12:00:00Z", record_hash: "f".repeat(64),
+  source_url: "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+  conflicts: [], warnings: ["Synthetic listing observation for offline UI tests only."],
+};
+
+test("verified listing labels separate security form, issuer category and all source clocks", async ({ page }) => {
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "common_stock", issuer_business_category: "bank", instrument_type: "financial_institution", listing_verification: syntheticListingVerification } });
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Search by company or ticker", exact: true }).fill("GOOGL");
+  await expect(page.getByRole("option")).toContainText("NASDAQ · Common stock · Class A");
+  await expect(page.getByRole("option")).toContainText("Verified active listing · Observed 2026-10-16");
+  await page.getByRole("option").click();
+  await expect(page.locator(".company-classification")).toContainText("Common stock · Share class A · Issuer: Bank");
+  await expect(page.locator(".company-listing-verification")).toHaveText("Verified active listing · Listing observed 2026-10-16");
+  const coverage = page.getByRole("region", { name: "Company analysis coverage", exact: true });
+  await expect(coverage.locator(".provider-coverage-grid > div")).toHaveCount(10);
+  await expect(coverage).toContainText("Security form: Common stock · Share class A · Issuer category: Bank");
+  await expect(coverage).toContainText("Source freshness: Available");
+  await coverage.getByText("Listing verification sources and dates", { exact: true }).click();
+  const dates = coverage.locator(".provider-listing-dates");
+  await expect(dates).toContainText("Listing observed2026-10-16");
+  await expect(dates).toContainText("Source published (timezone unspecified)1016202617:03");
+  await expect(dates).toContainText("Retrieved by Fairworth2026-10-19T12:00:00Z");
+  await expect(dates).toContainText("Status effectiveNot supplied by source");
+  await expect(coverage.getByRole("link", { name: "View listing source", exact: true })).toHaveAttribute("href", syntheticListingVerification.source_url);
+  await coverage.getByText("Identity and complete coverage diagnostics", { exact: true }).click();
+  await expect(coverage.locator("pre")).toContainText(syntheticListingVerification.record_hash);
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
+});
+
+test("reference-only active declarations remain discoverable without claiming a verified listing", async ({ page }) => {
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "unknown", identity_status: "reference_only", registry_retrieved_at: "2026-10-19T12:00:00Z", listing_verification: { status: "reference_only", confidence: "unverified", retrieved_at: "2026-10-19T12:00:00Z" } } });
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Search by company or ticker", exact: true }).fill("GOOGL");
+  await expect(page.getByRole("option")).toContainText("Classification unverified");
+  await expect(page.getByRole("option")).toContainText("Reference only · listing unverified");
+  await expect(page.getByRole("option")).not.toContainText("Verified active listing");
+  await page.getByRole("option").click();
+  await expect(page.locator(".company-listing-verification")).toHaveText("Reference only · listing unverified");
+  await expect(page.locator("#financials table")).toHaveCount(1);
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
+});
+
+test("conflicting listing observations remain inspectable and cannot inherit a verified active label", async ({ page }) => {
+  const conflicts = [{ field: "listing_status", observations: [{ source: "synthetic_exchange_a", value: "active", observed_on: "2026-10-16" }, { source: "synthetic_exchange_b", value: "suspended", observed_on: "2026-10-16" }] }];
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "common_stock", listing_verification: { ...syntheticListingVerification, status: "conflicting", confidence: "conflicted", conflicts } } });
+  await page.goto("/stocks/GOOGL?instrument_id=fixture-alphabet-a&listing_id=fixture-xnas-googl");
+  await expect(page.locator(".company-listing-verification")).toContainText("Listing sources conflict");
+  const coverage = page.getByRole("region", { name: "Company analysis coverage", exact: true });
+  await expect(coverage.getByRole("status")).toContainText("Source records disagree");
+  await expect(coverage).not.toContainText("Verified active listing");
+  await coverage.getByText("Identity and complete coverage diagnostics", { exact: true }).click();
+  await expect(coverage.locator("pre")).toContainText("synthetic_exchange_a");
+  await expect(coverage.locator("pre")).toContainText("synthetic_exchange_b");
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
+});
+
+test("stale listing observations retain their source date despite a later retrieval", async ({ page }) => {
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "common_stock", registry_status: "stale", listing_verification: { ...syntheticListingVerification, observed_on: "2026-09-01" } } });
+  await page.goto("/stocks/GOOGL?instrument_id=fixture-alphabet-a&listing_id=fixture-xnas-googl");
+  await expect(page.locator(".company-listing-verification")).toHaveText("Dated active-listing observation · Listing observed 2026-09-01");
+  const coverage = page.getByRole("region", { name: "Company analysis coverage", exact: true });
+  await expect(coverage.getByRole("status")).toContainText("A recent retrieval does not establish a current active listing");
+  await expect(coverage).not.toContainText("Verified active listing");
+  await coverage.getByText("Listing verification sources and dates", { exact: true }).click();
+  await expect(coverage.locator(".provider-listing-dates")).toContainText("2026-09-01");
+  await expect(coverage.locator(".provider-listing-dates")).toContainText("2026-10-19T12:00:00Z");
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
+});
+
+test("explicitly sourced suspended status is distinguished from an active listing", async ({ page }) => {
+  const { unexpected } = await registryApi(page, { identityOverrides: { listing_status: "suspended", security_form: "common_stock", listing_verification: syntheticListingVerification } });
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Search by company or ticker", exact: true }).fill("GOOGL");
+  await expect(page.getByRole("option")).toContainText("Verified suspended listing");
+  await expect(page.getByRole("option")).not.toContainText("Verified active listing");
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
+});
+
+test("source display symbols preserve the canonical ticker and exact selected security route", async ({ page }) => {
+  const { requests, unexpected } = await registryApi(page, { identityOverrides: (security) => security.ticker === "GOOGL" ? { display_symbol: "SYNTH.A", security_form: "common_stock", listing_verification: syntheticListingVerification } : {} });
+  await page.goto("/");
+  const search = page.getByRole("combobox", { name: "Search by company or ticker", exact: true });
+  await search.fill("SYNTH.A");
+  await expect(page.getByRole("option")).toHaveCount(1);
+  await expect(page.locator(".suggestion-ticker")).toHaveText("SYNTH.A");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/stocks\/GOOGL\?instrument_id=fixture-alphabet-a&listing_id=fixture-xnas-googl$/);
+  await expect(page.locator("#company-title")).toContainText("(SYNTH.A)");
+  await expect(page.locator(".company-metadata")).toContainText(["Canonical symbol: GOOGL"]);
+  const financialRequests = requests.filter((request) => !request.pathname.endsWith("/search"));
+  expect(financialRequests.every((request) => request.pathname.includes("/GOOGL"))).toBeTruthy();
+  expect(financialRequests.every((request) => request.parameters.listing_id === "fixture-xnas-googl")).toBeTruthy();
+  expect(unexpected).toEqual([]);
+  await fitsViewport(page);
 });

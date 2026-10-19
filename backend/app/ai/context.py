@@ -21,7 +21,7 @@ from app.valuation.schemas import ValuationRequest
 _FACTS = ("revenue", "net_income", "operating_income", "diluted_eps", "operating_cash_flow", "capital_expenditures",
           "free_cash_flow", "cash_and_cash_equivalents", "total_debt", "total_assets", "total_liabilities",
           "shareholders_equity", "weighted_average_diluted_shares", "basic_eps", "dividends_paid")
-EVIDENCE_ADAPTER_VERSION = "financial-evidence-3"
+EVIDENCE_ADAPTER_VERSION = "financial-evidence-4"
 _ADDITIONAL_FACTS = ("stock_based_compensation", "noncurrent_marketable_securities", "long_term_investments",
                      "finance_lease_liability", "operating_lease_liability", "long_term_debt_including_current",
                      "current_debt_including_lease_obligations", "commercial_paper", "gross_debt_instrument_carrying_amount",
@@ -183,6 +183,23 @@ class EvidenceContextAssembler:
             metric="company_profile", unit="text", value={key: public_text(company.get(key), 200) for key in
                 ("ticker", "name", "cik", "sector", "industry", "currency", "exchange")}, source_url=source,
             quality_warnings=["Company profile fields are provider observations; missing fields are unavailable."])
+        listing_proof = company.get("listing_verification")
+        if identity and isinstance(listing_proof, dict):
+            registry.add(category="company_profile", provider=listing_proof.get("source") or "Security registry",
+                         title="Dated listing and security verification", metric="listing_verification", unit="structured",
+                         value={"listing_status": company.get("listing_status"),
+                                "identity_status": company.get("identity_status"),
+                                "security_form": company.get("security_form"),
+                                "issuer_business_category": company.get("issuer_business_category"),
+                                "share_class": company.get("share_class"),
+                                "exchange": company.get("exchange"),
+                                "verification": identity.get("listing_verification")},
+                         observation_date=listing_proof.get("observed_on"),
+                         retrieved_at=listing_proof.get("retrieved_at"), source_url=listing_proof.get("source_url"),
+                         quality_warnings=["Directory membership is a dated listing observation, not proof of uninterrupted trading or compatible financial share basis.",
+                                           *warning_texts(listing_proof.get("warnings", [])),
+                                           *(["Listing sources conflict; do not assert verified active status."]
+                                             if listing_proof.get("status") == "conflicting" else [])])
         market = valuation.get("market", {}) if valuation else inputs.get("market") or {}
         registry.add(category="user_assumption" if market.get("source_type") == "user" else
                      "reported_fact" if market.get("price") is not None else "unavailable",
@@ -392,7 +409,7 @@ class EvidenceContextAssembler:
             metric = item["metric"]
             if pair[0] in priority_passages:
                 return 1
-            if metric in {"company_profile", "market_price", "base_fair_value", "bear_fair_value", "bull_fair_value"}:
+            if metric in {"company_profile", "listing_verification", "market_price", "base_fair_value", "bear_fair_value", "bull_fair_value"}:
                 return 0
             if metric in {"base_contributing_model_count", "base_model_name", "pe_fair_value", "forward_eps", "target_pe"}:
                 return 1

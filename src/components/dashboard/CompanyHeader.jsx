@@ -1,10 +1,11 @@
 import { totalDollars, dollars } from "@/lib/financialFormatting";
 import { companyDescriptionPreview } from "@/lib/sourceNotices";
-import { securityLabel } from "@/lib/securityIdentity";
+import { issuerCategoryLabel, listingVerificationSummary, securityFormLabel } from "@/lib/securityIdentity";
 
 export default function CompanyHeader({ company }) {
   const provider = company.dataMode === "provider";
   const description = companyDescriptionPreview(company.description || "Company description unavailable from the configured provider.");
+  const verification = listingVerificationSummary(company);
   return (
     <section
       id="overview"
@@ -12,15 +13,15 @@ export default function CompanyHeader({ company }) {
       aria-labelledby="company-title"
     >
       <div className="research-breadcrumb">
-        Equity research <span>/</span> {company.ticker}
+        Equity research <span>/</span> {company.displaySymbol ?? company.ticker}
       </div>
       <div className="research-company-row">
         <div>
           <h1 id="company-title">
-            {company.companyName} <span>({company.ticker})</span>
+            {company.companyName} <span>({company.displaySymbol ?? company.ticker})</span>
           </h1>
           <p className="company-classification">
-            {[company.exchange, company.instrumentType && securityLabel(company.instrumentType), company.shareClass && `Share class ${company.shareClass}`, company.sector, company.industry]
+            {[company.exchange, (company.securityForm || company.instrumentType) && securityFormLabel(company), company.shareClass && `Share class ${company.shareClass}`, company.issuerBusinessCategory && `Issuer: ${issuerCategoryLabel(company)}`, company.sector, company.industry]
               .filter(Boolean)
               .join(" · ") || "Company classification unavailable"}
           </p>
@@ -71,11 +72,12 @@ export default function CompanyHeader({ company }) {
               "Not configured"}
           </span>
           <span>CIK: {company.cik || "Unavailable"}</span>
-          {company.listingStatus && <span>Listing: {company.listingStatus.replaceAll("_", " ")}</span>}
-          {company.identityStatus && <span>Identity: {company.identityStatus.replaceAll("_", " ")}</span>}
+          {company.displaySymbol && company.displaySymbol !== company.ticker && <span>Canonical symbol: {company.ticker}</span>}
+          <span className="company-listing-verification">{verification.label}{verification.observed_on && ` · Listing observed ${verification.observed_on}`}</span>
+          {company.identityStatus && <span>Security identity: {company.identityStatus.replaceAll("_", " ")}</span>}
         </div>
       )}
-      {provider && ["adr", "ads"].includes(company.instrumentType) && <p className="research-warning">This listed depositary security is distinct from its underlying issuer. Reporting currency, ADR ratio and per-security share basis must be compatible before a valuation can contribute. No currency or share-ratio conversion is assumed.</p>}
+      {provider && ["adr", "ads"].includes(company.securityForm ?? company.instrumentType) && <p className="research-warning">This listed depositary security is distinct from its underlying issuer. Reporting currency, ADR ratio and per-security share basis must be compatible before a valuation can contribute. No currency or share-ratio conversion is assumed.</p>}
       {provider && Object.keys(company.adrMetadata ?? {}).length > 0 && <details className="research-original-diagnostics"><summary>Depositary security basis and provenance</summary><pre>{JSON.stringify(company.adrMetadata, null, 2)}</pre></details>}
       <p className="research-demo-notice">
         {provider

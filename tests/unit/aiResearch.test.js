@@ -70,3 +70,12 @@ test("citation URLs permit approved primary providers and reject arbitrary, cred
   assert.ok(safeEvidenceUrl("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/2026"));
   for (const url of ["javascript:alert(1)", "http://www.sec.gov/filing", "https://www.sec.gov.attacker.test/filing", "https://username:password@www.sec.gov/filing", "https://www.sec.gov:444/filing", "https://attacker.test", "https://financialmodelingprep.com/stable/quote?apikey=synthetic-private-value", "https://www.sec.gov/Archives/edgar/data/1/filing.htm#untrusted", "https://www.sec.gov/Archives/edgar/data/../private", "https://www.sec.gov/Archives/edgar/data/%2e%2e/private", "https://www.sec.gov/Archives/edgar/data/%5cprivate", "https://www.sec.gov/unapproved-path", null]) assert.equal(safeEvidenceUrl(url), null);
 });
+
+test("listing evidence citations permit only the two exact Nasdaq directory paths", () => {
+  for (const path of ["nasdaqlisted.txt", "otherlisted.txt"]) {
+    const url = `https://www.nasdaqtrader.com/dynamic/SymDir/${path}`;
+    assert.equal(safeEvidenceUrl(url), url);
+    for (const suffix of [".backup", "/extra", "?secret=synthetic-private-value", "#private"]) assert.equal(safeEvidenceUrl(`${url}${suffix}`), null);
+  }
+  for (const url of ["https://www.nasdaqtrader.com:444/dynamic/SymDir/nasdaqlisted.txt", "https://user:secret@www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt", "https://www.nasdaqtrader.com/dynamic/SymDir/%2e%2e/private", "https://www.nasdaqtrader.com/otherlisted.txt"]) assert.equal(safeEvidenceUrl(url), null);
+});

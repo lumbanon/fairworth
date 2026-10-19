@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 
 import pytest
+import httpx
 from sqlalchemy import create_engine
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -10,6 +11,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.core.database import Base, build_session_factory
 import app.models  # noqa: F401
 from app.providers.base import ProviderError
+
+
+@pytest.fixture(autouse=True)
+def block_real_provider_http(monkeypatch):
+    """Routine tests must use MockTransport/ASGI; never export configured keys.
+
+    This blocks concrete HTTP transports while allowing dedicated PostgreSQL
+    socket connections and local in-process API clients.
+    """
+    def blocked(*_args, **_kwargs):
+        pytest.fail("Real HTTP is forbidden in the deterministic test suite.")
+
+    async def async_blocked(*_args, **_kwargs):
+        blocked()
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", blocked)
+    monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", async_blocked)
 
 
 @pytest.fixture

@@ -48,11 +48,13 @@ def test_postgres_registry_migration_persistence_search_plans_and_concurrency():
         repository = SecurityRegistryRepository(factory)
         rows = [record(f"ZS{index:05d}", cik=str(index + 1), name=f"Synthetic Sector{index % 20} Issuer {index:05d}")
                 for index in range(10000)]
+        rows[-1]["listing_status"] = "inactive"
         started = time.perf_counter()
         imported = repository.import_snapshot(rows, PROVENANCE)
         import_seconds = time.perf_counter() - started
         assert repository.import_snapshot(rows, PROVENANCE)["changed"] is False
-        assert repository.resolve("ZS05000")["cik"] == "0000005001"
+        selected = repository.resolve("ZS05000")
+        assert selected["cik"] == "0000005001"
         with engine.begin() as connection:
             connection.execute(text("ANALYZE security_listings"))
             connection.execute(text("ANALYZE security_aliases"))
@@ -60,12 +62,22 @@ def test_postgres_registry_migration_persistence_search_plans_and_concurrency():
             alias_plan = connection.execute(text("EXPLAIN (FORMAT JSON) SELECT listing_id FROM security_aliases WHERE normalized_value LIKE 'SECTOR12%'" )).scalar_one()
             assert "ix_registry_ticker_prefix" in _index_names(ticker_plan[0]["Plan"])
             assert "ix_registry_alias_prefix" in _index_names(alias_plan[0]["Plan"])
+            status_plan = connection.execute(text("EXPLAIN (FORMAT JSON) SELECT id FROM security_listings WHERE listing_status = 'inactive'" )).scalar_one()
+            assert "ix_registry_listing_status" in _index_names(status_plan[0]["Plan"])
         timings = {}
         for name, query, offset in (("ticker", "ZS05000", 0), ("name", "sector12", 0), ("prefix", "ZS05", 0), ("page", "ZS05", 30)):
             started = time.perf_counter()
             result = repository.search(query, 10, offset)
             timings[name] = time.perf_counter() - started
             assert result["results"] and len(result["results"]) <= 10
+        started = time.perf_counter()
+        exact = repository.resolve("ZS05000", selected["instrument_id"], selected["listing_id"])
+        timings["joint_instrument_listing_resolution"] = time.perf_counter() - started
+        assert exact["issuer_id"] == selected["issuer_id"]
+        with engine.connect() as connection:
+            started = time.perf_counter()
+            assert connection.execute(text("SELECT count(*) FROM security_listings WHERE listing_status = 'inactive'")).scalar_one() == 1
+            timings["listing_status_filter"] = time.perf_counter() - started
         service = SecurityRegistryService(factory, SimpleNamespace(registry_bootstrap_enabled=False))
         async def parallel_searches():
             return await asyncio.gather(*(service.search(query, 10) for query in ["ZS05000", "sector12", "ZS05"] * 8))
@@ -93,6 +105,21 @@ def test_postgres_registry_migration_persistence_search_plans_and_concurrency():
             second = executor.submit(worker, 1)
             assert first.result(timeout=5).payload == second.result(timeout=5).payload
         assert len(calls) == 1
+        async def cold_warm_lookup():
+            cache = CacheService(factory)
+            from app.services.security_identity import cache_scope
+            cache_key = "synthetic-scoped-cold-warm:" + cache_scope(selected)
+            loaded = []
+            async def mocked_dashboard():
+                loaded.append(True)
+                return {"identity": selected, "financials": None, "reason": "Synthetic cold dashboard; no provider request."}
+            for label in ("cold_mocked_dashboard_cache", "warm_scoped_cache"):
+                started = time.perf_counter()
+                result = await cache.get_or_load(cache_key, 300, "synthetic", mocked_dashboard)
+                timings[label] = time.perf_counter() - started
+                assert result.payload["identity"]["listing_id"] == selected["listing_id"]
+            assert len(loaded) == 1
+        asyncio.run(cold_warm_lookup())
         from cache_lease_postgres_helpers import renewal_sweep_race
         renewal_sweep_race(factory, engine)
 
@@ -113,7 +140,7 @@ def test_postgres_registry_migration_persistence_search_plans_and_concurrency():
             command.check(config)
         assert financial.latest_snapshot(company_id).normalized_data == historical
         print(json.dumps({"synthetic_registry_rows": 10000, "import_seconds": import_seconds,
-                          "search_seconds": timings, "index_plans": ["ix_registry_ticker_prefix", "ix_registry_alias_prefix"],
+                          "search_seconds": timings, "index_plans": ["ix_registry_ticker_prefix", "ix_registry_alias_prefix", "ix_registry_listing_status"],
                           "cross_worker_loader_calls": len(calls)}, sort_keys=True))
     finally:
         # Only this independently checked disposable test database is changed.

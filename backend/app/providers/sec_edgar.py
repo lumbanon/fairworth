@@ -10,12 +10,33 @@ from __future__ import annotations
 import asyncio
 import re
 import time
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 import httpx
 
 from app.providers.base import JsonHttpProvider, ProviderError, normalize_cik, validate_ticker
+
+
+def filing_regime(filing):
+    """Annual filing forms establish reporter regime, never currency or GAAP."""
+    filings = filing.get("filings")
+    recent = filings.get("recent") if isinstance(filings, dict) else None
+    if not isinstance(recent, dict) or not isinstance(recent.get("form"), list) or not isinstance(recent.get("filingDate"), list):
+        return None
+    records = []
+    for form, filed in zip(recent["form"], recent["filingDate"]):
+        if form not in {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"} or not isinstance(filed, str):
+            continue
+        try:
+            observed = date.fromisoformat(filed)
+        except ValueError:
+            continue
+        records.append((observed, form))
+    if not records:
+        return None
+    _, form = max(records)
+    return "foreign_private_issuer" if form.startswith(("20-F", "40-F")) else "us_domestic_reporter"
 
 
 class SecEdgarProvider(JsonHttpProvider):
@@ -160,6 +181,7 @@ class SecEdgarProvider(JsonHttpProvider):
             "provider": self.name,
             "has_multiple_share_classes": multiple_classes,
             "share_class_basis_verified": False,
+            "filing_regime": filing_regime(filing),
             "warnings": warnings,
         }
 
@@ -218,4 +240,4 @@ class SecEdgarProvider(JsonHttpProvider):
                 "description": filing.get("description") or None, "sic": str(filing["sic"]) if filing.get("sic") else None,
                 "currency": None, "provider": self.name,
                 "has_multiple_share_classes": len(tickers) > 1 if tickers else None,
-                "share_class_basis_verified": False, "warnings": warnings}
+                "share_class_basis_verified": False, "filing_regime": filing_regime(filing), "warnings": warnings}

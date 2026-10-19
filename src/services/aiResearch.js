@@ -27,11 +27,13 @@ export function safeEvidenceUrl(value) {
       "www.sec.gov": ["/Archives/edgar/data/", "/ixviewer/"],
       "home.treasury.gov": ["/resource-center/data-chart-center/interest-rates/", "/treasury-daily-interest-rate-xml-feed"],
       "financialmodelingprep.com": ["/stable/", "/api/"],
+      "www.nasdaqtrader.com": ["/dynamic/SymDir/nasdaqlisted.txt", "/dynamic/SymDir/otherlisted.txt"],
     };
     // Check the original path as URL() canonicalizes encoded dot segments.
     const rawPath = value.match(/^https:\/\/[^/?#]+([^?#]*)/i)?.[1] ?? "";
     const decoded = decodeURIComponent(rawPath);
-    if (url.protocol !== "https:" || !paths[url.hostname]?.some((prefix) => rawPath.startsWith(prefix)) || url.username || url.password || url.search || url.hash || (url.port && url.port !== "443") || decoded.includes("\\") || decoded.split("/").some((part) => part === "." || part === "..")) return null;
+    const allowedPath = url.hostname === "www.nasdaqtrader.com" ? paths[url.hostname].includes(decoded) : paths[url.hostname]?.some((prefix) => rawPath.startsWith(prefix));
+    if (url.protocol !== "https:" || !allowedPath || url.username || url.password || url.search || url.hash || (url.port && url.port !== "443") || decoded.includes("\\") || decoded.split("/").some((part) => part === "." || part === "..")) return null;
     return url.href;
   } catch { return null; }
 }

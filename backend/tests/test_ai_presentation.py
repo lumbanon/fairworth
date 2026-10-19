@@ -96,7 +96,9 @@ def test_atomic_reference_boundaries_add_only_missing_whitespace(segments, expec
 
 
 def test_prompt_guidance_is_precise_and_keeps_strict_contract():
-    assert PROMPT_VERSION == "fairworth-research-9"
+    assert PROMPT_VERSION == "fairworth-research-10"
+    assert "Listing verification is a dated source observation" in SYSTEM_PROMPT
+    assert "Neither CIK, listing" in SYSTEM_PROMPT
     assert "EBITDA margin is a" in SYSTEM_PROMPT
     assert "does not\nestablish that EBITDA itself is missing" in SYSTEM_PROMPT
     assert "unless the user asks" in SYSTEM_PROMPT

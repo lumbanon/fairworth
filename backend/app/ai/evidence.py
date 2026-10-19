@@ -13,13 +13,17 @@ CATEGORIES = frozenset({"reported_fact", "historical_metric", "valuation_output"
                         "user_assumption", "filing_excerpt", "company_profile", "unavailable"})
 SECURITY_IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "cik", "ticker", "exchange",
                             "instrument_type", "listing_status", "identity_status", "share_class",
-                            "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status")
+                            "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status",
+                            "security_form", "issuer_business_category")
+LISTING_PROOF_FIELDS = ("status", "confidence", "source", "observed_on", "effective_on", "published_at",
+                        "source_timezone", "record_hash", "parser_version", "version")
 _VOLATILE_KEYS = frozenset({"generated_at", "calculated_at", "retrieved_at", "expires_at"})
 _SOURCE_PATHS = {
     "data.sec.gov": ("/api/xbrl/companyfacts/", "/submissions/"),
     "www.sec.gov": ("/Archives/edgar/data/", "/ixviewer/"),
     "home.treasury.gov": ("/resource-center/data-chart-center/interest-rates/", "/treasury-daily-interest-rate-xml-feed"),
     "financialmodelingprep.com": ("/stable/", "/api/"),
+    "www.nasdaqtrader.com": ("/dynamic/SymDir/nasdaqlisted.txt", "/dynamic/SymDir/otherlisted.txt"),
 }
 
 
@@ -69,7 +73,8 @@ def safe_source_url(value):
         if (parsed.scheme != "https" or host not in _SOURCE_PATHS or parsed.username or parsed.password
                 or parsed.port not in (None, 443) or parsed.query or parsed.fragment
                 or "\\" in decoded or any(part in {".", ".."} for part in decoded.split("/"))
-                or not any(decoded.startswith(prefix) for prefix in _SOURCE_PATHS[host])):
+                or not any(decoded.startswith(prefix) for prefix in _SOURCE_PATHS[host])
+                or host == "www.nasdaqtrader.com" and decoded not in _SOURCE_PATHS[host]):
             return None
         return urlunsplit(("https", host, parsed.path, "", ""))
     except ValueError:
@@ -103,14 +108,28 @@ def security_identity(company):
     """Only public, resolved identifiers; no inferred identity from ticker text."""
     if not isinstance(company, dict) or not company.get("instrument_id"):
         return None
-    return {key: public_text(company.get(key), 150) for key in SECURITY_IDENTITY_FIELDS}
+    result = {key: public_text(company.get(key), 150) for key in SECURITY_IDENTITY_FIELDS
+              if key in company or key not in {"security_form", "issuer_business_category"}}
+    proof = company.get("listing_verification")
+    if isinstance(proof, dict):
+        # Identity contains the exact observation/version, not an unbounded source
+        # document. Retrieval clocks do not make a listing observation current.
+        result["listing_verification"] = {key: public_text(proof.get(key), 200) for key in LISTING_PROOF_FIELDS}
+        linkage = proof.get("issuer_linkage")
+        if isinstance(linkage, dict):
+            result["listing_verification"]["issuer_linkage"] = {
+                key: public_text(linkage.get(key), 200) for key in
+                ("source", "observed_on", "registry_version", "record_hash", "ticker", "cik", "exchange_mic", "status", "freshness")}
+            result["listing_verification"]["issuer_linkage"]["stale"] = linkage.get("stale") if isinstance(linkage.get("stale"), bool) else None
+    return result
 
 
 def same_security(left, right):
     """A stable identity must not disappear when crossing a service boundary."""
     if left.get("cik") != right.get("cik"):
         return False
-    return all(left.get(key) == right.get(key) for key in ("issuer_id", "instrument_id", "listing_id")
+    return all(left.get(key) == right.get(key) for key in ("issuer_id", "instrument_id", "listing_id",
+               "security_form", "issuer_business_category", "listing_verification")
                if left.get(key) is not None or right.get(key) is not None)
 
 

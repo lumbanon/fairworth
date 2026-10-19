@@ -243,7 +243,7 @@ Metrics use matching fiscal periods; quarterly growth compares the same fiscal q
 
 Original observations and changed normalized snapshots are preserved with foreign keys and content-based uniqueness. Refreshing identical provider data avoids duplicate financial records. Cache expiry triggers provider refresh, so newly published filings become eligible on the next request after the configured TTL. There is no filing webhook or background ingestion scheduler in Phase 3. On a provider failure, an expired cache is returned only with `status: "stale"`, its original retrieval/price timestamps, and a visible failure warning; uncached failures return a safe structured error.
 
-Raw SEC facts are cached by CIK, while normalized persistence is tracked per ticker. Two listed classes of the same issuer reuse one upstream facts request and each retain database snapshots. Derived cache entries preserve the upstream retrieval time and cannot promote stale raw facts to fresh data.
+Raw SEC facts are cached by CIK, while normalized persistence retains issuer-owned company buckets and their compatibility ticker. Two listed classes of the same issuer reuse one upstream facts request and each retain database snapshots. Registered ticker reuse creates a separate issuer-owned bucket without moving historical facts. Derived cache entries preserve the upstream retrieval time and cannot promote stale raw facts to fresh data.
 
 ## Provider valuation compatibility
 
@@ -313,3 +313,58 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 ## Phase boundary
 
 Phase 6 improves financial-data interpretation, deterministic valuation safeguards and diagnostic presentation around the existing source-grounded AI research service. It does not implement authentication, watchlists, payments, subscriptions or portfolios. AI research remains optional; data and valuation tests use mocked OpenAI responses. Changes are not automatically committed or pushed. Fresh provider audits and any live AI verification require separate explicit authorization.
+
+## Phase 6.6 verified listing operations
+
+See the [coverage report](docs/phase66-active-listing-coverage.md),
+[baseline audit](docs/phase66-baseline-audit.md), and
+[source/license audit](docs/phase66-source-license-audit.md). SEC references,
+verified listing observations, financial statements and eligible models are
+independent capabilities. Public display rights must be confirmed before launch.
+
+After normal setup, apply the reviewed PostgreSQL migrations with `alembic upgrade
+head` from `backend`. The issuer-ownership migration preserves company IDs and
+financial history. It refuses ambiguous mappings; rollback refuses duplicated
+tickers rather than deleting or merging data. Use the existing dedicated `_test`
+database for migration checks, never a development reset. A populated legacy
+SQLite database with foreign keys enabled requires a separately reviewed offline
+migration because rebuilding its parent table can cascade into child facts.
+
+The import commands read **already authorized local files** and never download:
+
+```powershell
+# From backend; use the actual acquisition timestamp, not the source footer.
+.venv/Scripts/python.exe -m app.registry.importers ../.phase66.local/nasdaqlisted.txt --nasdaq-directory nasdaqlisted --retrieved-at YOUR_ACTUAL_UTC_TIMESTAMP
+.venv/Scripts/python.exe -m app.registry.importers ../.phase66.local/otherlisted.txt --nasdaq-directory otherlisted --retrieved-at YOUR_ACTUAL_UTC_TIMESTAMP
+# Protected retention review only; no source history is deleted.
+.venv/Scripts/python.exe -m app.registry.importers unused --retention-before 2026-10-01
+```
+
+Directory creation times retain their undocumented timezone. Omissions do not
+delist securities; contradictory sources block verification. Imports fail closed
+at the default 128 retained snapshots per source or 2,000,000 observation rows.
+Reviewed operator overrides `--max-source-snapshots` and `--max-observations`
+remain bounded; they never delete source history. No refresh scheduler is enabled.
+
+Search accepts an optional `listing_status=active|inactive|delisted|suspended|unknown`
+filter, preserving bounded pagination and explicit instrument/listing selection.
+Active status alone does not establish current verification or financial support.
+Company/search/coverage responses expose security form, issuer business category,
+display symbol and original verification clocks/provenance.
+
+Read-only audit, from the repository root:
+
+```powershell
+backend/.venv/Scripts/python.exe backend/scripts/audit_listing_coverage.py --as-of 2026-10-19 --data-mode retained_public --output .phase66.local/listing-counts.json
+backend/.venv/Scripts/python.exe backend/scripts/replay_coverage_sample.py --responses .phase66.local/retained-coverage-responses.json --output .phase66.local/retained-coverage-audit.json
+backend/.venv/Scripts/python.exe backend/scripts/replay_verified_coverage_sample.py --responses .phase66.local/verified-responses.json --output .phase66.local/verified-audit.json --matrix-output .phase66.local/verified-matrix.md
+```
+
+Create the ignored output directory first. The original replay uses retained
+reference-only public fixtures. The verified replay uses the approved dated
+30-security listing excerpts with separately retained financial fixtures. Both
+block HTTP and perform no fresh listing/financial acquisition. The
+SQL audit can additionally accept `--financial-sample` and `--matrix-output` for
+the same explicitly labeled local sample. Never combine synthetic/mocked and real
+coverage denominators. Routine pytest runs now block concrete HTTP transports;
+mocked transports and dedicated PostgreSQL connections remain available.

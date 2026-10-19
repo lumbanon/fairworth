@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import AnalysisWorkspace from "./AnalysisWorkspace";
 import DashboardLayout from "./DashboardLayout";
 import DataModeControl from "./DataModeControl";
-import { stockLocation, securityLabel } from "@/lib/securityIdentity";
+import { stockLocation, securityFormLabel, listingVerificationSummary } from "@/lib/securityIdentity";
 
 function ProviderWorkspace({ ticker, instrumentId, listingId, retry }) {
   const { setMode } = useDataMode();
@@ -52,7 +52,7 @@ function ProviderWorkspace({ ticker, instrumentId, listingId, retry }) {
                 : `Unable to load ${ticker} provider data.`}
             </h1>
             <p role="alert">{state.error.message}</p>
-            {state.error.code === "identity_ambiguous" && <div className="provider-identity-candidates"><p>Select the exchange, share class and listing you intend to research.</p>{(state.error.details?.candidates ?? []).map((candidate) => <Link key={candidate.listing_id ?? candidate.instrument_id} to={stockLocation(candidate)}>{[candidate.ticker, candidate.name, candidate.exchange || "Exchange unverified", securityLabel(candidate.instrument_type), candidate.share_class ? `Class ${candidate.share_class}` : "Share class unverified", `CIK ${candidate.cik || "unavailable"}`, candidate.listing_status ? `Listing ${candidate.listing_status.replaceAll("_", " ")}` : "Listing status unverified", candidate.identity_status && `Identity ${candidate.identity_status.replaceAll("_", " ")}`, candidate.valid_from && `From ${candidate.valid_from}`, candidate.valid_to && `Until ${candidate.valid_to}`, candidate.listing_id && `Listing ID ${candidate.listing_id}`].filter(Boolean).join(" · ")}</Link>)}</div>}
+            {state.error.code === "identity_ambiguous" && <div className="provider-identity-candidates"><p>Select the exchange, share class and listing you intend to research.</p>{(state.error.details?.candidates ?? []).map((candidate) => <Link key={candidate.listing_id ?? candidate.instrument_id} to={stockLocation(candidate)}>{[candidate.ticker, candidate.name, candidate.exchange || "Exchange unverified", securityFormLabel(candidate), candidate.share_class ? `Class ${candidate.share_class}` : "Share class unverified", `CIK ${candidate.cik || "unavailable"}`, candidate.listing_status ? `Listing ${candidate.listing_status.replaceAll("_", " ")}` : "Listing status unverified", listingVerificationSummary(candidate).label, candidate.identity_status && `Identity ${candidate.identity_status.replaceAll("_", " ")}`, candidate.valid_from && `From ${candidate.valid_from}`, candidate.valid_to && `Until ${candidate.valid_to}`, candidate.listing_id && `Listing ID ${candidate.listing_id}`].filter(Boolean).join(" · ")}</Link>)}</div>}
             <p>
               No demonstration figures have been substituted. You can retry or
               intentionally select demonstration mode.

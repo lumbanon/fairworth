@@ -7,9 +7,10 @@ from datetime import date
 from app.core.exceptions import ApiError
 from app.providers.base import normalize_cik, ProviderError
 
-IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "ticker", "cik", "exchange", "exchange_mic",
+IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "ticker", "display_symbol", "security_description", "source_security_identifier", "cik", "exchange", "exchange_mic",
                    "instrument_type", "listing_status", "identity_status", "share_class", "aliases", "symbol_aliases",
                    "source_refs", "classification_evidence", "provider_symbols", "adr_metadata", "adr_ratio", "adr_ratio_verified",
+                   "security_form", "issuer_business_category", "issuer_classification_evidence", "listing_verification", "issuer_linkage",
                    "share_basis_verified", "reporting_currency", "quote_currency", "filing_regime", "valid_from", "valid_to", "symbol_reassigned",
                    "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status", "registry_warnings")
 ORDINARY_TYPES = {"common_stock", "domestic_common_stock", "foreign_ordinary", "foreign_ordinary_share",
@@ -32,8 +33,11 @@ def cache_scope(company):
         return company["ticker"]
     parts = {key: company.get(key) for key in ("issuer_id", "instrument_id", "listing_id", "cik", "ticker", "exchange_mic",
                                              "valid_from", "valid_to", "provider_symbols", "instrument_type", "identity_status",
-                                             "listing_status", "adr_metadata", "symbol_reassigned", "share_class", "symbol_aliases")}
-    return "security-v1:" + hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:40]
+                                             "listing_status", "adr_metadata", "symbol_reassigned", "share_class", "symbol_aliases",
+                                             "security_form", "issuer_business_category", "issuer_classification_evidence", "listing_verification", "filing_regime")}
+    parts = {key: None if value in ({}, []) else value for key, value in parts.items()}
+    parts["symbol_reassigned"] = bool(parts["symbol_reassigned"])
+    return "security-v2:" + hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:40]
 
 
 def within_listing_period(company, observation):
@@ -64,19 +68,22 @@ def applicability(company):
     """Hard gates cannot be replaced with valuation assumption overrides."""
     if not company.get("instrument_id"):
         return None  # Existing canonical financial fixtures remain compatible.
-    if company.get("identity_status") in {"ambiguous", "conflicting", "unresolved"}:
+    verification = company.get("listing_verification") or {}
+    if company.get("identity_status") in {"ambiguous", "conflicting", "unresolved"} or verification.get("status") == "conflicting":
         return "identity_ambiguous", "The selected security identity is ambiguous."
-    if company.get("listing_status") in {"inactive", "delisted"}:
-        return "inactive_listing", "The selected listing is inactive; current ordinary-stock valuation is unavailable."
-    kind = company.get("instrument_type")
+    if company.get("listing_status") in {"inactive", "delisted", "suspended"}:
+        return "inactive_listing", "The selected listing is inactive or suspended; current ordinary-stock valuation is unavailable."
+    kind = company.get("security_form", company.get("instrument_type"))
     if kind in UNSUPPORTED_TYPES:
         return "unsupported_instrument_type", "Ordinary-stock valuation does not apply to this instrument type."
     if kind not in ORDINARY_TYPES:
         return "instrument_classification_unverified", "The instrument classification has not been verified."
     if company.get("identity_status") != "verified":
         return "security_identity_unverified", "A verified issuer and listed instrument identity is required for valuation."
-    if company.get("listing_status") != "active":
+    if company.get("listing_status") != "active" or verification and verification.get("status") != "verified":
         return "listing_status_unverified", "The active listing status of this instrument has not been verified."
+    if verification and (verification.get("stale") is True or company.get("registry_status") in {"stale", "partial"}):
+        return "stale_listing_verification", "The retained listing observation does not establish current listing status; a fresh, valid authoritative observation is required for a current scoped valuation."
     if kind in {"adr", "ads"}:
         metadata = company.get("adr_metadata") or {}
         ratio = company.get("adr_ratio", metadata.get("ratio"))
@@ -86,7 +93,7 @@ def applicability(company):
             return "adr_share_basis_unverified", "A sourced ADR ratio and compatible per-depositary-security share basis are required."
         if ratio != 1:
             return "adr_per_security_conversion_unsupported", "The reported issuer amounts require an ADR conversion that this valuation engine does not implement; underlying shares are not treated as depositary securities."
-    if kind in {"foreign_ordinary", "foreign_ordinary_share", "adr", "ads"}:
+    if kind in {"foreign_ordinary", "foreign_ordinary_share", "adr", "ads"} or company.get("filing_regime") in {"foreign_private_issuer", "20-F", "40-F"}:
         metadata = company.get("adr_metadata") or {}
         if company.get("share_basis_verified", metadata.get("share_basis_verified")) is not True:
             return "foreign_share_basis_unverified", "The listed security and underlying issuer share basis have not been reconciled."
@@ -131,7 +138,7 @@ def check_provider_identity(company, payload):
         raise ApiError("incompatible_security_identity", "Provider exchange does not match the selected listing.", 502)
     if payload.get("share_class") and company.get("share_class") and payload["share_class"] != company["share_class"]:
         raise ApiError("incompatible_security_identity", "Provider share class does not match the selected security.", 502)
-    kind = company.get("instrument_type")
+    kind = company.get("security_form", company.get("instrument_type"))
     if (payload.get("isEtf") is True and kind != "etf"
             or payload.get("isFund") is True and kind not in {"etf", "fund", "closed_end_fund"}
             or payload.get("isAdr") is True and kind not in {"adr", "ads"}):

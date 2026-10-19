@@ -10,6 +10,8 @@ from app.providers.base import ProviderError, normalize_cik, validate_ticker
 InstrumentType = Literal["unknown", "common_stock", "foreign_ordinary", "adr", "reit",
                          "financial_institution", "insurance", "etf", "closed_end_fund",
                          "preferred", "warrant", "right", "unit", "other"]
+SecurityForm = Literal["unknown", "common_stock", "foreign_ordinary", "adr", "etf", "closed_end_fund",
+                       "preferred", "warrant", "right", "unit", "other"]
 
 
 class RegistryRecord(BaseModel):
@@ -23,7 +25,10 @@ class RegistryRecord(BaseModel):
     exchange: str | None = Field(default=None, max_length=100)
     exchange_mic: str | None = Field(default=None, max_length=12)
     instrument_type: InstrumentType = "unknown"
-    listing_status: Literal["active", "inactive", "delisted", "unknown"] = "unknown"
+    security_form: SecurityForm = "unknown"
+    issuer_business_category: Literal["unknown", "bank", "financial_institution", "insurance", "reit", "operating_company", "other"] = "unknown"
+    issuer_classification_evidence: dict = Field(default_factory=dict)
+    listing_status: Literal["active", "inactive", "delisted", "suspended", "unknown"] = "unknown"
     identity_status: Literal["verified", "reference_only", "ambiguous"] = "reference_only"
     share_class: str | None = Field(default=None, max_length=100)
     # Company aliases aid discovery. They are never security-symbol evidence.
@@ -33,6 +38,13 @@ class RegistryRecord(BaseModel):
     classification_evidence: dict = Field(default_factory=dict)
     adr_metadata: dict = Field(default_factory=dict)
     source_refs: list[dict] = Field(default_factory=list)
+    source_record_key: str | None = Field(default=None, max_length=300)
+    source_security_identifier: str | None = Field(default=None, max_length=100)
+    display_symbol: str | None = Field(default=None, max_length=40)
+    security_description: str | None = Field(default=None, max_length=500)
+    source_record_hash: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    original_record: dict = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list, max_length=100)
     valid_from: date | None = None
     valid_to: date | None = None
 
@@ -76,4 +88,9 @@ class RegistryProvenance(BaseModel):
     scope: str = "Reference records; active US equity coverage is not established."
     rights: str = "Importer must confirm permitted access and use."
     version: str = "1"
+    source_kind: Literal["reference", "listing_authority", "issuer"] = "reference"
+    published_at: str | None = Field(default=None, max_length=100)
+    source_timezone: str | None = Field(default=None, max_length=100)
+    content_hash: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    quality: dict = Field(default_factory=dict)
     notes: list[str] = Field(default_factory=list)

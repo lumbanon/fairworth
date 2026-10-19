@@ -17,7 +17,10 @@ class CoverageStage(ApiModel):
 
 class CoverageStages(ApiModel):
     symbol_resolution: CoverageStage
+    security_identity: CoverageStage = Field(default_factory=lambda: CoverageStage(status="missing_evidence", reason="Security identity was not assessed.", reason_codes=["not_assessed"]))
+    active_listing: CoverageStage = Field(default_factory=lambda: CoverageStage(status="missing_evidence", reason="Listing verification was not assessed.", reason_codes=["not_assessed"]))
     classification: CoverageStage
+    share_basis: CoverageStage = Field(default_factory=lambda: CoverageStage(status="missing_evidence", reason="Share basis was not assessed.", reason_codes=["not_assessed"]))
     profile: CoverageStage
     statements: CoverageStage
     normalization: CoverageStage

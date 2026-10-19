@@ -8,8 +8,17 @@ class SecurityIdentity(ApiModel):
     issuer_id: str | None = None
     instrument_id: str | None = None
     listing_id: str | None = None
+    display_symbol: str | None = Field(default=None, max_length=40)
+    security_description: str | None = Field(default=None, max_length=1000)
+    source_security_identifier: str | None = Field(default=None, max_length=300)
     exchange_mic: str | None = None
     instrument_type: str | None = None
+    security_form: str | None = None
+    issuer_business_category: str | None = None
+    issuer_classification_evidence: dict = Field(default_factory=dict)
+    listing_verification: dict = Field(default_factory=dict)
+    issuer_linkage: dict = Field(default_factory=dict)
+    filing_regime: str | None = None
     listing_status: str | None = None
     identity_status: str | None = None
     share_class: str | None = None
