@@ -9,6 +9,7 @@ import ProviderCalculationDetails from "./ProviderCalculationDetails";
 import ProviderAssumptionSource from "./ProviderAssumptionSource";
 import { completenessValue, diagnosticLabel } from "@/lib/providerDiagnostics";
 import ProviderModelInputPaths from "./ProviderModelInputPaths";
+import ProviderModelBlockers from "./ProviderModelBlockers";
 
 const ComparisonChart = lazy(() => import("./ComparisonChart"));
 const statuses = {
@@ -127,6 +128,7 @@ export default function ModelComparison({
                     </span>
                     {valuation.providerMode && result.classification && <span className="normalized-weight">{providerClassificationLabel(result.classification) || "Classification unavailable"}</span>}
                     {valuation.providerMode && (typeof result.sourceQuality === "string" || result.sourceQuality?.level) && <span className="normalized-weight">Source quality: {typeof result.sourceQuality === "string" ? result.sourceQuality : result.sourceQuality.level}</span>}
+                    {valuation.providerMode && <ProviderModelBlockers eligibility={result.eligibility} compact />}
                   </td>
                   <td>
                     <button
@@ -174,6 +176,7 @@ export default function ModelComparison({
                 </p>
               ))}
               {valuation.providerMode && result.classificationReasons?.map((reason) => <p className="research-caption" key={reason}>{reason}</p>)}
+              {valuation.providerMode && <ProviderModelBlockers eligibility={result.eligibility} />}
               {valuation.providerMode && result.eligibility.missing_inputs?.length > 0 && <p className="research-caption"><strong>Missing inputs: </strong>{result.eligibility.missing_inputs.map((field) => field.replaceAll("_", " ")).join(", ")}. Provide a supported assumption or review the source basis. Missing financial facts remain unavailable.</p>}
               {valuation.providerMode && result.sourceQuality?.warnings?.map((warning, index) => <p className="research-caption" key={index}>{typeof warning === "string" ? warning : warning.message}</p>)}
               {valuation.providerMode && <p className="research-caption"><strong>Weight basis: </strong>{diagnosticLabel(valuation.diagnostics?.aggregation?.per_model_weight_sources?.[result.id] ?? "Basis not supplied")}. {result.eligibility.weight_explanation || "Configured weights are normalized across contributing eligible models."}</p>}

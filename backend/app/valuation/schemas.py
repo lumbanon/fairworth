@@ -251,3 +251,4 @@ class ValuationResponse(ApiModel):
     confidence: dict[str, Any]
     diagnostics: dict[str, Any] = Field(default_factory=dict)
     data_completeness: dict[str, Any] = Field(default_factory=dict)
+    financial_coverage: dict[str, Any] = Field(default_factory=dict)

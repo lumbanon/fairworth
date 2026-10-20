@@ -94,6 +94,8 @@ test("single-model and unavailable results keep honest coverage and never displa
   await expect(page.getByTestId("valuation-model-coverage")).toHaveText("1 contributing · 1 method family");
   await expect(page.getByRole("region", { name: "Valuation coverage & confidence", exact: true })).toContainText("Model estimate range: Unavailable");
   await expect(page.getByTestId("valuation-confidence")).toHaveText("low");
+  await expect(page.getByTestId("single-model-coverage-warning")).toContainText("Single-model estimate");
+  await expect(page.getByTestId("single-model-coverage-warning")).toContainText("one contributing model");
   await expect(page.getByRole("row").filter({ has: page.getByRole("checkbox", { name: "Enable EV/Revenue", exact: true }) })).toContainText("—");
   await fitsViewport(page);
 });
@@ -155,8 +157,54 @@ test("partial additive diagnostics remain explicit and do not invent missing cov
   await expect(page.getByTestId("valuation-data-quality")).toHaveText("Unavailable");
   await expect(page.locator(".provider-aggregation-summary")).toContainText("Contributing models: Unavailable");
   const completeness = page.getByRole("region", { name: "Data completeness", exact: true });
+  await expect(completeness.getByRole("heading", { name: "Financial basis and market comparison", exact: true })).toHaveCount(0);
+  await expect(completeness.getByRole("region", { name: "Financial evidence by reporting period", exact: true })).toHaveCount(0);
   await completeness.getByText("Missing inputs", { exact: true }).click();
   await expect(completeness.locator(".provider-completeness-group[open]")).toContainText("This group was not supplied by the valuation service");
   await fitsViewport(page);
   expect(errors).toEqual([]);
+});
+
+test("blocked models retain multiple reasons and period evidence cannot manufacture a price target", async ({ page }) => {
+  const { unexpected } = await diagnosticsApi(page, { ticker: "ORCL", mode: "none", price: null });
+  await expect(page.getByTestId("weighted-fair-value")).toHaveText("—");
+  await expect(page.getByTestId("single-model-coverage-warning")).toHaveCount(0);
+  const row = page.getByRole("row").filter({ has: page.getByRole("checkbox", { name: "Enable Discounted Cash Flow (FCFE)", exact: true }) });
+  await row.getByText("2 blocking issues", { exact: true }).click();
+  await expect(row).toContainText("required metric missing");
+  await expect(row).toContainText("share basis unverified");
+  await expect(row).toContainText("net borrowing, change nwc");
+  await page.getByRole("button", { name: "Details for Discounted Cash Flow (FCFE)", exact: true }).click();
+  await expect(page.locator("#details-fcfe .provider-blocker-list")).toContainText("verified current-share ownership basis");
+  const completeness = page.getByRole("region", { name: "Data completeness", exact: true });
+  const basis = completeness.locator(".provider-basis-grid");
+  await expect(basis).toContainText("Selected-security share basis");
+  await expect(basis).toContainText("Unverified");
+  await expect(basis).toContainText("Reporting / trading currency");
+  await expect(basis).toContainText("The quote endpoint is restricted; no market price was substituted.");
+  const table = completeness.getByRole("region", { name: "Financial evidence by reporting period", exact: true });
+  await expect(table.getByRole("row")).toHaveCount(3);
+  const current = table.getByRole("row").filter({ hasText: "2025-01-01 to 2025-12-31" });
+  await expect(current).toContainText("3 available");
+  await expect(current).toContainText("2 missing");
+  await current.getByText("View missing metrics", { exact: true }).click();
+  await expect(current).toContainText("Interest expense");
+  await current.getByText("2 source references", { exact: true }).click();
+  await expect(current).toContainText("fixture:debt:2025");
+  await expect(table).toContainText("2024-01-01 to 2024-12-31");
+  await expect(page.getByTestId("weighted-fair-value")).toHaveText("—");
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
+});
+
+test("quote observation freshness remains independent from financial snapshot retrieval", async ({ page }) => {
+  await diagnosticsApi(page, { ticker: "MSFT", mode: "single" });
+  const completeness = page.getByRole("region", { name: "Data completeness", exact: true });
+  await expect(completeness).toContainText("Financial snapshot retrieved: 2026-10-14");
+  const quote = completeness.locator(".provider-basis-grid > div").filter({ hasText: "Market-price freshness" });
+  await expect(quote).toContainText("Stale observation");
+  await expect(quote).toContainText("Observed: 2026-01-15T16:00:00Z");
+  await expect(quote).toContainText("remains stale despite recent retrieval");
+  await expect(page.getByTestId("valuation-quote-observation")).toContainText("Jan 15, 2026");
+  await fitsViewport(page);
 });

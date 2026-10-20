@@ -368,3 +368,75 @@ SQL audit can additionally accept `--financial-sample` and `--matrix-output` for
 the same explicitly labeled local sample. Never combine synthetic/mocked and real
 coverage denominators. Routine pytest runs now block concrete HTTP transports;
 mocked transports and dedicated PostgreSQL connections remain available.
+
+## Phase 6.7 financial evidence and model coverage
+
+See the [financial coverage report](docs/phase67-financial-coverage.md) for the
+source/permission audit, all eleven model requirements, the 30-security sample,
+coverage denominators, preservation checks and remaining financial blockers.
+The approved SEC audit expanded actual financial evidence, but the main
+multi-model/current-valuation objective remains open on verified identity,
+financial scope and market evidence; Phase 6.7 is not declared complete on
+synthetic successes or successful downloads alone.
+
+The valuation API now exposes categorized `eligibility.blockers`,
+`data_completeness.reporting_periods`, separate compatibility/freshness
+assessments and a 13-stage `financial_coverage` inventory. These explain the
+existing Python engine decisions without replacing formulas or turning missing
+fields into zero. Candidate-input provenance retains both original reported
+records and effective assumptions. The dashboard displays model-specific
+blockers, period evidence and explicit single-model limitations while preserving
+editable assumptions, scenario/sensitivity controls and unavailable estimates.
+
+Normalization v5 separates common-only and total cash dividends, retains narrow
+PP&E depreciation separately from aggregate D&A, and checks exact effective
+reporting intervals before deriving metrics. Replaying five already retained
+SEC caches preserves 435 periods and every existing metric value, adding 407
+explicitly scoped dividend observations plus 30 directly reported diluted-common-income
+observations. Common income is reconciled only on the exact native EPS filing
+basis and never replaces consolidated FCFE income, quoted-class ownership or
+split verification. Diluted-common income is non-additive; YTD subtraction never
+synthesizes quarterly numerators, while explicitly reported quarters remain.
+These 437 scoped values do not establish per-share dividends
+or additional valuation eligibility. The production reviewed forecast
+scope allowlist remains empty until exhaustive working-capital/financing
+concepts receive a source-code economic review; provider scope flags cannot
+install that contract.
+
+Reproduce all 330 security/model decisions offline from the repository root:
+
+```powershell
+New-Item -ItemType Directory -Force .phase67.local | Out-Null
+backend/.venv/Scripts/python.exe backend/scripts/replay_financial_model_coverage.py --output .phase67.local/model-coverage-after.json --matrix-output .phase67.local/model-coverage-after.md
+# Separate source mode and current audit clock; performs no provider calls.
+backend/.venv/Scripts/python.exe backend/scripts/replay_financial_model_coverage.py --approved-excerpts --output .phase67.local/approved-model-coverage.json --matrix-output .phase67.local/approved-model-coverage.md
+```
+
+This maintained-excerpt replay blocks external HTTP, uses an in-memory SQLite
+registry, and loads neither application credentials nor the development
+database. The frozen 30-security sample still supports only AAPL and MSFT
+Forward P/E defaults, each policy-based and single-model; all 330 model decisions
+and default fair values remain unchanged. Dated estimates and method-family
+counts do not establish current prices or independent multi-model confirmation.
+
+No new migration, development financial write or live OpenAI request is part of
+this phase's offline implementation. Raw caches and generated reports stay in
+ignored local directories. The report records the explicitly approved bounded
+plan of at most eight sequential SEC companyfacts requests with exact
+identities, byte caps, timeouts and zero retries/redirects. It executed exactly
+eight HTTP 200 responses, transferring
+36,961,056 bytes with zero retries/redirects. The authorization is spent and
+included no FMP, Treasury, quote, listing refresh or OpenAI requests.
+
+The eight raw snapshots expose 129 annual and 531 quarterly normalized periods;
+the four newly audited issuers are AMZN, Alphabet, O and PGR. The maintained
+464,114-byte excerpt contains 886 original selected observations, not full
+company histories. Its eight reporting issuers are replayed as nine separate
+securities because GOOG and GOOGL retain distinct identity/class gates. All nine
+have financial statements but no current eligible/published default estimate:
+the original 19 October listing/issuer proof has expired under its existing
+TTL, no fresh quote was acquired, and independent financial/share/model blockers
+remain. A financial retrieval never renews listing proof or supplies class/FX
+conversions. The full raw files remain ignored and were not imported into the
+website database. The report records every request, source hash, exact scope and
+remaining limitation; any further acquisition requires separate approval.

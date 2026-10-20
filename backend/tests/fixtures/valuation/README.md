@@ -52,3 +52,54 @@ stock stated value is a nominal reported amount rather than a complete market
 claim valuation. ORCL's quote/history/splits remain restricted, and its quoted
 share-class compatibility remains unverified. No provider key, contact details,
 request query strings, synthetic quotes or user assumptions are retained.
+
+## Phase 6.7 complete-scope boundary example
+
+`phase67_scoped_forecast_history.json` is explicitly **synthetic**. It demonstrates
+three annual pairs of complete noncash operating balances and complete debt cash
+flows, with dated original-observation metadata and explicit economic scope.
+It is not a retained SEC response and does not establish real financial coverage.
+
+Positive contract tests install a separately labeled synthetic concept mapping
+with `monkeypatch`. The production reviewed concept/scope allowlist is empty and
+cannot be supplied through configuration or a provider response. Scope annotations
+alone cannot admit any real financial evidence. Future real admission requires an
+economically reviewed mapping in source code and an exact, unambiguous match to
+the original concept, unit, value, period, accession and filing in the raw SEC
+snapshot.
+
+The automatic-input boundary also requires exact issuer ownership, annual filing
+and period alignment, compatible units, complete scope on each original
+observation, and an explicit verified-zero state for a zero amount. It never substitutes
+accounts receivable/inventory/payables for exhaustive operating working capital,
+long-term-only debt proceeds for complete debt issuance, or debt-balance changes
+for financing cash flows. The current SEC adapter does not independently establish
+these complete scopes; the real retained company fixtures therefore stay blocked.
+
+## Phase 6.7 approved SEC financial excerpts
+
+`phase67_sec_financial_excerpts_2026_10_20.json` contains 886 exact original
+observations selected from eight separately authorized SEC companyfacts responses
+acquired on 20 October 2026. The 464,114-byte fixture retains original source
+URLs, full-response SHA-256 hashes, byte sizes, retrieval clocks, CIKs, concepts,
+units, accessions and filing contexts. No keys, identifying User-Agent or personal
+contact details are included. Full responses remain in ignored local storage.
+
+Revenue, income, diluted common income, EPS and weighted shares span four annual
+intervals; other mapped fields cover only the latest annual interval. All original
+native/comparative candidates within that selection remain present, including
+conflicting debt observations. Missing older fields in this excerpt are deliberate
+omissions, not evidence that the issuer did not report them. The full-source
+coverage audit and this smaller reproducible excerpt have distinct denominators.
+
+Oracle and JPMorgan explicitly report diluted income available to common
+stockholders. That amount verifies their reported EPS numerator independently of
+consolidated net income; it does not establish quoted-class or split compatibility
+and does not replace the consolidated income consumed by existing FCFE inputs.
+Current listing/issuer proofs, quotes, split histories, complete enterprise bridges,
+operating working capital and AFFO are not supplied by this financial acquisition.
+
+The offline `replay_financial_model_coverage.py --approved-excerpts` command uses
+these eight issuer documents for nine separately gated securities (GOOG and
+GOOGL share an issuer). It preserves the expired listing-proof clocks and publishes
+no default estimate. Synthetic scope-contract tests remain a separate fixture.

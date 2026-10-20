@@ -8,20 +8,147 @@ from copy import deepcopy
 from datetime import UTC, date, datetime, timedelta
 import re
 
+from app.core.exceptions import ApiError
 from app.core.database import utcnow
-from app.providers.base import ProviderError
+from app.providers.base import ProviderError, normalize_cik
 from app.services.security_identity import cache_scope, market_call, check_provider_identity
 from app.services.cache_service import CachedResult
-from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
+from app.services.normalization import METRIC_DEFINITIONS, NORMALIZATION_VERSION, extract_observations, normalize_company_facts
 from app.valuation.inputs import normalize_annual_period, number, day
 
 
-EVIDENCE_VERSION = "2.0.0"
+EVIDENCE_VERSION = "2.1.0"
 # Raw provider contracts are unchanged. Reuse these dated caches while native
 # annual reconstructions are isolated by the new interpretation versions.
 PROVIDER_CACHE_VERSION = "1.0.0"
 OPTIONAL_SOURCE_BUDGET_SECONDS = 3.0
 TREASURY_CACHED_OBSERVATION_MAX_AGE_DAYS = 7
+FORECAST_SCOPES = {
+    "operating_current_assets": "noncash_noninvestment_operating_current_assets",
+    "operating_current_liabilities": "nondebt_nonfinancing_operating_current_liabilities",
+    "debt_issuance": "complete_conventional_debt_issuance",
+    "debt_principal_repayments": "complete_conventional_debt_principal_repayments",
+}
+# Code-owned and deliberately empty: the existing SEC mapper has no reviewed
+# exhaustive NWC/financing concept contract. Neither provider payloads nor
+# configuration can admit new concepts. A future adapter requires an explicit
+# economic-scope review here before any real history can become usable.
+REVIEWED_FORECAST_SCOPE_CONCEPTS = {}
+
+
+def _issuer_matches(expected, actual):
+    try:
+        return normalize_cik(expected) == normalize_cik(actual)
+    except ProviderError:
+        return False
+
+
+def _original_scope_observation(record, value, raw):
+    """Require the same original reported value and filing in the raw snapshot."""
+    try:
+        candidates = raw["facts"][record["taxonomy"]][record["concept"]]["units"][record["unit"]]
+    except (KeyError, TypeError):
+        return False
+    if not isinstance(candidates, list):
+        return False
+    matched = [candidate for candidate in candidates if isinstance(candidate, dict)
+               and all(candidate.get(field) == record.get(field) for field in
+                       ("start", "end", "accn", "filed", "form", "fy", "fp"))]
+    return bool(matched) and all(number(candidate.get("val")) == value for candidate in matched)
+
+
+def scoped_forecast_periods(normalized, company, retrieved_at, *, source_payload):
+    """Accept explicit complete annual scope, never manufacture missing totals.
+
+    The current SEC concept adapter does not establish these exhaustive scopes.
+    A future permitted adapter needs a code-reviewed concept/scope contract,
+    exact raw-observation matches, and complete scope on original observations.
+    Partial receivable/inventory/payable or long-term-only debt data is not a
+    substitute. This pure boundary adds no requests and changes no source rows.
+    """
+    result = {"operating_working_capital_periods": [], "financing_periods": [],
+              "forecast_evidence_identity": {key: deepcopy(company.get(key)) for key in
+                  ("ticker", "cik", "issuer_id", "instrument_id", "listing_id")},
+              "forecast_scope_diagnostics": []}
+    as_of = day(str(_instant(retrieved_at) or "")[:10])
+    if (not isinstance(source_payload, dict)
+            or not _issuer_matches(company.get("cik"), source_payload.get("cik")) or as_of is None
+            or as_of > datetime.now(UTC).date()):
+        result["forecast_scope_diagnostics"].append({"code": "financial_identity_or_snapshot_unverified",
+            "message": "Complete forecast histories require the exact reporting issuer and a nonfuture source snapshot."})
+        return result
+    currency = normalized.get("currency")
+    for period in sorted(normalized.get("annual", []), key=lambda row: str(row.get("end_date", "")))[-12:]:
+        # Validate revenue with the existing financial-fact boundary, then
+        # validate the additional instant/duration fields independently.
+        canonical = normalize_annual_period({**period,
+            "metrics": {"revenue": period.get("metrics", {}).get("revenue")}}, currency, retrieved_at)
+        if canonical is None or canonical.get("currency") != currency:
+            continue
+        start, end = day(period.get("start_date")), day(period.get("end_date"))
+        accepted = {}
+        for field, scope in FORECAST_SCOPES.items():
+            value = number(period.get("metrics", {}).get(field))
+            records = period.get("provenance", {}).get(field, [])
+            instant = field.startswith("operating_current_")
+            valid = value is not None and value >= 0 and isinstance(records, list) and bool(records)
+            for record in records if isinstance(records, list) else []:
+                if not isinstance(record, dict):
+                    valid = False
+                    break
+                original = number(record.get("value", record.get("val")))
+                filed = day(record.get("filed"))
+                contract = REVIEWED_FORECAST_SCOPE_CONCEPTS.get((record.get("taxonomy"), record.get("concept")), {})
+                valid = valid and (
+                    record.get("source") == "sec" and bool(record.get("concept"))
+                    and contract.get("field") == field and contract.get("financial_scope") == scope
+                    and bool(contract.get("methodology_version")) and bool(contract.get("authority"))
+                    and record.get("metric") == field and record.get("unit") == currency
+                    and record.get("scope_complete") is True and record.get("financial_scope") == scope
+                    and record.get("value_state") in {"verified_value", "verified_positive", "verified_zero"}
+                    and not record.get("derivation") and not record.get("component")
+                    and record.get("form") in {"10-K", "10-K/A"} and record.get("fp") == "FY"
+                    and record.get("fy") == period.get("fiscal_year")
+                    and re.fullmatch(r"\d{10}-\d{2}-\d{6}", str(record.get("accn") or "")) is not None
+                    and day(record.get("end")) == end and filed is not None and end <= filed <= as_of
+                    and (record.get("start") is None if instant else day(record.get("start")) == start)
+                    and original is not None and value is not None
+                    and original == value and _original_scope_observation(record, original, source_payload)
+                    and ("val" not in record or number(record["val"]) == original)
+                    and (record.get("cik") is None or _issuer_matches(company["cik"], record["cik"]))
+                    and (record.get("value_state") == "verified_zero") == (value == 0))
+            if valid:
+                accepted[field] = {"value": value, "unit": currency, "scope_complete": True,
+                    "financial_scope": scope, "source_type": "reported", "value_state": "verified_zero" if value == 0 else "verified_value",
+                    "scope_methodology_version": contract["methodology_version"], "scope_authority": contract["authority"],
+                    "period": deepcopy({key: period.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")}),
+                    "retrieved_at": _instant(retrieved_at), "provenance": deepcopy(records), "warnings": []}
+        for target, fields in (("operating_working_capital_periods", ("operating_current_assets", "operating_current_liabilities")),
+                               ("financing_periods", ("debt_issuance", "debt_principal_repayments"))):
+            missing = [field for field in fields if field not in accepted]
+            facts = [accepted[field] for field in fields if field in accepted]
+            contexts = {(source["accn"], source["filed"]) for fact in facts for source in fact["provenance"]}
+            if missing or len(contexts) != 1:
+                result["forecast_scope_diagnostics"].append({"history": target, "fiscal_year": period.get("fiscal_year"),
+                    "end_date": period.get("end_date"), "code": "required_metric_missing" if missing else "period_mismatch",
+                    "missing_inputs": missing, "message": "Complete, same-filing operating or financing scope is unverified; missing components are not zero."})
+                continue
+            row = deepcopy(canonical)
+            for field in fields:
+                row["metrics"][field], row["facts"][field] = accepted[field]["value"], deepcopy(accepted[field])
+            # NWC forecasts additionally require same-publication annual revenue.
+            revenue_sources = row["facts"].get("revenue", {}).get("provenance", [])
+            if target == "operating_working_capital_periods" and (
+                    row["metrics"].get("revenue") is None or row["metrics"]["revenue"] <= 0
+                    or {(source.get("accn"), source.get("filed")) for source in revenue_sources} != contexts
+                    or not all(_original_scope_observation(source, row["metrics"]["revenue"], source_payload)
+                               for source in revenue_sources)):
+                result["forecast_scope_diagnostics"].append({"history": target, "fiscal_year": period.get("fiscal_year"),
+                    "end_date": period.get("end_date"), "code": "period_mismatch",
+                    "missing_inputs": ["compatible_revenue"], "message": "Operating balances and annual revenue require one compatible filing context."})
+                continue
+            result[target].append(row)
+    return result
 
 
 def _instant(value):
@@ -41,12 +168,65 @@ def _record(value=None, *, unit=None, provider=None, source_type="unavailable", 
             "warnings": warnings or [], "editable": True, **extra}
 
 
+def _native_eps_reconciliation(period):
+    """Check an original EPS numerator, independently of quoted-class scope.
+
+    Diluted common income can differ from consolidated net income. An explicit
+    common numerator is preferred only on the exact EPS/shares filing basis; it
+    never replaces consolidated income used by FCFE, margins or return ratios.
+    """
+    facts = period.get("facts", {})
+    common = facts.get("common_net_income_diluted", {})
+    explicit_common = common.get("value") is not None or common.get("reported_value") is not None or bool(common.get("provenance"))
+    numerator = "common_net_income_diluted" if explicit_common else "net_income"
+    fields = ("diluted_eps", "weighted_average_diluted_shares", numerator)
+    values = {field: number(facts.get(field, {}).get("value")) for field in fields}
+    result = {"verified": False, "numerator_metric": numerator,
+              "financial_period": {key: period.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")},
+              "source_identifiers": [], "provenance": []}
+    publication, start, end = day(period.get("publication_date")), day(period.get("start_date")), day(period.get("end_date"))
+    currency = period.get("currency")
+    if (not isinstance(currency, str) or len(currency) != 3 or not currency.isupper()
+            or start is None or end is None or not 335 <= (end - start).days + 1 <= 395
+            or publication is None or not end <= publication <= datetime.now(UTC).date()
+            or re.fullmatch(r"\d{10}-\d{2}-\d{6}", str(period.get("source_accession") or "")) is None):
+        return result
+    if any(value is None for value in values.values()) or values["weighted_average_diluted_shares"] <= 0:
+        return result
+    units = {"diluted_eps": f"{period.get('currency')}/shares", "weighted_average_diluted_shares": "shares", numerator: period.get("currency")}
+    sources = []
+    for field in fields:
+        fact = facts.get(field, {})
+        provenance = fact.get("provenance")
+        if fact.get("unit") != units[field] or fact.get("warnings") or not isinstance(provenance, list) or not provenance:
+            return result
+        for source in provenance:
+            if (not isinstance(source, dict) or source.get("source") != "sec" or source.get("unit") != units[field]
+                    or source.get("taxonomy") != "us-gaap" or source.get("concept") not in METRIC_DEFINITIONS[field][0]
+                    or source.get("metric") != field or source.get("derivation")
+                    or source.get("accn") != period.get("source_accession") or source.get("filed") != period.get("publication_date")
+                    or source.get("form") != "10-K" or source.get("fp") != "FY" or source.get("fy") != period.get("fiscal_year")
+                    or source.get("start") != period.get("start_date") or source.get("end") != period.get("end_date")
+                    or number(source.get("value", source.get("val"))) != values[field]):
+                return result
+            sources.append(deepcopy(source))
+    implied = number(values[numerator] / values["weighted_average_diluted_shares"])
+    if implied is None:
+        return result
+    result.update(verified=abs(implied - values["diluted_eps"]) <= .02,
+                  reported_diluted_eps=values["diluted_eps"], numerator_value=values[numerator],
+                  weighted_average_diluted_shares=values["weighted_average_diluted_shares"], implied_diluted_eps=implied,
+                  tolerance_per_share=.02, unit=units["diluted_eps"], source_identifiers=[period["source_accession"]], provenance=sources)
+    return result
+
+
 def original_annual_periods(raw, normalized, company, retrieved_at):
     """Reconstruct native annual publications, never future restated EPS.
 
     Each vintage contains only observations published in its own accession.
-    Reported EPS and weighted shares are checked against NI before declaring
-    their native US-GAAP publication a comparable dated per-share basis.
+    Reported EPS and weighted shares are checked against an exactly compatible
+    original numerator before declaring a native publication basis. Explicit
+    diluted common income is separate from consolidated income and class scope.
     """
     observations = extract_observations(raw)
     as_of = day(str(_instant(retrieved_at) or "")[:10])
@@ -96,14 +276,14 @@ def original_annual_periods(raw, normalized, company, retrieved_at):
             continue
         canonical["publication_date"] = publication
         canonical["source_accession"] = accession
-        eps, shares, income = (canonical["metrics"].get(key) for key in
-                               ("diluted_eps", "weighted_average_diluted_shares", "net_income"))
-        basis = (company.get("has_multiple_share_classes") is False and eps is not None and shares is not None
-                 and shares > 0 and income is not None and abs(income / shares - eps) <= .02)
+        reconciliation = _native_eps_reconciliation(canonical)
+        canonical["native_eps_reconciliation"] = reconciliation
+        canonical["reported_common_eps_basis_verified"] = bool(reconciliation["verified"] and reconciliation["numerator_metric"] == "common_net_income_diluted")
+        basis = company.get("has_multiple_share_classes") is False and reconciliation["verified"]
         eps_fact = canonical["facts"].get("diluted_eps")
         if eps_fact:
             eps_fact.update(split_basis_date=publication, split_basis_verified=basis,
-                            split_basis_method="Native US-GAAP annual filing EPS and diluted shares, reconciled to same-publication net income within $0.02/share; split events are aligned separately.")
+                            split_basis_method="Native US-GAAP annual filing EPS and diluted shares, reconciled to the same-publication reported diluted common income when available, otherwise consolidated income, within $0.02/share. Quoted-class scope and subsequent split events remain separately required.")
         canonical["eps_split_basis_date"] = publication
         canonical["eps_split_basis_verified"] = basis
         selected.append(canonical)
@@ -322,6 +502,9 @@ class AutomaticInputsService:
         company = {"ticker": ticker, **profile.get("company", profile)}
         raw = await self.cache.get_or_load(f"sec:facts:{company['cik']}", self.settings.sec_cache_ttl_seconds,
                                            "sec-edgar", lambda: self.financials.sec.facts(company["cik"]))
+        if raw.payload.get("cik") is not None and not _issuer_matches(company.get("cik"), raw.payload["cik"]):
+            raise ApiError("incompatible_financial_identity", "The retained SEC facts do not match the selected reporting issuer.", 502)
+        scoped = scoped_forecast_periods(normalized, company, retrieved_at, source_payload=raw.payload)
         # Native vintage reconstruction is a separate versioned analytics layer.
         native = await self.cache.get_or_load(f"sec:annual-publications:{company['cik']}:{cache_scope(company)}:{raw.retrieved_at.isoformat()}:v{EVIDENCE_VERSION}:n{NORMALIZATION_VERSION}",
                                               self.settings.sec_cache_ttl_seconds, "sec-edgar",
@@ -361,6 +544,7 @@ class AutomaticInputsService:
         return {"methodology_version": EVIDENCE_VERSION, "normalization_version": NORMALIZATION_VERSION,
                 "historical_prices": prices, "splits": splits,
                 "historical_annual_periods": native.payload, "observations": observations,
+                **scoped,
                 "supplemental_statements": supplemental, "provider_status": provider_status, "warnings": warnings,
                 "financial_snapshot_date": _instant(raw.retrieved_at)}
 

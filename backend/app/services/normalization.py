@@ -14,7 +14,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
-NORMALIZATION_VERSION = 4
+NORMALIZATION_VERSION = 5
 
 # Ordered alternatives are never summed. Explicit total revenue takes priority
 # over a contract-revenue subtotal; differing aliases produce a quality warning.
@@ -28,6 +28,7 @@ METRIC_DEFINITIONS = {
     "pretax_income": (("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest", "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterest"), "USD", "duration"),
     "income_tax_expense": (("IncomeTaxExpenseBenefit",), "USD", "duration"),
     "net_income": (("NetIncomeLoss",), "USD", "duration"),
+    "common_net_income_diluted": (("NetIncomeLossAvailableToCommonStockholdersDiluted",), "USD", "duration"),
     "basic_eps": (("EarningsPerShareBasic",), "USD/shares", "duration"),
     "diluted_eps": (("EarningsPerShareDiluted",), "USD/shares", "duration"),
     "weighted_average_diluted_shares": (("WeightedAverageNumberOfDilutedSharesOutstanding",), "shares", "duration"),
@@ -59,7 +60,8 @@ METRIC_DEFINITIONS = {
     "shares_outstanding": (("EntityCommonStockSharesOutstanding", "CommonStockSharesOutstanding"), "shares", "instant"),
     "operating_cash_flow": (("NetCashProvidedByUsedInOperatingActivities",), "USD", "duration"),
     "capital_expenditures": (("PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"), "USD", "duration"),
-    "depreciation_and_amortization": (("DepreciationDepletionAndAmortization", "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment", "DepreciationAndAmortization"), "USD", "duration"),
+    "depreciation_and_amortization": (("DepreciationDepletionAndAmortization", "DepreciationAndAmortization"), "USD", "duration"),
+    "depreciation_depletion_amortization_ppe": (("DepreciationDepletionAndAmortizationPropertyPlantAndEquipment",), "USD", "duration"),
     "depreciation_expense": (("Depreciation",), "USD", "duration"),
     "intangible_amortization_expense": (("AmortizationOfIntangibleAssets",), "USD", "duration"),
     "minority_interest": (("MinorityInterest",), "USD", "instant"),
@@ -69,6 +71,8 @@ METRIC_DEFINITIONS = {
     "inventory": (("InventoryNet",), "USD", "instant"),
     "accounts_payable": (("AccountsPayableCurrent",), "USD", "instant"),
     "dividends_paid": (("PaymentsOfDividends", "PaymentsOfDividendsCommonStock"), "USD", "duration"),
+    "total_dividends_paid": (("PaymentsOfDividends",), "USD", "duration"),
+    "common_dividends_paid": (("PaymentsOfDividendsCommonStock",), "USD", "duration"),
     "share_repurchases": (("PaymentsForRepurchaseOfCommonStock",), "USD", "duration"),
     "interest_expense": (("InterestExpense", "InterestExpenseNonoperating"), "USD", "duration"),
     "stock_based_compensation": (("ShareBasedCompensation",), "USD", "duration"),
@@ -84,15 +88,19 @@ METRIC_DEFINITIONS = {
 CONCEPT_METRICS = {
     concept: metric for metric, (concepts, _, _) in METRIC_DEFINITIONS.items() for concept in concepts
 }
+# Preserve the original observation classification for the compatibility field.
+# The independently named scopes below are selected by their exact source tag.
+CONCEPT_METRICS.update({"PaymentsOfDividends": "dividends_paid", "PaymentsOfDividendsCommonStock": "dividends_paid"})
+DIVIDEND_SCOPES = {"PaymentsOfDividends": "total_cash_dividends", "PaymentsOfDividendsCommonStock": "common_only"}
 FORMS = {"10-K", "10-K/A", "10-Q", "10-Q/A", "20-F", "20-F/A", "40-F", "40-F/A"}
 ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
-NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares", "weighted_average_basic_shares"}
+NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares", "weighted_average_basic_shares", "common_net_income_diluted"}
 NON_NEGATIVE = {
     "cash_and_cash_equivalents", "short_term_investments", "total_current_assets", "total_assets",
     "short_term_debt", "current_long_term_debt", "long_term_debt", "total_liabilities",
     "reported_total_debt", "liabilities_and_equity",
     "shares_outstanding", "weighted_average_diluted_shares", "capital_expenditures",
-    "dividends_paid", "share_repurchases",
+    "dividends_paid", "total_dividends_paid", "common_dividends_paid", "share_repurchases",
     "weighted_average_basic_shares", "preferred_stock_value_outstanding", "preferred_stock_stated_value",
     "accounts_receivable", "inventory", "accounts_payable",
     "current_debt_including_lease_obligations", "commercial_paper", "long_term_debt_including_current",
@@ -201,10 +209,11 @@ def _period_year(records: list[dict], annual: bool, warnings: list, filing_durat
 
 
 def _select(records: list[dict], metric: str, warnings: list, period: str) -> tuple[float | None, list[dict]]:
-    candidates = [obs for obs in records if obs["metric"] == metric]
+    concepts = METRIC_DEFINITIONS[metric][0]
+    candidates = [obs for obs in records if obs["metric"] == metric
+                  or metric in {"total_dividends_paid", "common_dividends_paid"} and obs["concept"] in concepts]
     if not candidates:
         return None, []
-    concepts = METRIC_DEFINITIONS[metric][0]
     priority = min(concepts.index(obs["concept"]) for obs in candidates)
     selected_concept = concepts[priority]
     alias_values = set()
@@ -231,13 +240,62 @@ def _select(records: list[dict], metric: str, warnings: list, period: str) -> tu
     # Equivalent-value observations are retained for cross-filing alignment.
     sources = [obs for obs in candidates if obs["value"] == value]
     sources.sort(key=lambda obs: (obs.get("filed") or "", obs.get("accn") or ""), reverse=True)
+    if metric in {"dividends_paid", "total_dividends_paid", "common_dividends_paid"}:
+        sources = [{**obs, "economic_scope": DIVIDEND_SCOPES[obs["concept"]]} for obs in sources]
+    elif metric == "common_net_income_diluted":
+        sources = [{**obs, "economic_scope": "common_diluted_eps_numerator"} for obs in sources]
     return float(value), sources
+
+
+def _period_support(records: list[dict]) -> tuple | None:
+    """Describe the exact effective interval, including signed YTD subtraction.
+
+    Equivalent observations in multiple filings do not multiply the duration.
+    This permits a directly reported quarter to align with the same quarter
+    derived from adjacent YTD intervals, without permitting an annual/quarterly
+    mixture merely because the figures share an accession.
+    """
+    terms = set()
+    for obs in records:
+        start, end = _day(obs.get("start")), _day(obs.get("end"))
+        coefficient = obs.get("coefficient", 1)
+        if (end is None or isinstance(coefficient, bool) or not isinstance(coefficient, (int, float))
+                or not math.isfinite(coefficient) or coefficient not in {-1, 1}
+                or obs.get("start") is not None and start is None):
+            return None
+        terms.add((start, end, coefficient))
+    if all(start is None for start, _, _ in terms):
+        return ("instant", tuple(sorted({end for _, end, _ in terms})))
+    if any(start is None or start > end for start, end, _ in terms):
+        return None
+    try:
+        boundaries = sorted({boundary for start, end, _ in terms for boundary in (start, end + timedelta(days=1))})
+    except OverflowError:
+        return None
+    segments = []
+    for start, end in zip(boundaries, boundaries[1:]):
+        coefficient = sum(sign for first, last, sign in terms if first <= start <= last)
+        if not coefficient:
+            continue
+        if segments and segments[-1][1] == start and segments[-1][2] == coefficient:
+            segments[-1] = (segments[-1][0], end, coefficient)
+        else:
+            segments.append((start, end, coefficient))
+    return ("duration", tuple(segments)) if segments else None
 
 
 def _compatible(sources: list[list[dict]], *, cumulative: bool = False, fiscal_year: int | None = None) -> bool:
     """Require a common filing or unchanged, contemporaneous native contexts."""
     if not sources or any(not group for group in sources):
         return False
+    if not cumulative:
+        # A common accession alone does not establish a common reporting
+        # duration: a filing can contain annual, quarterly and comparative
+        # amounts together. Derived quarters retain matching signed YTD terms,
+        # so compare the complete period support rather than just the last end.
+        supports = [_period_support(group) for group in sources]
+        if any(support is None or support != supports[0] for support in supports):
+            return False
     accessions = [set(obs["accn"] for obs in group if obs.get("accn")) for group in sources]
     if set.intersection(*accessions):
         if not cumulative:
@@ -368,6 +426,11 @@ def _derive_period(period: dict) -> None:
 
     if sources.get("capital_expenditures", [{}])[0].get("concept") == "PaymentsToAcquireProductiveAssets":
         _warn(warnings, "capital_expenditures", "capital_expenditure_scope", f"{label}: reported capital expenditures include property, plant, equipment, software, and other intangible assets; the source scope is preserved.")
+
+    if sources.get("dividends_paid", [{}])[0].get("economic_scope") == "common_only":
+        _warn(warnings, "dividends_paid", "common_dividend_scope", f"{label}: the compatibility dividend amount covers common-stock cash dividends only; it does not establish total issuer dividends, dividends per share, or sustainable distributions.")
+    if metrics["depreciation_depletion_amortization_ppe"] is not None:
+        _warn(warnings, "depreciation_depletion_amortization_ppe", "ppe_depreciation_scope", f"{label}: property, plant and equipment depreciation/depletion/amortization is retained separately; it does not establish company-wide depreciation and intangible amortization or unlock EBITDA.")
 
     if metrics["total_liabilities"] is None and metrics["liabilities_and_equity"] is not None and metrics["total_equity_including_noncontrolling_interests"] is not None:
         liability_value = metrics["liabilities_and_equity"] - metrics["total_equity_including_noncontrolling_interests"]
@@ -559,7 +622,8 @@ def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
             cumulative.append((start, end, year, quarter, records))
 
     # Work only with exact fiscal-start-aligned adjacent cumulative intervals.
-    # EPS and weighted shares are nonadditive and are never differenced.
+    # EPS, weighted shares and dilution-adjusted common income are nonadditive:
+    # dilution/antidilution tests can differ by period. Never difference them.
     for start, end, year, quarter, records in cumulative:
         if quarter == 1:
             continue

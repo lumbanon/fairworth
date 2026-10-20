@@ -17,6 +17,16 @@ export function providerDiagnosticsFixture(ticker = "MSFT", { request = {}, mode
   const completeness = {
     methodology_version: "phase6-transport-fixture-1", reporting_period: { fiscal_year: 2025, fiscal_period: "FY", end_date: "2025-12-31" }, as_of: "2026-10-14", quote_observation_date: price == null ? null : "2026-01-15T16:00:00Z",
     groups: { available: ["reported.revenue", "derived.total_debt", "assumptions.target_pe", ...(price == null ? [] : ["market.price"])], missing: ["assumptions.wacc", ...(price == null ? ["market.price"] : [])], stale: price == null ? [] : ["market.price"], incompatible: ["reported.book_equity"], restricted: price == null ? ["market.price"] : [], derived: ["derived.total_debt"], policy: user ? [] : ["assumptions.target_pe"], user: user ? ["assumptions.target_pe"] : [] }, fields,
+    reporting_periods: [
+      { fiscal_year: 2025, fiscal_period: "FY", start_date: "2025-01-01", end_date: "2025-12-31", available_metrics: ["revenue", "net_income", "total_debt"], missing_metrics: ["interest_expense", "shares_outstanding"], source_identifiers: ["fixture:revenue:2025", "fixture:debt:2025"], warnings: ["A complete capital structure is unavailable for this annual period."] },
+      { fiscal_year: 2024, fiscal_period: "FY", start_date: "2024-01-01", end_date: "2024-12-31", available_metrics: ["revenue", "net_income"], missing_metrics: ["interest_expense", "total_debt", "shares_outstanding"], source_identifiers: ["fixture:revenue:2024"], warnings: [] },
+    ],
+    compatibility: {
+      share_basis: { status: "unverified", reason: "The selected share class has no verified current-share ownership basis." },
+      currency: { status: "available", reason: "Reported and comparison units both use USD; no currency conversion was inferred." },
+      reporting_regime: { status: "available", reason: "This synthetic fixture supplies US GAAP annual filing evidence." },
+      market_price: { status: price == null ? "unavailable" : "stale", reason: price == null ? "The quote endpoint is restricted; no market price was substituted." : "The quote observation is dated and remains stale despite recent retrieval.", observation_date: price == null ? null : "2026-01-15T16:00:00Z" },
+    },
   };
   for (const scenario of Object.values(response.scenarios)) {
     const secondId = mode === "correlated" ? "peg" : "fcff";
@@ -34,7 +44,11 @@ export function providerDiagnosticsFixture(ticker = "MSFT", { request = {}, mode
       model.eligibility = { ...model.eligibility, status: valid ? "available_with_warnings" : "unavailable", required_inputs: model.id === "pe" ? [["forward_eps", "target_pe"]] : [model.eligibility.required_inputs],
         missing_inputs: valid ? [] : model.id === "fcfe" ? ["net_borrowing", "change_nwc"] : ["supported_financial_inputs"],
         input_paths: valid ? [{ required_inputs: ["forward_eps", "target_pe"], available_inputs: ["forward_eps", "target_pe"], missing_inputs: [] }] : [{ required_inputs: ["wacc", "cash"], available_inputs: ["cash"], missing_inputs: ["wacc"] }], reason: valid ? "Illustrative synthetic input basis; independent source review remains necessary." : "Complete compatible inputs are unavailable.",
-        weight_explanation: "Related methods share a family weighting budget; this grouping does not establish independence." };
+        weight_explanation: "Related methods share a family weighting budget; this grouping does not establish independence.",
+        blockers: valid ? [] : [
+          { code: "required_metric_missing", message: "A complete financial input path is missing required reported metrics.", fields: model.id === "fcfe" ? ["net_borrowing", "change_nwc"] : ["supported_financial_inputs"] },
+          { code: "share_basis_unverified", message: "The selected share class lacks a verified current-share ownership basis for this method.", fields: ["shares"] },
+        ] };
     }
     const families = contributes.length === 0 ? [] : mode === "correlated" || contributes.length === 1 ? [{ id: "earnings", label: "Earnings methods", model_ids: contributes }]
       : [{ id: "earnings", label: "Earnings methods", model_ids: ["pe"] }, { id: "cash_flow", label: "Cash-flow methods", model_ids: ["fcff"] }];
@@ -44,7 +58,7 @@ export function providerDiagnosticsFixture(ticker = "MSFT", { request = {}, mode
     scenario.data_completeness = structuredClone(completeness);
     scenario.diagnostics = { methodology_version: "phase6-diagnostics-fixture-1", data_quality: { level: "limited", reasons: ["Stale market observations and incompatible common-share equity remain disclosed."] },
       coverage: { eligible_count: contributes.length, applicable_count: 9, contributing_count: contributes.length, contributing_models: contributes, method_family_count: families.length, families,
-        excluded_models: scenario.models.filter((model) => !contributes.includes(model.id)).map((model) => ({ model_id: model.id, status: model.status, reason: model.eligibility.reason, missing_inputs: model.eligibility.missing_inputs, input_paths: model.eligibility.input_paths })) },
+        excluded_models: scenario.models.filter((model) => !contributes.includes(model.id)).map((model) => ({ model_id: model.id, status: model.status, reason: model.eligibility.reason, blockers: model.eligibility.blockers, missing_inputs: model.eligibility.missing_inputs, input_paths: model.eligibility.input_paths })) },
       aggregation: { methodology_version: "group-aware-fixture-1", method: "Weighted average of valid enabled models; unavailable models contribute no value.", weight_source: Object.keys(request.weights ?? {}).length ? "mixed" : "default", per_model_weight_sources: Object.fromEntries(contributes.map((id) => [id, Object.hasOwn(request.weights ?? {}, id) ? "user" : "default"])),
         estimate_range: contributes.length > 1 ? { minimum: 650.125, maximum: 777.77 } : null, dispersion: { status: contributes.length > 1 ? "moderate" : "unavailable", relative_spread: contributes.length > 1 ? 0.164115 : null }, shared_assumptions: mode === "correlated" ? [{ key: "forward_eps", model_ids: contributes }] : [], warnings } };
   }

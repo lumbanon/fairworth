@@ -815,6 +815,98 @@
   font-weight: 500;
   color: var(--body-foreground);
 }
+.provider-model-blockers {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.provider-model-blockers > summary,
+.provider-period-table summary {
+  cursor: pointer;
+  color: var(--body-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.provider-blocker-list {
+  padding-left: 18px;
+  color: var(--body-foreground);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.provider-blocker-list li + li {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 12px;
+}
+.provider-blocker-list p {
+  margin: 3px 0;
+}
+.provider-financial-basis h3,
+.provider-period-coverage h3,
+.provider-model-blockers h4 {
+  margin: 18px 0 10px;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 600;
+}
+.provider-basis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+}
+.provider-basis-grid > div {
+  min-width: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.provider-basis-grid dt {
+  margin-bottom: 5px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.provider-basis-grid dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--body-foreground);
+}
+.provider-basis-grid dd p {
+  margin: 6px 0 0;
+}
+.provider-period-table {
+  min-width: 650px;
+  font-size: 14px;
+}
+.provider-period-table td,
+.provider-period-table th {
+  vertical-align: top;
+  text-align: left;
+}
+.provider-period-table td {
+  white-space: normal;
+  max-width: 240px;
+  overflow-wrap: anywhere;
+}
+.provider-period-table details {
+  margin-top: 7px;
+}
+.provider-period-table p,
+.provider-period-table ul {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.provider-single-model-warning {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .provider-basis-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
 @media (max-width: 900px) {
   .provider-quality-grid {
     grid-template-columns: 1fr;

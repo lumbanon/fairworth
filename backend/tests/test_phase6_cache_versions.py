@@ -13,7 +13,7 @@ from app.services.normalization import NORMALIZATION_VERSION
 
 @pytest.mark.asyncio
 async def test_raw_treasury_split_statement_caches_survive_interpretation_version(session_factory):
-    assert EVIDENCE_VERSION == "2.0.0" and PROVIDER_CACHE_VERSION == "1.0.0"
+    assert EVIDENCE_VERSION == "2.1.0" and PROVIDER_CACHE_VERSION == "1.0.0"
     cache = CacheService(session_factory)
     async def forbidden(*args):
         pytest.fail("Fresh raw evidence must not cause a provider refresh.")

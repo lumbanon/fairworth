@@ -11,7 +11,7 @@ from app.core.database import utcnow
 from app.providers.base import ProviderError
 from app.services.cache_service import CachedResult
 from app.services.security_identity import cache_scope, same_identity, applicability, scope_kwargs
-from app.valuation.engine import calculate_valuation
+from app.valuation.coverage import calculate_with_coverage
 from app.valuation.inputs import build_valuation_inputs
 from app.valuation.schemas import ValuationRequest
 
@@ -95,6 +95,6 @@ class ValuationService:
     async def calculate(self, ticker, request=None, instrument_id=None, listing_id=None):
         inputs = await self.inputs(ticker, **scope_kwargs(instrument_id, listing_id))
         try:
-            return await asyncio.wait_for(run_in_threadpool(calculate_valuation, inputs, request or ValuationRequest(), self.policy), timeout=self.settings.valuation_calculation_timeout_seconds)
+            return await asyncio.wait_for(run_in_threadpool(calculate_with_coverage, inputs, request or ValuationRequest(), self.policy), timeout=self.settings.valuation_calculation_timeout_seconds)
         except TimeoutError:
             raise ApiError("valuation_timeout", "The bounded valuation calculation exceeded its time limit.", 503) from None

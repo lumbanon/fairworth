@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { adaptProviderValuation, emptyProviderValuation, providerRequiredInputPaths } from "../../src/lib/providerValuation.js";
-import { completenessFieldLabel, completenessGroups, completenessValue, diagnosticLabel, diagnosticMessages, providerSourceLinks } from "../../src/lib/providerDiagnostics.js";
+import { completenessFieldLabel, completenessGroups, completenessValue, diagnosticLabel, diagnosticMessages, providerSourceLinks, providerModelBlockers, providerReportingPeriods, providerCompatibilityLabel } from "../../src/lib/providerDiagnostics.js";
 import { providerValuationFixture } from "../helpers/providerValuationFixture.js";
 import { providerDiagnosticsFixture } from "../helpers/providerDiagnosticsFixture.js";
 
@@ -79,4 +79,35 @@ test("model input alternatives retain their grouping and expose individual assum
   assert.deepEqual(providerRequiredInputPaths(["forward_eps", "target_pe"]), [["forward_eps", "target_pe"]]);
   assert.deepEqual(providerRequiredInputPaths(null), []);
   assert.deepEqual(providerRequiredInputPaths([{}, null, ["wacc", null]]), [["wacc"]]);
+});
+
+test("Phase 6.7 keeps each independent model blocker and reporting period without altering server eligibility", () => {
+  const response = providerDiagnosticsFixture("ORCL", { mode: "none", price: null });
+  const before = structuredClone(response);
+  const view = adaptProviderValuation(response);
+  const model = view.scenarios.base.results.find((result) => result.id === "fcfe");
+  assert.deepEqual(providerModelBlockers(model.eligibility), response.scenarios.base.models.find((result) => result.id === "fcfe").eligibility.blockers);
+  assert.deepEqual(providerModelBlockers(model.eligibility).map((blocker) => blocker.code), ["required_metric_missing", "share_basis_unverified"]);
+  const periods = providerReportingPeriods(view.scenarios.base.dataCompleteness);
+  assert.deepEqual(periods.map((period) => period.end_date), ["2025-12-31", "2024-12-31"]);
+  assert.deepEqual(periods[0].available_metrics, ["revenue", "net_income", "total_debt"]);
+  assert.deepEqual(periods[1].source_identifiers, ["fixture:revenue:2024"]);
+  assert.equal(view.scenarios.base.summary.fairValue, null);
+  assert.equal(model.fairValue, null);
+  assert.deepEqual(response, before);
+});
+
+test("partial coverage remains unassessed and no client default creates compatibility or missing-input proof", () => {
+  assert.equal(providerCompatibilityLabel(undefined), "Not assessed");
+  assert.equal(providerCompatibilityLabel("invented"), "Not assessed");
+  assert.equal(providerCompatibilityLabel("unverified"), "Unverified");
+  assert.equal(providerCompatibilityLabel("stale"), "Stale observation");
+  assert.deepEqual(providerModelBlockers(null), []);
+  assert.deepEqual(providerModelBlockers({ reason: "Unavailable", missing_inputs: ["debt"] }), []);
+  assert.deepEqual(providerModelBlockers({ blockers: [null, {}, { code: "required_metric_missing", message: "", fields: ["debt"] }] }), []);
+  assert.deepEqual(providerReportingPeriods(), []);
+  const partial = providerReportingPeriods({ reporting_periods: [null, { fiscal_year: 2025, available_metrics: [null, "revenue"], warnings: [{ message: "Period remains incomplete." }] }] });
+  assert.deepEqual(partial[0].available_metrics, ["revenue"]);
+  assert.equal(partial[0].missing_metrics, null);
+  assert.deepEqual(partial[0].warnings, ["Period remains incomplete."]);
 });

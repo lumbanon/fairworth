@@ -279,6 +279,14 @@ def derive_forward_forecasts(inputs, evidence, policy=None, *, overrides=None):
                                           [_warning("ebitda_margin", "operating_income_ebit_proxy", "Company-specific nonoperating and EBITDA adjustments are not fabricated.")])
     working_periods = evidence.get("operating_working_capital_periods", [])
     financing_periods = evidence.get("financing_periods", [])
+    scoped_identity = evidence.get("forecast_evidence_identity")
+    if scoped_identity is not None:
+        from app.services.security_identity import same_identity
+        if not same_identity(inputs.get("company", {}), scoped_identity):
+            # A complete issuer history is still unusable for another selected
+            # class/listing. Keep unrelated forecasts and their facts intact.
+            working_periods, financing_periods = [], []
+            quality["scoped_history_status"] = "incompatible_financial_identity"
     def matches_base(rows):
         return rows and max((str(row.get("end_date", "")) for row in rows if isinstance(row, dict)), default="") == base_end.isoformat()
     if matches_base(working_periods):

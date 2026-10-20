@@ -75,6 +75,11 @@ def _fact(field: str, raw: Any, period: dict, currency: str | None, retrieved_at
         kind = "instant"
     warnings = []
     if value is not None:
+        if field == "depreciation_and_amortization" and isinstance(records, list) and any(
+                isinstance(record, dict) and record.get("source") == "sec"
+                and record.get("concept") == "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+                for record in records):
+            warnings.append(_warning(field, "incomplete_depreciation_amortization_scope", "Legacy property, plant and equipment depreciation/depletion/amortization observations do not establish company-wide depreciation and intangible amortization; original source evidence is retained."))
         if field == "total_debt" and isinstance(records, list) and any(record.get("source") == "sec" for record in records if isinstance(record, dict)):
             from app.services.normalization import complete_conventional_debt_provenance
             if not complete_conventional_debt_provenance(records, end_date=period.get("end_date")):

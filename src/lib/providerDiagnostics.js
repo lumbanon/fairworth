@@ -18,6 +18,30 @@ export function diagnosticMessages(values = []) {
   return records.map((value) => typeof value === "string" ? value : value?.explanation || value?.message || value?.description).filter(Boolean);
 }
 
+// Present only explicit server assessments. A missing record is never an
+// eligible model or a verified share/currency basis.
+export function providerModelBlockers(eligibility = {}) {
+  if (!Array.isArray(eligibility?.blockers)) return [];
+  return eligibility.blockers.filter((blocker) => blocker && typeof blocker === "object" &&
+    typeof blocker.code === "string" && typeof blocker.message === "string" && blocker.message.trim())
+    .map((blocker) => ({ ...blocker, fields: Array.isArray(blocker.fields) ? blocker.fields.filter((field) => typeof field === "string") : [] }));
+}
+
+export function providerCompatibilityLabel(status) {
+  return ({ available: "Available", unavailable: "Unavailable", incompatible: "Incompatible", stale: "Stale observation", unverified: "Unverified" })[status] || "Not assessed";
+}
+
+export function providerReportingPeriods(completeness = {}) {
+  if (!Array.isArray(completeness?.reporting_periods)) return [];
+  return completeness.reporting_periods.filter((period) => period && typeof period === "object")
+    .map((period) => ({ ...period,
+      available_metrics: Array.isArray(period.available_metrics) ? period.available_metrics.filter((metric) => typeof metric === "string") : null,
+      missing_metrics: Array.isArray(period.missing_metrics) ? period.missing_metrics.filter((metric) => typeof metric === "string") : null,
+      source_identifiers: Array.isArray(period.source_identifiers) ? period.source_identifiers.filter((source) => typeof source === "string") : [],
+      warnings: diagnosticMessages(period.warnings),
+    }));
+}
+
 export function completenessFieldLabel(key, field = {}) {
   return field.label || researchMetricLabel(String(key).split(".").at(-1));
 }

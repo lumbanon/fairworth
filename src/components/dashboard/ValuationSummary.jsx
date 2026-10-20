@@ -71,6 +71,7 @@ export default function ValuationSummary({ company, valuation }) {
           <small>(Fair value − price) / fair value × 100</small>
         </div>
       </div>
+      {valuation.providerMode && summary.count === 1 && Number.isFinite(summary.fairValue) && <p className="research-warning provider-single-model-warning" data-testid="single-model-coverage-warning"><strong>Single-model estimate.</strong> Coverage is limited to one contributing model; this is not a robust multi-model consensus. Review its assumptions and the data-quality limitations below.</p>}
       {valuation.providerMode && summary.composition?.length > 0 && <div className="provider-valuation-composition" aria-label="Weighted estimate composition">
         <p className="research-caption">Weighted estimate composition: {summary.composition.map((part) => `${providerClassificationLabel(part.classification) || "Unclassified"}: ${Number.isFinite(part.weight) ? `${(part.weight * 100).toFixed(1)}%` : "Unavailable"} (${part.model_ids?.join(", ") || "No contributing models"})`).join(" · ")}</p>
         <p className="research-caption">Classification describes the assumptions supporting the estimate; it does not verify the intrinsic value.</p>

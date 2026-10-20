@@ -1,6 +1,7 @@
 import { dollars, percent } from "@/lib/financialFormatting";
 import { diagnosticLabel, diagnosticMessages } from "@/lib/providerDiagnostics";
 import ProviderModelInputPaths from "./ProviderModelInputPaths";
+import ProviderModelBlockers from "./ProviderModelBlockers";
 
 export default function ProviderValuationDiagnostics({ valuation, currency }) {
   const diagnostics = valuation.diagnostics;
@@ -36,7 +37,7 @@ export default function ProviderValuationDiagnostics({ valuation, currency }) {
         {(aggregation.methodology_version || diagnostics.methodology_version) && <p className="research-caption">Diagnostic methodology: {aggregation.methodology_version || diagnostics.methodology_version}</p>}
       </details>
       {(coverage.excluded_models ?? []).length > 0 && <details className="provider-diagnostic-details"><summary>Excluded models and required inputs ({coverage.excluded_models.length})</summary>
-        <ul className="provider-excluded-models">{coverage.excluded_models.map((model) => <li key={model.model_id}><strong>{modelName(model.model_id)}</strong><p>{model.reason || diagnosticLabel(model.status)}</p>{model.missing_inputs?.length > 0 && <p className="research-caption">Required inputs: {model.missing_inputs.map(diagnosticLabel).join(", ")}</p>}<ProviderModelInputPaths paths={model.input_paths} /></li>)}</ul>
+        <ul className="provider-excluded-models">{coverage.excluded_models.map((model) => <li key={model.model_id}><strong>{modelName(model.model_id)}</strong><p>{model.reason || diagnosticLabel(model.status)}</p><ProviderModelBlockers eligibility={model} />{model.missing_inputs?.length > 0 && <p className="research-caption">Required inputs: {model.missing_inputs.map(diagnosticLabel).join(", ")}</p>}<ProviderModelInputPaths paths={model.input_paths} /></li>)}</ul>
       </details>}
     </section>
   );
