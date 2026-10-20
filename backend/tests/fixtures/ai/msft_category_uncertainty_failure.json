@@ -1,0 +1,43 @@
+{
+  "fixture_type": "sanitized_partial_live_failure_record",
+  "reviewed_on": "2026-10-16",
+  "source_capture": "msft-final-approved-live.json",
+  "question": "Why is MSFT's valuation available or unavailable?",
+  "model": "gpt-5-mini",
+  "response_model": "gpt-5-mini-2025-08-07",
+  "response_status": "completed",
+  "passed": false,
+  "error": {
+    "code": "conflicting_ai_category",
+    "message": "An interpretation cannot be presented as a documented fact.",
+    "details": {
+      "finding_index": 1,
+      "error_code": "conflicting_ai_category",
+      "rule": "conflicting_ai_category",
+      "evidence": [
+        {
+          "id": "e_49f3e8385d904e93fded78db",
+          "metric": "valuation_methodology",
+          "value": "FCFF discounts unlevered cash flows at WACC and bridges enterprise to common equity. FCFE discounts equity cash flows at cost of equity without deducting net debt again. Historical P/E benchmarks and growth caps are disclosed research policies. Hypothetical recalculation requires the assumptions editor; chat has no calculation or write tool.",
+          "unit": "text",
+          "period": null,
+          "observation_date": null,
+          "provider": "Fairworth",
+          "derivation": null
+        }
+      ]
+    }
+  },
+  "rejected_finding_labels": {
+    "category": "interpretation",
+    "uncertainty": "documented",
+    "provenance": "The exact captured error message uniquely identifies the validator branch requiring category == interpretation and uncertainty == documented, matching the label pair identified in the audit task. These labels were not separately retained as a complete generated finding."
+  },
+  "capture_limitations": [
+    "The original generated title, explanation, and complete answer were not retained in the source capture.",
+    "The complete second finding was not retained. finding_index 1 is the captured zero-based index, not a reconstructed finding.",
+    "The category and uncertainty pair is established by the captured validation error and its exact validator condition; it is not an independently retained model-output object.",
+    "No synthetic title, explanation, numerical claims, or complete finding is included or represented as captured live output.",
+    "The retained evidence is public application methodology text, not a financial valuation result or a captured model explanation."
+  ]
+}

@@ -14,10 +14,12 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
+NORMALIZATION_VERSION = 5
 
 # Ordered alternatives are never summed. Explicit total revenue takes priority
 # over a contract-revenue subtotal; differing aliases produce a quality warning.
-# Separate current debt components avoid double-counting LongTermDebtCurrent.
+# Debt and lease scopes are deliberately separate. DebtCurrent can include
+# capital leases, while CommercialPaper does not establish all short borrowing.
 METRIC_DEFINITIONS = {
     "revenue": (("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "RevenueFromContractWithCustomerIncludingAssessedTax", "SalesRevenueNet"), "USD", "duration"),
     "cost_of_revenue": (("CostOfRevenue", "CostOfGoodsAndServicesSold", "CostOfGoodsSold"), "USD", "duration"),
@@ -26,37 +28,87 @@ METRIC_DEFINITIONS = {
     "pretax_income": (("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest", "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterest"), "USD", "duration"),
     "income_tax_expense": (("IncomeTaxExpenseBenefit",), "USD", "duration"),
     "net_income": (("NetIncomeLoss",), "USD", "duration"),
+    "common_net_income_diluted": (("NetIncomeLossAvailableToCommonStockholdersDiluted",), "USD", "duration"),
     "basic_eps": (("EarningsPerShareBasic",), "USD/shares", "duration"),
     "diluted_eps": (("EarningsPerShareDiluted",), "USD/shares", "duration"),
     "weighted_average_diluted_shares": (("WeightedAverageNumberOfDilutedSharesOutstanding",), "shares", "duration"),
+    "weighted_average_basic_shares": (("WeightedAverageNumberOfSharesOutstandingBasic",), "shares", "duration"),
     "cash_and_cash_equivalents": (("CashAndCashEquivalentsAtCarryingValue",), "USD", "instant"),
     "short_term_investments": (("ShortTermInvestments", "MarketableSecuritiesCurrent"), "USD", "instant"),
     "total_current_assets": (("AssetsCurrent",), "USD", "instant"),
     "total_assets": (("Assets",), "USD", "instant"),
-    "short_term_debt": (("DebtCurrent", "ShortTermBorrowings"), "USD", "instant"),
+    "short_term_debt": (("ShortTermBorrowings",), "USD", "instant"),
+    "current_debt_including_lease_obligations": (("DebtCurrent",), "USD", "instant"),
+    "commercial_paper": (("CommercialPaper",), "USD", "instant"),
     "current_long_term_debt": (("LongTermDebtCurrent",), "USD", "instant"),
     "long_term_debt": (("LongTermDebtNoncurrent",), "USD", "instant"),
+    "long_term_debt_including_current": (("LongTermDebt",), "USD", "instant"),
+    "gross_debt_instrument_carrying_amount": (("DebtInstrumentCarryingAmount",), "USD", "instant"),
+    "reported_total_debt": (("DebtLongtermAndShorttermCombinedAmount",), "USD", "instant"),
+    "long_term_investments": (("LongTermInvestments",), "USD", "instant"),
+    "noncurrent_marketable_securities": (("MarketableSecuritiesNoncurrent",), "USD", "instant"),
+    "finance_lease_liability": (("FinanceLeaseLiability",), "USD", "instant"),
+    "finance_lease_liability_current": (("FinanceLeaseLiabilityCurrent",), "USD", "instant"),
+    "finance_lease_liability_noncurrent": (("FinanceLeaseLiabilityNoncurrent",), "USD", "instant"),
+    "operating_lease_liability": (("OperatingLeaseLiability",), "USD", "instant"),
+    "operating_lease_liability_current": (("OperatingLeaseLiabilityCurrent",), "USD", "instant"),
+    "operating_lease_liability_noncurrent": (("OperatingLeaseLiabilityNoncurrent",), "USD", "instant"),
     "total_liabilities": (("Liabilities",), "USD", "instant"),
+    "liabilities_and_equity": (("LiabilitiesAndStockholdersEquity",), "USD", "instant"),
+    "total_equity_including_noncontrolling_interests": (("StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",), "USD", "instant"),
     "shareholders_equity": (("StockholdersEquity",), "USD", "instant"),
     "shares_outstanding": (("EntityCommonStockSharesOutstanding", "CommonStockSharesOutstanding"), "shares", "instant"),
     "operating_cash_flow": (("NetCashProvidedByUsedInOperatingActivities",), "USD", "duration"),
-    "capital_expenditures": (("PaymentsToAcquirePropertyPlantAndEquipment",), "USD", "duration"),
-    "depreciation_and_amortization": (("DepreciationDepletionAndAmortization", "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment", "DepreciationAndAmortization"), "USD", "duration"),
+    "capital_expenditures": (("PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"), "USD", "duration"),
+    "depreciation_and_amortization": (("DepreciationDepletionAndAmortization", "DepreciationAndAmortization"), "USD", "duration"),
+    "depreciation_depletion_amortization_ppe": (("DepreciationDepletionAndAmortizationPropertyPlantAndEquipment",), "USD", "duration"),
+    "depreciation_expense": (("Depreciation",), "USD", "duration"),
+    "intangible_amortization_expense": (("AmortizationOfIntangibleAssets",), "USD", "duration"),
+    "minority_interest": (("MinorityInterest",), "USD", "instant"),
+    "preferred_stock_value_outstanding": (("PreferredStockValueOutstanding",), "USD", "instant"),
+    "preferred_stock_stated_value": (("PreferredStockValue",), "USD", "instant"),
+    "accounts_receivable": (("AccountsReceivableNetCurrent",), "USD", "instant"),
+    "inventory": (("InventoryNet",), "USD", "instant"),
+    "accounts_payable": (("AccountsPayableCurrent",), "USD", "instant"),
     "dividends_paid": (("PaymentsOfDividends", "PaymentsOfDividendsCommonStock"), "USD", "duration"),
+    "total_dividends_paid": (("PaymentsOfDividends",), "USD", "duration"),
+    "common_dividends_paid": (("PaymentsOfDividendsCommonStock",), "USD", "duration"),
     "share_repurchases": (("PaymentsForRepurchaseOfCommonStock",), "USD", "duration"),
-    "interest_expense": (("InterestExpense",), "USD", "duration"),
+    "interest_expense": (("InterestExpense", "InterestExpenseNonoperating"), "USD", "duration"),
+    "stock_based_compensation": (("ShareBasedCompensation",), "USD", "duration"),
+    "long_term_debt_proceeds": (("ProceedsFromIssuanceOfLongTermDebt",), "USD", "duration"),
+    "long_term_debt_repayments": (("RepaymentsOfLongTermDebt",), "USD", "duration"),
+    "total_debt_repayments": (("RepaymentsOfDebt",), "USD", "duration"),
+    "debt_repayments_maturing_over_three_months": (("RepaymentsOfDebtMaturingInMoreThanThreeMonths",), "USD", "duration"),
+    "net_commercial_paper_borrowing": (("ProceedsFromRepaymentsOfCommercialPaper",), "USD", "duration"),
+    "change_in_accounts_receivable": (("IncreaseDecreaseInAccountsReceivable",), "USD", "duration"),
+    "change_in_inventory": (("IncreaseDecreaseInInventories",), "USD", "duration"),
+    "change_in_accounts_payable": (("IncreaseDecreaseInAccountsPayable",), "USD", "duration"),
 }
 CONCEPT_METRICS = {
     concept: metric for metric, (concepts, _, _) in METRIC_DEFINITIONS.items() for concept in concepts
 }
+# Preserve the original observation classification for the compatibility field.
+# The independently named scopes below are selected by their exact source tag.
+CONCEPT_METRICS.update({"PaymentsOfDividends": "dividends_paid", "PaymentsOfDividendsCommonStock": "dividends_paid"})
+DIVIDEND_SCOPES = {"PaymentsOfDividends": "total_cash_dividends", "PaymentsOfDividendsCommonStock": "common_only"}
 FORMS = {"10-K", "10-K/A", "10-Q", "10-Q/A", "20-F", "20-F/A", "40-F", "40-F/A"}
 ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
-NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares"}
+NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares", "weighted_average_basic_shares", "common_net_income_diluted"}
 NON_NEGATIVE = {
     "cash_and_cash_equivalents", "short_term_investments", "total_current_assets", "total_assets",
     "short_term_debt", "current_long_term_debt", "long_term_debt", "total_liabilities",
+    "reported_total_debt", "liabilities_and_equity",
     "shares_outstanding", "weighted_average_diluted_shares", "capital_expenditures",
-    "dividends_paid", "share_repurchases",
+    "dividends_paid", "total_dividends_paid", "common_dividends_paid", "share_repurchases",
+    "weighted_average_basic_shares", "preferred_stock_value_outstanding", "preferred_stock_stated_value",
+    "accounts_receivable", "inventory", "accounts_payable",
+    "current_debt_including_lease_obligations", "commercial_paper", "long_term_debt_including_current",
+    "gross_debt_instrument_carrying_amount", "long_term_investments", "noncurrent_marketable_securities",
+    "finance_lease_liability", "finance_lease_liability_current", "finance_lease_liability_noncurrent",
+    "operating_lease_liability", "operating_lease_liability_current", "operating_lease_liability_noncurrent",
+    "long_term_debt_proceeds", "long_term_debt_repayments", "total_debt_repayments",
+    "debt_repayments_maturing_over_three_months",
 }
 
 
@@ -157,10 +209,11 @@ def _period_year(records: list[dict], annual: bool, warnings: list, filing_durat
 
 
 def _select(records: list[dict], metric: str, warnings: list, period: str) -> tuple[float | None, list[dict]]:
-    candidates = [obs for obs in records if obs["metric"] == metric]
+    concepts = METRIC_DEFINITIONS[metric][0]
+    candidates = [obs for obs in records if obs["metric"] == metric
+                  or metric in {"total_dividends_paid", "common_dividends_paid"} and obs["concept"] in concepts]
     if not candidates:
         return None, []
-    concepts = METRIC_DEFINITIONS[metric][0]
     priority = min(concepts.index(obs["concept"]) for obs in candidates)
     selected_concept = concepts[priority]
     alias_values = set()
@@ -187,13 +240,62 @@ def _select(records: list[dict], metric: str, warnings: list, period: str) -> tu
     # Equivalent-value observations are retained for cross-filing alignment.
     sources = [obs for obs in candidates if obs["value"] == value]
     sources.sort(key=lambda obs: (obs.get("filed") or "", obs.get("accn") or ""), reverse=True)
+    if metric in {"dividends_paid", "total_dividends_paid", "common_dividends_paid"}:
+        sources = [{**obs, "economic_scope": DIVIDEND_SCOPES[obs["concept"]]} for obs in sources]
+    elif metric == "common_net_income_diluted":
+        sources = [{**obs, "economic_scope": "common_diluted_eps_numerator"} for obs in sources]
     return float(value), sources
+
+
+def _period_support(records: list[dict]) -> tuple | None:
+    """Describe the exact effective interval, including signed YTD subtraction.
+
+    Equivalent observations in multiple filings do not multiply the duration.
+    This permits a directly reported quarter to align with the same quarter
+    derived from adjacent YTD intervals, without permitting an annual/quarterly
+    mixture merely because the figures share an accession.
+    """
+    terms = set()
+    for obs in records:
+        start, end = _day(obs.get("start")), _day(obs.get("end"))
+        coefficient = obs.get("coefficient", 1)
+        if (end is None or isinstance(coefficient, bool) or not isinstance(coefficient, (int, float))
+                or not math.isfinite(coefficient) or coefficient not in {-1, 1}
+                or obs.get("start") is not None and start is None):
+            return None
+        terms.add((start, end, coefficient))
+    if all(start is None for start, _, _ in terms):
+        return ("instant", tuple(sorted({end for _, end, _ in terms})))
+    if any(start is None or start > end for start, end, _ in terms):
+        return None
+    try:
+        boundaries = sorted({boundary for start, end, _ in terms for boundary in (start, end + timedelta(days=1))})
+    except OverflowError:
+        return None
+    segments = []
+    for start, end in zip(boundaries, boundaries[1:]):
+        coefficient = sum(sign for first, last, sign in terms if first <= start <= last)
+        if not coefficient:
+            continue
+        if segments and segments[-1][1] == start and segments[-1][2] == coefficient:
+            segments[-1] = (segments[-1][0], end, coefficient)
+        else:
+            segments.append((start, end, coefficient))
+    return ("duration", tuple(segments)) if segments else None
 
 
 def _compatible(sources: list[list[dict]], *, cumulative: bool = False, fiscal_year: int | None = None) -> bool:
     """Require a common filing or unchanged, contemporaneous native contexts."""
     if not sources or any(not group for group in sources):
         return False
+    if not cumulative:
+        # A common accession alone does not establish a common reporting
+        # duration: a filing can contain annual, quarterly and comparative
+        # amounts together. Derived quarters retain matching signed YTD terms,
+        # so compare the complete period support rather than just the last end.
+        supports = [_period_support(group) for group in sources]
+        if any(support is None or support != supports[0] for support in supports):
+            return False
     accessions = [set(obs["accn"] for obs in group if obs.get("accn")) for group in sources]
     if set.intersection(*accessions):
         if not cumulative:
@@ -227,6 +329,50 @@ def _compatible(sources: list[list[dict]], *, cumulative: bool = False, fiscal_y
     return True
 
 
+def complete_conventional_debt_provenance(records: list[dict], *, end_date: str | None = None) -> bool:
+    """Check SEC debt scope, independently of a caller's numeric reconciliation.
+
+    Old snapshots may contain DebtCurrent (including lease obligations), or a
+    commercial-paper subtotal labeled total debt. Retain those original facts,
+    but do not reuse that aggregate as complete conventional financial debt.
+    This function does not validate user overrides or license provider records.
+    """
+    if not isinstance(records, list) or not records:
+        return False
+    groups = defaultdict(list)
+    ends = set()
+    for record in records:
+        if not isinstance(record, dict):
+            return False
+        value = record.get("value", record.get("val"))
+        end, filed = _day(record.get("end")), _day(record.get("filed"))
+        if (record.get("taxonomy") != "us-gaap" or record.get("source") != "sec"
+                or record.get("unit") != "USD" or record.get("start") is not None
+                or record.get("form") not in FORMS or isinstance(record.get("coefficient", 1), bool)
+                or record.get("coefficient", 1) != 1
+                or isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value < 0 or end is None or filed is None or filed < end
+                or not re.fullmatch(r"\d{10}-\d{2}-\d{6}", str(record.get("accn") or ""))):
+            return False
+        ends.add(record["end"])
+        groups[record.get("concept")].append(record)
+    if len(ends) != 1 or (end_date is not None and ends != {end_date}):
+        return False
+    concepts = frozenset(groups)
+    allowed = {
+        frozenset({"DebtLongtermAndShorttermCombinedAmount"}),
+        frozenset({"ShortTermBorrowings", "LongTermDebt"}),
+        frozenset({"ShortTermBorrowings", "LongTermDebtCurrent", "LongTermDebtNoncurrent"}),
+    }
+    if concepts not in allowed:
+        return False
+    if any(len({record.get("value", record.get("val")) for record in group}) != 1 for group in groups.values()):
+        return False
+    years = {record.get("fy") for record in records}
+    year = next(iter(years)) if len(years) == 1 else None
+    return _compatible(list(groups.values()), fiscal_year=year)
+
+
 def _new_period(start: str, end: str, year: int, fp: str) -> dict:
     return {
         "fiscal_year": year,
@@ -253,37 +399,83 @@ def _derive_period(period: dict) -> None:
     metrics, sources, warnings = period["metrics"], period["provenance"], period["warnings"]
     label = f"FY{period['fiscal_year']} {period['fiscal_period']} ({period['end_date']})"
 
-    def derive(target: str, components: tuple[str, ...], value: float) -> None:
+    def derive(target: str, components: tuple[str, ...], value: float, coefficients=None) -> None:
         if not math.isfinite(value):
             _warn(warnings, target, "invalid_derived_value", f"{label}: the derived amount is non-finite and was excluded.")
             return
         provenance = [sources.get(component, []) for component in components]
         if _compatible(provenance, fiscal_year=period["fiscal_year"]):
             metrics[target] = value
-            sources[target] = [{**obs, "derivation": target} for group in provenance for obs in group]
+            signs = coefficients or tuple(1 for _ in components)
+            sources[target] = [{**obs, "derivation": target, "component": component,
+                                "coefficient": obs.get("coefficient", 1) * sign}
+                               for component, group, sign in zip(components, provenance, signs) for obs in group]
         else:
             _warn(warnings, target, "incompatible_source_context", f"{label}: source components could not be aligned to a compatible filing context.")
 
     ocf, capex = metrics["operating_cash_flow"], metrics["capital_expenditures"]
     if ocf is not None and capex is not None:
-        derive("free_cash_flow", ("operating_cash_flow", "capital_expenditures"), ocf - capex)
+        derive("free_cash_flow", ("operating_cash_flow", "capital_expenditures"), ocf - capex, (1, -1))
     elif capex is None:
         _warn(warnings, "free_cash_flow", "missing_capex", f"{label}: capital expenditure data is unavailable; free cash flow cannot be calculated.")
     else:
         _warn(warnings, "free_cash_flow", "missing_operating_cash_flow", f"{label}: operating cash flow data is unavailable; free cash flow cannot be calculated.")
 
     if metrics["gross_profit"] is None and metrics["revenue"] is not None and metrics["cost_of_revenue"] is not None:
-        derive("gross_profit", ("revenue", "cost_of_revenue"), metrics["revenue"] - metrics["cost_of_revenue"])
+        derive("gross_profit", ("revenue", "cost_of_revenue"), metrics["revenue"] - metrics["cost_of_revenue"], (1, -1))
 
-    short, long = metrics["short_term_debt"], metrics["long_term_debt"]
-    if short is not None and long is not None:
-        short_concept = sources["short_term_debt"][0]["concept"]
-        if short_concept == "DebtCurrent":
-            derive("total_debt", ("short_term_debt", "long_term_debt"), short + long)
-        elif metrics["current_long_term_debt"] is not None:
-            derive("total_debt", ("short_term_debt", "current_long_term_debt", "long_term_debt"), short + metrics["current_long_term_debt"] + long)
-        else:
-            _warn(warnings, "total_debt", "incomplete_debt_components", f"{label}: current maturities of long-term debt are unavailable; total debt is not assumed from partial components.")
+    if sources.get("capital_expenditures", [{}])[0].get("concept") == "PaymentsToAcquireProductiveAssets":
+        _warn(warnings, "capital_expenditures", "capital_expenditure_scope", f"{label}: reported capital expenditures include property, plant, equipment, software, and other intangible assets; the source scope is preserved.")
+
+    if sources.get("dividends_paid", [{}])[0].get("economic_scope") == "common_only":
+        _warn(warnings, "dividends_paid", "common_dividend_scope", f"{label}: the compatibility dividend amount covers common-stock cash dividends only; it does not establish total issuer dividends, dividends per share, or sustainable distributions.")
+    if metrics["depreciation_depletion_amortization_ppe"] is not None:
+        _warn(warnings, "depreciation_depletion_amortization_ppe", "ppe_depreciation_scope", f"{label}: property, plant and equipment depreciation/depletion/amortization is retained separately; it does not establish company-wide depreciation and intangible amortization or unlock EBITDA.")
+
+    if metrics["total_liabilities"] is None and metrics["liabilities_and_equity"] is not None and metrics["total_equity_including_noncontrolling_interests"] is not None:
+        liability_value = metrics["liabilities_and_equity"] - metrics["total_equity_including_noncontrolling_interests"]
+        if liability_value >= 0:
+            derive("total_liabilities", ("liabilities_and_equity", "total_equity_including_noncontrolling_interests"), liability_value, (1, -1))
+
+    # These are scope-matched identities, not financial-debt fallbacks. A
+    # reported aggregate always remains the original reported observation.
+    conflicting_aggregates = set()
+    for target, components in (
+        ("long_term_debt_including_current", ("current_long_term_debt", "long_term_debt")),
+        ("finance_lease_liability", ("finance_lease_liability_current", "finance_lease_liability_noncurrent")),
+        ("operating_lease_liability", ("operating_lease_liability_current", "operating_lease_liability_noncurrent")),
+    ):
+        if any(metrics[component] is None for component in components):
+            continue
+        component_sources = [sources.get(component, []) for component in components]
+        if not _compatible(component_sources, fiscal_year=period["fiscal_year"]):
+            _warn(warnings, target, "incompatible_source_context", f"{label}: aggregate components do not share a compatible filing context; no reconciliation or derivation was applied.")
+            continue
+        amount = sum(metrics[component] for component in components)
+        if metrics[target] is None:
+            derive(target, components, amount)
+        elif not math.isfinite(amount) or not math.isclose(metrics[target], amount, rel_tol=1e-9, abs_tol=1):
+            conflicting_aggregates.add(target)
+            _warn(warnings, target, "conflicting_aggregate_components", f"{label}: the reported aggregate differs from its compatible current/noncurrent components; original amounts are retained and the aggregate is not used to derive complete debt.")
+
+    short, long = metrics["short_term_debt"], metrics["long_term_debt_including_current"]
+    if metrics["reported_total_debt"] is not None:
+        metrics["total_debt"] = metrics["reported_total_debt"]
+        sources["total_debt"] = sources["reported_total_debt"]
+        if short is not None and long is not None:
+            groups = [sources.get("short_term_debt", []), sources.get("long_term_debt_including_current", []),
+                      sources.get("reported_total_debt", [])]
+            if (_compatible(groups, fiscal_year=period["fiscal_year"])
+                    and not math.isclose(metrics["total_debt"], short + long, rel_tol=1e-9, abs_tol=1)):
+                _warn(warnings, "total_debt", "conflicting_debt_components", f"{label}: reported complete debt differs from compatible short-term borrowing and long-term debt totals; the reported amount and all original components are retained for review.")
+    elif short is not None and long is not None and "long_term_debt_including_current" not in conflicting_aggregates:
+        derive("total_debt", ("short_term_debt", "long_term_debt_including_current"), short + long)
+        if metrics["total_debt"] is not None and not complete_conventional_debt_provenance(sources["total_debt"], end_date=period["end_date"]):
+            metrics["total_debt"] = None
+            sources.pop("total_debt", None)
+            _warn(warnings, "total_debt", "unverified_debt_scope", f"{label}: source records do not establish complete conventional financial-debt scope.")
+    elif metrics["current_debt_including_lease_obligations"] is not None or metrics["commercial_paper"] is not None:
+        _warn(warnings, "total_debt", "unverified_debt_scope", f"{label}: DebtCurrent can include capital leases and commercial paper is only a short-term borrowing subtotal; neither establishes complete conventional financial debt.")
     else:
         _warn(warnings, "total_debt", "missing_debt_components", f"{label}: complete current and noncurrent debt components are unavailable.")
 
@@ -380,6 +572,22 @@ def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
             quarter = _cumulative_quarter(elapsed)
             if quarter is not None:
                 return annual_period["fiscal_year"], quarter
+        previous_annual = [period for period in annual if period["end_date"] < start]
+        if previous_annual:
+            prior = max(previous_annual, key=lambda period: period["end_date"])
+            fiscal_start = _day(prior["end_date"]) + timedelta(days=1)
+            elapsed = (_day(end) - fiscal_start).days + 1
+            quarter = _cumulative_quarter(elapsed)
+            length = (_day(end) - _day(start)).days + 1
+            native = [obs for obs in records if obs.get("end") == filing_duration_ends.get(obs.get("accn"))
+                      and obs.get("fp") == f"Q{quarter}" and obs.get("form") in ("10-Q", "10-Q/A")
+                      and 0 <= (_day(obs["filed"]) - _day(end)).days <= 180]
+            aligned = _day(start) == fiscal_start if length > 120 else quarter is not None and 60 <= elapsed - (quarter - 1) * 91 <= 125
+            if quarter in (1, 2, 3) and native and aligned and fiscal_start <= _day(start):
+                year = prior["fiscal_year"] + 1
+                if any(obs.get("fy") != year for obs in native):
+                    _warn(warnings, "fiscal_year", "filing_context_year_mismatch", "A current quarter's filing FY differs from its aligned fiscal-calendar year; the preceding annual boundary determines the fiscal-year label.")
+                return year, quarter
         year = _period_year(records, False, warnings, filing_duration_ends)
         quarter = _cumulative_quarter((_day(end) - _day(start)).days + 1)
         if year is None or quarter is None:
@@ -414,7 +622,8 @@ def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
             cumulative.append((start, end, year, quarter, records))
 
     # Work only with exact fiscal-start-aligned adjacent cumulative intervals.
-    # EPS and weighted shares are nonadditive and are never differenced.
+    # EPS, weighted shares and dilution-adjusted common income are nonadditive:
+    # dilution/antidilution tests can differ by period. Never difference them.
     for start, end, year, quarter, records in cumulative:
         if quarter == 1:
             continue
@@ -475,6 +684,7 @@ def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
                     "form": obs.get("form"), "filed": obs.get("filed"), "url": url,
                 }
     return {
+        "normalization_version": NORMALIZATION_VERSION,
         "annual": sorted(annual, key=lambda period: period["end_date"], reverse=True),
         "quarterly": sorted(quarterly.values(), key=lambda period: period["end_date"], reverse=True),
         "currency": "USD",

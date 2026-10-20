@@ -14,6 +14,7 @@ from test_cache import test_cache_reuses_fresh_data_and_marks_failure_fallback_s
 from test_database import (test_company_creation_fact_provenance_and_duplicate_prevention as persistence_contract,
                            test_market_snapshot_deduplicates_same_observation as market_contract,
                            test_restatement_and_new_snapshots_preserve_history as history_contract)
+from test_phase6_persistence import normalization_history_contract
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
@@ -42,6 +43,7 @@ def test_postgres_migration_persistence_cache_and_downgrade():
             session.query(FinancialSnapshot).delete()
         history_contract(session_factory)
         asyncio.run(cache_contract(session_factory))
+        normalization_history_contract(session_factory)
         with engine.connect() as connection:
             config.attributes["connection"] = connection
             command.check(config)

@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { adaptProviderStock } from "../../src/lib/providerCompatibility.js";
-import { createScenarioDefaults } from "../../src/valuation/scenarios.js";
-import { evaluateModels } from "../../src/valuation/modelSelector.js";
-import { combineValuations } from "../../src/valuation/weighting.js";
 import { fetchJson, loadStock, ApiError } from "../../src/services/api.js";
 import { providerFixture } from "../helpers/providerFixture.js";
 
@@ -21,29 +18,13 @@ test("provider compatibility preserves financial units, native EPS, dates and or
   assert.equal(company.quarterlyFinancials[0].eps, 2.5);
 });
 
-test("provider scenarios contain no invented forward assumptions or cash flow proxies", () => {
+test("provider financial presentation contains no invented forward assumptions or cash flow proxies", () => {
   const company = adaptProviderStock(providerFixture());
-  const scenarios = createScenarioDefaults(company);
-  for (const assumptions of Object.values(scenarios)) {
-    assert.equal(assumptions.shares, 12);
-    for (const [key, value] of Object.entries(assumptions))
-      if (key !== "shares") assert.equal(value, null);
-    assert.ok(
-      evaluateModels(company, assumptions).every(
-        (model) => model.fairValue == null,
-      ),
-    );
-  }
   assert.equal(company.latest.fcff, null);
   assert.equal(company.latest.fcfe, null);
   assert.equal(company.latest.ebitda, null);
   assert.equal(company.otherClaims, null);
-  const inputs = { ...scenarios.base, epsGrowth: 0.1, targetPE: 15 };
-  const result = evaluateModels(company, inputs).find(
-    (model) => model.id === "pe",
-  );
-  assert.equal(result.status, "valid");
-  assert.equal(result.fairValue, 165);
+  assert.equal(company.forwardEPS, undefined);
 });
 
 test("missing and incompatible earnings shares cannot be replaced by market shares", () => {
@@ -51,29 +32,27 @@ test("missing and incompatible earnings shares cannot be replaced by market shar
   data.annual.periods[0].metrics.weighted_average_diluted_shares = null;
   const company = adaptProviderStock(data);
   assert.equal(company.latest.shares, null);
-  assert.equal(createScenarioDefaults(company).base.shares, null);
-  const model = evaluateModels(company, {
-    epsGrowth: 0.1,
-    targetPE: 15,
-    shares: 12,
-  }).find((item) => item.id === "pe");
-  assert.equal(model.status, "insufficient-data");
+  assert.match(company.modelCompatibility.pe, /same-period/);
   data.annual.periods[0].metrics.weighted_average_diluted_shares = 12000000;
   data.annual.periods[0].metrics.diluted_eps = 8;
   const incompatible = adaptProviderStock(data);
-  assert.equal(
-    evaluateModels(incompatible, {
-      epsGrowth: 0.1,
-      targetPE: 15,
-      shares: 12,
-    }).find((item) => item.id === "pe").status,
-    "insufficient-data",
-  );
+  assert.match(incompatible.modelCompatibility.pe, /does not reconcile/);
   assert.ok(
     incompatible.warnings.some(
       (warning) => warning.code === "incompatible_earnings_basis",
     ),
   );
+});
+
+test("reported EPS rounding is allowed while materially different common earnings stay unavailable", () => {
+  const data = providerFixture();
+  data.annual.periods[0].metrics.net_income = 17087000000;
+  data.annual.periods[0].metrics.weighted_average_diluted_shares = 2914000000;
+  data.annual.periods[0].metrics.diluted_eps = 5.83;
+  const incompatible = adaptProviderStock(data);
+  assert.ok(incompatible.modelCompatibility.pe);
+  data.annual.periods[0].metrics.diluted_eps = 5.86;
+  assert.equal(adaptProviderStock(data).modelCompatibility.pe, undefined);
 });
 
 test("missing market prices, unknown classifications and currency incompatibility remain explicit", () => {
@@ -82,34 +61,16 @@ test("missing market prices, unknown classifications and currency incompatibilit
   const company = adaptProviderStock(data);
   assert.equal(company.price, null);
   assert.equal(company.marketCap, null);
-  const pe = evaluateModels(company, {
-    epsGrowth: 0.1,
-    targetPE: 15,
-    shares: 12,
-  }).find((item) => item.id === "pe");
-  const summary = combineValuations(
-    [pe],
-    { pe: true },
-    { pe: 1 },
-    company.price,
-  );
-  assert.equal(summary.fairValue, 165);
-  assert.equal(summary.upside, null);
   data.profile.company.is_bank = null;
-  assert.equal(
-    evaluateModels(adaptProviderStock(data), {
-      epsGrowth: 0.1,
-      targetPE: 15,
-      shares: 12,
-    }).find((item) => item.id === "pe").status,
-    "insufficient-data",
-  );
+  assert.equal(adaptProviderStock(data).isBank, null);
   data.annual.currency = "EUR";
-  assert.ok(
-    evaluateModels(adaptProviderStock(data), {}).every(
-      (item) => item.status === "insufficient-data",
-    ),
-  );
+  assert.equal(adaptProviderStock(data).currency, "EUR");
+  assert.ok(adaptProviderStock(data).modelCompatibility.all);
+  for (const period of data.annual.periods)
+    for (const sources of Object.values(period.provenance ?? {}))
+      for (const source of sources)
+        if (source.unit?.startsWith("USD")) source.unit = source.unit.replace("USD", "EUR");
+  assert.equal(adaptProviderStock(data).modelCompatibility.all, undefined);
 });
 
 test("API service handles safe structured errors, invalid JSON and network failures without fallback", async () => {
@@ -225,13 +186,7 @@ test("known multiple share classes and unverified class suffixes cannot use issu
     const company = adaptProviderStock(fixture);
     assert.equal(company.latest.eps, 10);
     assert.equal(company.latest.netIncome / company.latest.shares, 10);
-    assert.ok(
-      evaluateModels(company, {
-        epsGrowth: 0.1,
-        targetPE: 15,
-        shares: 12,
-      }).every((model) => model.status === "insufficient-data"),
-    );
+    assert.ok(company.modelCompatibility.all);
     assert.ok(
       company.warnings.some(
         (warning) => warning.code === "unverified_share_class_basis",
@@ -253,12 +208,7 @@ test("noncontrolling equity scope excludes book-value models and duplicate fisca
   ];
   const company = adaptProviderStock(fixture);
   for (const id of ["pb", "residual"])
-    assert.equal(
-      evaluateModels(company, { targetPB: 2, shares: 12 }).find(
-        (model) => model.id === id,
-      ).status,
-      "insufficient-data",
-    );
+    assert.ok(company.modelCompatibility[id]);
   fixture.profile.company.is_bank = false;
   fixture.annual.periods.push({
     ...fixture.annual.periods[0],
@@ -270,11 +220,5 @@ test("noncontrolling equity scope excludes book-value models and duplicate fisca
       (warning) => warning.code === "ambiguous_annual_basis",
     ),
   );
-  assert.ok(
-    evaluateModels(ambiguous, {
-      epsGrowth: 0.1,
-      targetPE: 15,
-      shares: 12,
-    }).every((model) => model.status === "insufficient-data"),
-  );
+  assert.ok(ambiguous.modelCompatibility.all);
 });

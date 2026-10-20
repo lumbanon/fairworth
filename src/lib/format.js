@@ -9,6 +9,6 @@ export function formatCurrency(value) {
 export function normalizeTicker(value) {
   return value.trim().toUpperCase()
 }
-export function isValidTicker(value) {
-  return /^[A-Z]{1,5}(?:[.-][A-Z])?$/.test(value)
+export function isValidTicker(value, registry = true) {
+  return registry ? /^[A-Z][A-Z0-9.-]{0,9}$/.test(value) : /^[A-Z]{1,5}(?:[.-][A-Z])?$/.test(value)
 }

@@ -1,6 +1,24 @@
-# Fairworth — Phase 3
+# Fairworth — Phase 6.5
 
-A React/JavaScript stock research dashboard with a FastAPI financial data service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. The Phase 1 landing page and Phase 2 JavaScript valuation formulas are preserved. Financial data modes are explicit: demonstration datasets are fictional; provider mode retrieves sourced data through FastAPI and never silently falls back to demonstrations.
+A React/JavaScript stock research dashboard with a FastAPI financial data and Python valuation service, PostgreSQL persistence, SEC EDGAR ingestion, and an optional credentialed market data adapter. Provider mode calculates all valuations in Python; Demo mode preserves the existing JavaScript formulas and fictional data. The Phase 1 landing page is preserved, and API failures never silently fall back to demonstrations.
+
+The [Phase 6.5 market coverage report](docs/phase65-market-coverage.md) documents the indexed issuer/instrument/listing registry, explicit identity selection, independent coverage stages, on-demand cache coordination, conservative instrument gates, and the dated 25-security reference audit. An SEC ticker reference does not prove an active common-stock listing or an eligible valuation. Provider mode now requires an imported reference registry; see the report's migration/import commands. Automatic reference fetching is disabled by default. No OpenAI requests are part of Phase 6.5 verification.
+
+The [Phase 6 implementation and verification report](docs/phase6-valuation-accuracy.md) documents verified financial scope mappings, complete-debt safeguards, fiscal forecast alignment, versioned evidence, coverage/quality/confidence diagnostics and the expandable data-completeness dashboard. The [internal audit](docs/phase6-internal-audit.md) records the evidence and priorities established before implementation. Four-company results use explicitly dated public fixtures: additional fields improve inspection while AAPL/MSFT retain single-model policy estimates and NVDA/ORCL retain legitimate blockers. No fresh provider or OpenAI requests are part of Phase 6 verification.
+
+The [Phase 4.5 implementation and verification report](docs/phase45-automatic-valuation.md) documents automatic historical valuation benchmarks, split-compatible forecasts, dated discount-rate inputs, source quality, classifications, four-company results, tests and remaining limitations. AAPL and MSFT now support automatic single-model, policy-based illustrative P/E estimates with the verified source snapshots. NVDA and ORCL retain explicit evidence blockers. The [initial diagnostic matrix](docs/phase45-diagnostic-audit.md) explains all 44 company/model combinations; the [Phase 4 report](docs/phase4-valuation-engine.md) preserves the original model architecture and mathematical verification.
+
+The [Phase 5 AI research implementation and verification report](docs/phase5-ai-research.md) documents the source-grounded report/chat architecture, strict claim checks, SEC text coverage, usage limits and mocked versus live verification. AI generation is disabled by default and requires an explicitly configured OpenAI model and server-only API key.
+
+The [MSFT research repair report](docs/phase5-msft-research-fixes.md) records evidence-bound numerical prose, grouped historical diagnostics, the shares/debt audit and bounded live-chat failures followed by deterministic category checks. It preserves the illustrative valuation and documents the remaining live-verification limitation.
+
+The [category and uncertainty repair](docs/phase5-category-validation.md) documents the subsequent captured `interpretation` / `documented` failure, complete allowed classification matrix, schema enforcement, offline regressions and remaining semantic-validation limits.
+
+The [typed evidence binding repair](docs/phase5-binding-validation.md) documents the retained v6 MSFT binding failures, prompt v7's request-scoped eligible-ID schema, server-owned rendering and strict offline regressions. No live AI request is part of that repair.
+
+The [citation coverage repair](docs/phase5-citation-coverage.md) documents prompt v8's server-derived citations for explicitly selected, eligible typed references. The exact retained v7 failure now passes offline with complete provenance; independent financial and privacy checks remain strict.
+
+The [Phase 5.1 presentation report](docs/phase5-1-presentation.md) documents prompt v9, safe typed-segment spacing, display-only financial rounding, explicit quote observation dates and clearer findings/source/limitation disclosures. The exact successful v8 MSFT response is retained and replayed offline without new OpenAI requests.
 
 ## Run locally
 
@@ -30,11 +48,11 @@ npm test
 
 `npm test` runs calculation and provider-compatibility tests using Node's built-in test runner, followed by Playwright tests across desktop Chromium and Chromium with mobile viewport/touch emulation. They can also be run separately with `npm run test:unit` and `npm run test:e2e`. Provider browser tests mock API responses and need no financial credentials.
 
-Calculation tests verify independently calculated results for all 11 models, reverse DCF, normalized weighting, upside versus margin of safety, scenario isolation, eligibility, unavailable inputs, and statement reconciliation across all 10 demonstration datasets. Browser tests cover search and routes, assumptions and reset, model weights, scenarios, sensitivity, statements, landing interactions, and runtime errors. Phase 3 adds loading, structured errors, explicit mode switching, stale sources, unavailable prices/shares, reported periods, and assumption-driven provider valuations.
+Independent Python model tests verify all 11 models, financial contracts, source/period compatibility, assumptions, weighting, scenarios, sensitivity, reverse DCF, missing inputs, and API persistence boundaries. JavaScript tests preserve Demo formulas and verify Provider transport/presentation without independent Provider arithmetic. Browser tests cover the existing landing/dashboard functionality plus Python authority, resets, manual prices, failures, stale-response protection, and desktop/mobile layout. Browser concurrency is bounded to two workers.
 
 Responsive checks cover widths of 320, 390, 768, 1024, and 1440 pixels. Financial tables scroll within their containers. Desktop and mobile dashboard screenshots were visually reviewed, and sampled rendered text was checked for WCAG AA contrast. The shared text colors remain headings `#111111`, body `#333333`, labels `#444444`, and captions `#525252`.
 
-Playwright starts a local Vite server if one is not already running. Screenshots and failure traces are written to ignored `test-results/`. Mobile emulation does not verify Safari or physical iOS devices.
+Playwright builds fresh production assets and starts a dedicated Vite preview server at `http://127.0.0.1:4173` with a strict port. It never reuses or interrupts the development server on port 5173. This keeps backend changes and development hot reloads from resetting browser tests. Screenshots and failure traces are written to ignored `test-results/`. Mobile emulation does not verify Safari or physical iOS devices.
 
 ## Demonstration dashboard behavior
 
@@ -225,15 +243,17 @@ Metrics use matching fiscal periods; quarterly growth compares the same fiscal q
 
 Original observations and changed normalized snapshots are preserved with foreign keys and content-based uniqueness. Refreshing identical provider data avoids duplicate financial records. Cache expiry triggers provider refresh, so newly published filings become eligible on the next request after the configured TTL. There is no filing webhook or background ingestion scheduler in Phase 3. On a provider failure, an expired cache is returned only with `status: "stale"`, its original retrieval/price timestamps, and a visible failure warning; uncached failures return a safe structured error.
 
-Raw SEC facts are cached by CIK, while normalized persistence is tracked per ticker. Two listed classes of the same issuer reuse one upstream facts request and each retain database snapshots. Derived cache entries preserve the upstream retrieval time and cannot promote stale raw facts to fresh data.
+Raw SEC facts are cached by CIK, while normalized persistence retains issuer-owned company buckets and their compatibility ticker. Two listed classes of the same issuer reuse one upstream facts request and each retain database snapshots. Registered ticker reuse creates a separate issuer-owned bucket without moving historical facts. Derived cache entries preserve the upstream retrieval time and cannot promote stale raw facts to fresh data.
 
 ## Provider valuation compatibility
 
-Reported facts and forward assumptions are separate. Provider scenarios begin without invented growth rates, discount rates, forecast horizons, or target multiples; enter the needed assumptions explicitly. Required annual share counts are taken only from reported diluted weighted shares. Missing classifications and incompatible net-income/EPS bases leave affected methods unavailable.
+Reported facts and forward assumptions are separate. Provider mode retrieves Python defaults with historical estimates, clearly labeled configurable benchmarks, and explicit unavailable inputs. Unsourced target multiples require user input. Annual diluted weighted shares retain their reporting period and are not labeled current market shares. Missing classifications, common-equity scope, and incompatible earnings bases leave affected methods unavailable; explicit user forecasts and confirmations are identified as assumptions.
 
-Multiple listed share classes produce an explicit unverified-share-basis warning. Issuer-wide earnings and shares cannot be assumed to match a specific class's quote, so per-share valuations remain unavailable until that basis is verified. Ambiguous annual periods and equity including noncontrolling interests are also excluded from affected valuation inputs. Parent-specific net income and equity are not replaced by consolidated NCI-inclusive concepts.
+Automatic P/E benchmarks use original SEC filing vintages, prices strictly after publication, verified split compatibility, and at least three independent fiscal-year samples. Their historical forward EPS proxies and growth limits are disclosed. They never use today's quote to choose a fair-value target. Default values are classified as evidence-supported, policy-based illustrative, user-defined, or unavailable, with weighted composition and single-model warnings. Dated SEC common shares remain separate from annual weighted shares; verified zero claims remain separate from unknown aggregate scope.
 
-SEC operating cash flow minus capex is displayed as reported-source free cash flow. It is not treated as FCFF or FCFE, and the fictional 21% demonstration tax rate is never applied to provider data. Verified other claims, AFFO, stable dividend characteristics, and other unavailable valuation inputs are not assumed. Consequently, several models remain unavailable in Phase 3 even with financial statements present. Forward P/E and book-equity methods can calculate when their required compatible facts and explicit assumptions exist. Existing JavaScript formulas remain unchanged.
+Multiple listed share classes produce an explicit unverified-share-basis warning. Issuer-wide earnings and shares cannot be assumed to match a specific class's quote. Historical per-share valuations require compatible class evidence or explicit user confirmation; an explicit quoted-class forward forecast remains a labeled user assumption. Ambiguous annual periods and equity including noncontrolling interests are also excluded from affected valuation inputs. Parent-specific net income and equity are not replaced by consolidated NCI-inclusive concepts.
+
+SEC operating cash flow minus capex is displayed as sourced free cash flow and is never automatically treated as FCFF or FCFE. Python models require complete components, explicit defensible forecasts, and validated enterprise/common-equity bridges. Missing claims, net borrowing, AFFO and dividend stability are not assumed. Manual comparison prices do not overwrite provider quotes or stored snapshots. Existing JavaScript formulas remain unchanged and are used only in Demo mode.
 
 Financial and market observation dates are displayed separately; a current quote and the latest annual statements are not presented as the same reporting date. A provider price is never labeled live merely because it was recently fetched. Provider mode research insights show data-availability notices instead of fictional commentary.
 
@@ -252,6 +272,8 @@ Financial and market observation dates are displayed separately; a current quote
 Tickers are validated before any provider request. Share-class dot/hyphen aliases resolve through the SEC mapping. Envelopes expose `status` and structured `warnings`; errors use `{ "error": { "code": "...", "message": "..." } }`. Invalid requests return 422, unsupported symbols 404, and unavailable providers/databases generally 503. Unexpected failures do not expose internal traces. CORS is configurable and rejects wildcard origins. Queries are parameterized, provider hosts are fixed, and HTTP client request URLs are not logged at INFO level because market API URLs carry credentials.
 
 ## Backend tests and integration verification
+
+The subsequent [live verification report](docs/live-data-verification.md) records successful SEC checks for AAPL, MSFT, NVDA, and ORCL; actual PostgreSQL persistence; and desktop/mobile Provider-mode verification. FMP profiles work for all four, while quotes/history/dividends work for AAPL/MSFT/NVDA and return subscription restrictions for ORCL. The original Phase 3 verification notes below describe the earlier mocked run.
 
 The default suite uses synthetic SEC fixtures, mocked HTTP transports, and isolated SQLite persistence. It never calls external financial APIs and needs no credentials.
 
@@ -285,9 +307,136 @@ Final checks passed: 118 backend tests including the PostgreSQL integration, 30 
 - The latest usable annual period drives valuations. Quarterly data is a historical statement view; no rolling TTM valuation or inferred annualization is introduced.
 - Filings refresh on demand after cache expiry. There is no global distributed rate limiter or production ingestion scheduler.
 - Market data requires configured licensed access. Quotes may be delayed or last-close values, and market share counts need not match diluted weighted financial shares. Differences and timestamps are shown.
-- There is no currency conversion, complete FCFF/FCFE forecast, inferred dividend stability, or sourced AFFO calculation. Methods that need these inputs remain unavailable.
+- There is no currency conversion, inferred dividend stability, or sourced AFFO calculation. Python supports complete FCFF/FCFE models, but incomplete provider components still require explicit analyst forecasts or remain unavailable.
 - Mobile checks use Chromium emulation; physical devices and Safari were not verified. Information-policy pages remain placeholders.
 
 ## Phase boundary
 
-Phase 3 implements backend infrastructure, sourced financial data ingestion, persistence, and explicit frontend provider integration. It does not implement OpenAI, AI financial reports, a production Python valuation engine, authentication, watchlists, payments, subscriptions, or production deployment. Stop here; Phase 4 requires the project owner's approval.
+Phase 6 improves financial-data interpretation, deterministic valuation safeguards and diagnostic presentation around the existing source-grounded AI research service. It does not implement authentication, watchlists, payments, subscriptions or portfolios. AI research remains optional; data and valuation tests use mocked OpenAI responses. Changes are not automatically committed or pushed. Fresh provider audits and any live AI verification require separate explicit authorization.
+
+## Phase 6.6 verified listing operations
+
+See the [coverage report](docs/phase66-active-listing-coverage.md),
+[baseline audit](docs/phase66-baseline-audit.md), and
+[source/license audit](docs/phase66-source-license-audit.md). SEC references,
+verified listing observations, financial statements and eligible models are
+independent capabilities. Public display rights must be confirmed before launch.
+
+After normal setup, apply the reviewed PostgreSQL migrations with `alembic upgrade
+head` from `backend`. The issuer-ownership migration preserves company IDs and
+financial history. It refuses ambiguous mappings; rollback refuses duplicated
+tickers rather than deleting or merging data. Use the existing dedicated `_test`
+database for migration checks, never a development reset. A populated legacy
+SQLite database with foreign keys enabled requires a separately reviewed offline
+migration because rebuilding its parent table can cascade into child facts.
+
+The import commands read **already authorized local files** and never download:
+
+```powershell
+# From backend; use the actual acquisition timestamp, not the source footer.
+.venv/Scripts/python.exe -m app.registry.importers ../.phase66.local/nasdaqlisted.txt --nasdaq-directory nasdaqlisted --retrieved-at YOUR_ACTUAL_UTC_TIMESTAMP
+.venv/Scripts/python.exe -m app.registry.importers ../.phase66.local/otherlisted.txt --nasdaq-directory otherlisted --retrieved-at YOUR_ACTUAL_UTC_TIMESTAMP
+# Protected retention review only; no source history is deleted.
+.venv/Scripts/python.exe -m app.registry.importers unused --retention-before 2026-10-01
+```
+
+Directory creation times retain their undocumented timezone. Omissions do not
+delist securities; contradictory sources block verification. Imports fail closed
+at the default 128 retained snapshots per source or 2,000,000 observation rows.
+Reviewed operator overrides `--max-source-snapshots` and `--max-observations`
+remain bounded; they never delete source history. No refresh scheduler is enabled.
+
+Search accepts an optional `listing_status=active|inactive|delisted|suspended|unknown`
+filter, preserving bounded pagination and explicit instrument/listing selection.
+Active status alone does not establish current verification or financial support.
+Company/search/coverage responses expose security form, issuer business category,
+display symbol and original verification clocks/provenance.
+
+Read-only audit, from the repository root:
+
+```powershell
+backend/.venv/Scripts/python.exe backend/scripts/audit_listing_coverage.py --as-of 2026-10-19 --data-mode retained_public --output .phase66.local/listing-counts.json
+backend/.venv/Scripts/python.exe backend/scripts/replay_coverage_sample.py --responses .phase66.local/retained-coverage-responses.json --output .phase66.local/retained-coverage-audit.json
+backend/.venv/Scripts/python.exe backend/scripts/replay_verified_coverage_sample.py --responses .phase66.local/verified-responses.json --output .phase66.local/verified-audit.json --matrix-output .phase66.local/verified-matrix.md
+```
+
+Create the ignored output directory first. The original replay uses retained
+reference-only public fixtures. The verified replay uses the approved dated
+30-security listing excerpts with separately retained financial fixtures. Both
+block HTTP and perform no fresh listing/financial acquisition. The
+SQL audit can additionally accept `--financial-sample` and `--matrix-output` for
+the same explicitly labeled local sample. Never combine synthetic/mocked and real
+coverage denominators. Routine pytest runs now block concrete HTTP transports;
+mocked transports and dedicated PostgreSQL connections remain available.
+
+## Phase 6.7 financial evidence and model coverage
+
+See the [financial coverage report](docs/phase67-financial-coverage.md) for the
+source/permission audit, all eleven model requirements, the 30-security sample,
+coverage denominators, preservation checks and remaining financial blockers.
+The approved SEC audit expanded actual financial evidence, but the main
+multi-model/current-valuation objective remains open on verified identity,
+financial scope and market evidence; Phase 6.7 is not declared complete on
+synthetic successes or successful downloads alone.
+
+The valuation API now exposes categorized `eligibility.blockers`,
+`data_completeness.reporting_periods`, separate compatibility/freshness
+assessments and a 13-stage `financial_coverage` inventory. These explain the
+existing Python engine decisions without replacing formulas or turning missing
+fields into zero. Candidate-input provenance retains both original reported
+records and effective assumptions. The dashboard displays model-specific
+blockers, period evidence and explicit single-model limitations while preserving
+editable assumptions, scenario/sensitivity controls and unavailable estimates.
+
+Normalization v5 separates common-only and total cash dividends, retains narrow
+PP&E depreciation separately from aggregate D&A, and checks exact effective
+reporting intervals before deriving metrics. Replaying five already retained
+SEC caches preserves 435 periods and every existing metric value, adding 407
+explicitly scoped dividend observations plus 30 directly reported diluted-common-income
+observations. Common income is reconciled only on the exact native EPS filing
+basis and never replaces consolidated FCFE income, quoted-class ownership or
+split verification. Diluted-common income is non-additive; YTD subtraction never
+synthesizes quarterly numerators, while explicitly reported quarters remain.
+These 437 scoped values do not establish per-share dividends
+or additional valuation eligibility. The production reviewed forecast
+scope allowlist remains empty until exhaustive working-capital/financing
+concepts receive a source-code economic review; provider scope flags cannot
+install that contract.
+
+Reproduce all 330 security/model decisions offline from the repository root:
+
+```powershell
+New-Item -ItemType Directory -Force .phase67.local | Out-Null
+backend/.venv/Scripts/python.exe backend/scripts/replay_financial_model_coverage.py --output .phase67.local/model-coverage-after.json --matrix-output .phase67.local/model-coverage-after.md
+# Separate source mode and current audit clock; performs no provider calls.
+backend/.venv/Scripts/python.exe backend/scripts/replay_financial_model_coverage.py --approved-excerpts --output .phase67.local/approved-model-coverage.json --matrix-output .phase67.local/approved-model-coverage.md
+```
+
+This maintained-excerpt replay blocks external HTTP, uses an in-memory SQLite
+registry, and loads neither application credentials nor the development
+database. The frozen 30-security sample still supports only AAPL and MSFT
+Forward P/E defaults, each policy-based and single-model; all 330 model decisions
+and default fair values remain unchanged. Dated estimates and method-family
+counts do not establish current prices or independent multi-model confirmation.
+
+No new migration, development financial write or live OpenAI request is part of
+this phase's offline implementation. Raw caches and generated reports stay in
+ignored local directories. The report records the explicitly approved bounded
+plan of at most eight sequential SEC companyfacts requests with exact
+identities, byte caps, timeouts and zero retries/redirects. It executed exactly
+eight HTTP 200 responses, transferring
+36,961,056 bytes with zero retries/redirects. The authorization is spent and
+included no FMP, Treasury, quote, listing refresh or OpenAI requests.
+
+The eight raw snapshots expose 129 annual and 531 quarterly normalized periods;
+the four newly audited issuers are AMZN, Alphabet, O and PGR. The maintained
+464,114-byte excerpt contains 886 original selected observations, not full
+company histories. Its eight reporting issuers are replayed as nine separate
+securities because GOOG and GOOGL retain distinct identity/class gates. All nine
+have financial statements but no current eligible/published default estimate:
+the original 19 October listing/issuer proof has expired under its existing
+TTL, no fresh quote was acquired, and independent financial/share/model blockers
+remain. A financial retrieval never renews listing proof or supplies class/FX
+conversions. The full raw files remain ignored and were not imported into the
+website database. The report records every request, source hash, exact scope and
+remaining limitation; any further acquisition requires separate approval.

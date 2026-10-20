@@ -8,6 +8,7 @@ from app.core.config import Settings
 from app.core.database import utcnow
 from app.main import create_app
 from app.models import CacheEntry, FinancialFact
+from app.services.normalization import NORMALIZATION_VERSION
 from app.providers.market_data import DisabledMarketDataProvider
 
 
@@ -90,7 +91,7 @@ def test_unsupported_ticker_and_uncached_provider_failure(client, fake_providers
 def test_financial_provider_failure_returns_explicit_stale_cache(client, fake_providers, session_factory):
     first = client.get("/api/stocks/MSFT/financials").json()
     with session_factory.begin() as session:
-        for key in ("sec:financials:0000000001:MSFT", "sec:facts:0000000001"):
+        for key in (f"sec:financials:0000000001:MSFT:v{NORMALIZATION_VERSION}", "sec:facts:0000000001"):
             session.get(CacheEntry, key).expires_at = utcnow() - timedelta(seconds=1)
     fake_providers[0].fail_facts = True
     response = client.get("/api/stocks/MSFT/financials")
@@ -209,7 +210,7 @@ def test_new_share_class_uses_stale_shared_facts_without_refreshing_timestamp(cl
     assert stale["status"] == "stale"
     assert stale["retrieved_at"] == original["retrieved_at"]
     with session_factory() as session:
-        assert session.get(CacheEntry, "sec:financials:0000000001:GOOGL") is None
+        assert session.get(CacheEntry, f"sec:financials:0000000001:GOOGL:v{NORMALIZATION_VERSION}") is None
 
 
 def test_historical_prices_expose_stale_identity_metadata(client, fake_providers, session_factory):

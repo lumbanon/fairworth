@@ -1,0 +1,1285 @@
+{
+  "description": "Small exact SEC Company Facts excerpts from existing local caches, audited read-only during Phase 6. These dated annual observations are not live provider verification or current market data. Missing concepts remain unknown. Original definitions and filing metadata are retained.",
+  "limitations": [
+    "LongTermDebt includes current maturities; DebtInstrumentCarryingAmount is a distinct gross amount.",
+    "DebtCurrent can include capital leases; CommercialPaper is a partial short-term borrowing scope.",
+    "Separate lease totals, working-capital changes and financing cash flows do not establish complete conventional debt, operating NWC or net borrowing.",
+    "No provider calls, financial-data substitutions, synthetic company values or changes to earlier fixtures."
+  ],
+  "companies": {
+    "AAPL": {
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json",
+      "retrieved_at": "2026-10-15T06:29:26.628752+00:00",
+      "selected_period": {
+        "fiscal_year": 2025,
+        "fiscal_period": "FY",
+        "start_date": "2024-09-29",
+        "end_date": "2025-09-27"
+      },
+      "companyfacts_excerpt": {
+        "cik": 320193,
+        "entityName": "Apple Inc.",
+        "facts": {
+          "us-gaap": {
+            "ShareBasedCompensation": {
+              "label": "Share-based Payment Arrangement, Noncash Expense",
+              "description": "Amount of noncash expense for share-based payment arrangement.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 12863000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "MarketableSecuritiesNoncurrent": {
+              "label": "Marketable Securities, Noncurrent",
+              "description": "Amount of investment in marketable security, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 77723000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31"
+                  }
+                ]
+              }
+            },
+            "LongTermDebt": {
+              "label": "Long-term Debt",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 90678000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtCurrent": {
+              "label": "Long-term Debt, Current Maturities",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 12350000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtNoncurrent": {
+              "label": "Long-term Debt, Excluding Current Maturities",
+              "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 78328000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31"
+                  }
+                ]
+              }
+            },
+            "CommercialPaper": {
+              "label": "Commercial Paper",
+              "description": "Carrying value as of the balance sheet date of short-term borrowings using unsecured obligations issued by banks, corporations and other borrowers to investors. The maturities of these money market securities generally do not exceed 270 days.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 7979000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentCarryingAmount": {
+              "label": "Long-term Debt, Gross",
+              "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 91281000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiability": {
+              "label": "Finance Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 1230000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiabilityCurrent": {
+              "label": "Finance Lease, Liability, Current",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease, classified as current.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 538000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiabilityNoncurrent": {
+              "label": "Finance Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 692000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiability": {
+              "label": "Operating Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 12490000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityCurrent": {
+              "label": "Operating Lease, Liability, Current",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as current.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 1579000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityNoncurrent": {
+              "label": "Operating Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 10911000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025Q3I"
+                  }
+                ]
+              }
+            },
+            "ProceedsFromIssuanceOfLongTermDebt": {
+              "label": "Proceeds from Issuance of Long-term Debt",
+              "description": "The cash inflow from a debt initially having maturity due after one year or beyond the operating cycle, if longer.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 4481000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "RepaymentsOfLongTermDebt": {
+              "label": "Repayments of Long-term Debt",
+              "description": "The cash outflow for debt initially having maturity due after one year or beyond the normal operating cycle, if longer.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 10932000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "ProceedsFromRepaymentsOfCommercialPaper": {
+              "label": "Proceeds from (Repayments of) Commercial Paper",
+              "description": "The net cash inflow or cash outflow from issuing (borrowing) and repaying commercial paper.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": -2032000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsReceivable": {
+              "label": "Increase (Decrease) in Accounts Receivable",
+              "description": "The increase (decrease) during the reporting period in amount due within one year (or one business cycle) from customers for the credit sale of goods and services.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 6682000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInInventories": {
+              "label": "Increase (Decrease) in Inventories",
+              "description": "The increase (decrease) during the reporting period in the aggregate value of all inventory held by the reporting entity, associated with underlying transactions that are classified as operating activities.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": -1400000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsPayable": {
+              "label": "Increase (Decrease) in Accounts Payable",
+              "description": "The increase (decrease) during the reporting period in the aggregate amount of liabilities incurred (and for which invoices have typically been received) and payable to vendors for goods and services received that are used in an entity's business.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 902000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "Depreciation": {
+              "label": "Depreciation",
+              "description": "The amount of expense recognized in the current period that reflects the allocation of the cost of tangible assets over the assets' useful lives. Includes production and non-production related depreciation.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 8000000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            },
+            "DepreciationDepletionAndAmortization": {
+              "label": "Depreciation, Depletion and Amortization",
+              "description": "The aggregate expense recognized in the current period that allocates the cost of tangible assets, intangible assets, or depleting assets to periods that benefit from use of the assets.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2025,
+                    "end": "2025-09-27",
+                    "val": 11698000000,
+                    "accn": "0000320193-25-000079",
+                    "form": "10-K",
+                    "filed": "2025-10-31",
+                    "frame": "CY2025",
+                    "start": "2024-09-29"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "MSFT": {
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+      "retrieved_at": "2026-10-16T05:52:41.999839+00:00",
+      "selected_period": {
+        "fiscal_year": 2026,
+        "fiscal_period": "FY",
+        "start_date": "2025-07-01",
+        "end_date": "2026-06-30"
+      },
+      "companyfacts_excerpt": {
+        "cik": 789019,
+        "entityName": "MICROSOFT CORPORATION",
+        "facts": {
+          "us-gaap": {
+            "ShareBasedCompensation": {
+              "label": "Share-based Payment Arrangement, Noncash Expense",
+              "description": "Amount of noncash expense for share-based payment arrangement.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 12405000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "LongTermInvestments": {
+              "label": "Long-term Investments",
+              "description": "The total amount of investments that are intended to be held for an extended period of time (longer than one operating cycle).",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 36348000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebt": {
+              "label": "Long-term Debt",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 40294000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtCurrent": {
+              "label": "Long-term Debt, Current Maturities",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 9227000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtNoncurrent": {
+              "label": "Long-term Debt, Excluding Current Maturities",
+              "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 31067000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentCarryingAmount": {
+              "label": "Long-term Debt, Gross",
+              "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 46136000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiability": {
+              "label": "Finance Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 66594000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiability": {
+              "label": "Operating Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 21925000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityNoncurrent": {
+              "label": "Operating Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 16532000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "RepaymentsOfDebtMaturingInMoreThanThreeMonths": {
+              "label": "Repayments of Debt, Maturing in More than Three Months",
+              "description": "The cash outflow from a repayment of a borrowing having initial term of repayment of more than three months. Includes repayments of short-term and long-term debt.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 3000000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsReceivable": {
+              "label": "Increase (Decrease) in Accounts Receivable",
+              "description": "The increase (decrease) during the reporting period in amount due within one year (or one business cycle) from customers for the credit sale of goods and services.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 12737000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInInventories": {
+              "label": "Increase (Decrease) in Inventories",
+              "description": "The increase (decrease) during the reporting period in the aggregate value of all inventory held by the reporting entity, associated with underlying transactions that are classified as operating activities.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 461000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsPayable": {
+              "label": "Increase (Decrease) in Accounts Payable",
+              "description": "The increase (decrease) during the reporting period in the aggregate amount of liabilities incurred (and for which invoices have typically been received) and payable to vendors for goods and services received that are used in an entity's business.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 5268000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "Depreciation": {
+              "label": "Depreciation",
+              "description": "The amount of expense recognized in the current period that reflects the allocation of the cost of tangible assets over the assets' useful lives. Includes production and non-production related depreciation.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 34300000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            },
+            "AmortizationOfIntangibleAssets": {
+              "label": "Amortization of Intangible Assets",
+              "description": "The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-06-30",
+                    "val": 4700000000,
+                    "accn": "0001193125-26-323660",
+                    "form": "10-K",
+                    "filed": "2026-07-29",
+                    "frame": "CY2026",
+                    "start": "2025-07-01"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "NVDA": {
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
+      "retrieved_at": "2026-10-15T06:30:03.729542+00:00",
+      "selected_period": {
+        "fiscal_year": 2026,
+        "fiscal_period": "FY",
+        "start_date": "2025-01-27",
+        "end_date": "2026-01-25"
+      },
+      "companyfacts_excerpt": {
+        "cik": 1045810,
+        "entityName": "NVIDIA CORP",
+        "facts": {
+          "us-gaap": {
+            "ShareBasedCompensation": {
+              "label": "Share-based Payment Arrangement, Noncash Expense",
+              "description": "Amount of noncash expense for share-based payment arrangement.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 6386000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "LongTermDebt": {
+              "label": "Long-term Debt",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 8468000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtCurrent": {
+              "label": "Long-term Debt, Current Maturities",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 999000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtNoncurrent": {
+              "label": "Long-term Debt, Excluding Current Maturities",
+              "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 7469000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25"
+                  }
+                ]
+              }
+            },
+            "DebtCurrent": {
+              "label": "Debt, Current",
+              "description": "Amount of short-term debt and current maturity of long-term debt and capital lease obligations due within one year or the normal operating cycle, if longer.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 999000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiability": {
+              "label": "Operating Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 2944000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityCurrent": {
+              "label": "Operating Lease, Liability, Current",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as current.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 372000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityNoncurrent": {
+              "label": "Operating Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 2572000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25"
+                  }
+                ]
+              }
+            },
+            "RepaymentsOfDebt": {
+              "label": "Repayments of Debt",
+              "description": "The cash outflow during the period from the repayment of aggregate short-term and long-term debt. Excludes payment of capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 0,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsReceivable": {
+              "label": "Increase (Decrease) in Accounts Receivable",
+              "description": "The increase (decrease) during the reporting period in amount due within one year (or one business cycle) from customers for the credit sale of goods and services.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 15399000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInInventories": {
+              "label": "Increase (Decrease) in Inventories",
+              "description": "The increase (decrease) during the reporting period in the aggregate value of all inventory held by the reporting entity, associated with underlying transactions that are classified as operating activities.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 11324000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsPayable": {
+              "label": "Increase (Decrease) in Accounts Payable",
+              "description": "The increase (decrease) during the reporting period in the aggregate amount of liabilities incurred (and for which invoices have typically been received) and payable to vendors for goods and services received that are used in an entity's business.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 3096000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "Depreciation": {
+              "label": "Depreciation",
+              "description": "The amount of expense recognized in the current period that reflects the allocation of the cost of tangible assets over the assets' useful lives. Includes production and non-production related depreciation.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 2400000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "AmortizationOfIntangibleAssets": {
+              "label": "Amortization of Intangible Assets",
+              "description": "The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 488000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            },
+            "DepreciationDepletionAndAmortization": {
+              "label": "Depreciation, Depletion and Amortization",
+              "description": "The aggregate expense recognized in the current period that allocates the cost of tangible assets, intangible assets, or depleting assets to periods that benefit from use of the assets.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-01-25",
+                    "val": 2843000000,
+                    "accn": "0001045810-26-000021",
+                    "form": "10-K",
+                    "filed": "2026-02-25",
+                    "frame": "CY2025",
+                    "start": "2025-01-27"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ORCL": {
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json",
+      "retrieved_at": "2026-10-15T06:30:17.742780+00:00",
+      "selected_period": {
+        "fiscal_year": 2026,
+        "fiscal_period": "FY",
+        "start_date": "2025-06-01",
+        "end_date": "2026-05-31"
+      },
+      "companyfacts_excerpt": {
+        "cik": 1341439,
+        "entityName": "Oracle Corporation",
+        "facts": {
+          "us-gaap": {
+            "ShareBasedCompensation": {
+              "label": "Share-based Payment Arrangement, Noncash Expense",
+              "description": "Amount of noncash expense for share-based payment arrangement.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 4811000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            },
+            "DebtCurrent": {
+              "label": "Debt, Current",
+              "description": "Amount of short-term debt and current maturity of long-term debt and capital lease obligations due within one year or the normal operating cycle, if longer.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 7199000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "DebtLongtermAndShorttermCombinedAmount": {
+              "label": "Debt, Long-term and Short-term, Combined Amount",
+              "description": "Represents the aggregate of total long-term debt, including current maturities and short-term debt.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 129541000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentCarryingAmount": {
+              "label": "Long-term Debt, Gross",
+              "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 130105000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2026Q2I"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiability": {
+              "label": "Finance Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 7701000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiabilityCurrent": {
+              "label": "Finance Lease, Liability, Current",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease, classified as current.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 620000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "FinanceLeaseLiabilityNoncurrent": {
+              "label": "Finance Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from finance lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 7081000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiability": {
+              "label": "Operating Lease, Liability",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 30190000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityCurrent": {
+              "label": "Operating Lease, Liability, Current",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as current.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 3542000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "OperatingLeaseLiabilityNoncurrent": {
+              "label": "Operating Lease, Liability, Noncurrent",
+              "description": "Present value of lessee's discounted obligation for lease payments from operating lease, classified as noncurrent.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 26648000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22"
+                  }
+                ]
+              }
+            },
+            "RepaymentsOfDebt": {
+              "label": "Repayments of Debt",
+              "description": "The cash outflow during the period from the repayment of aggregate short-term and long-term debt. Excludes payment of capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 6942000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            },
+            "ProceedsFromRepaymentsOfCommercialPaper": {
+              "label": "Proceeds from (Repayments of) Commercial Paper",
+              "description": "The net cash inflow or cash outflow from issuing (borrowing) and repaying commercial paper.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": -2285000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            },
+            "IncreaseDecreaseInAccountsReceivable": {
+              "label": "Increase (Decrease) in Accounts Receivable",
+              "description": "The increase (decrease) during the reporting period in amount due within one year (or one business cycle) from customers for the credit sale of goods and services.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 2190000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            },
+            "Depreciation": {
+              "label": "Depreciation",
+              "description": "The amount of expense recognized in the current period that reflects the allocation of the cost of tangible assets over the assets' useful lives. Includes production and non-production related depreciation.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 7623000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            },
+            "AmortizationOfIntangibleAssets": {
+              "label": "Amortization of Intangible Assets",
+              "description": "The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",
+              "units": {
+                "USD": [
+                  {
+                    "fp": "FY",
+                    "fy": 2026,
+                    "end": "2026-05-31",
+                    "val": 1671000000,
+                    "accn": "0001193125-26-277521",
+                    "form": "10-K",
+                    "filed": "2026-06-22",
+                    "frame": "CY2025",
+                    "start": "2025-06-01"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

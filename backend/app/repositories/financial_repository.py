@@ -2,12 +2,16 @@ import hashlib
 import json
 import math
 from datetime import date, datetime
+from uuid import NAMESPACE_URL, uuid5
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 
 from app.core.database import as_utc, utcnow
+from app.core.exceptions import ApiError
 from app.models import Company, FinancialFact, FinancialSnapshot, MarketSnapshot
+from app.models.security_registry import SecurityIssuer
+from app.providers.base import ProviderError, normalize_cik
 
 
 def content_hash(value):
@@ -54,8 +58,44 @@ class FinancialRepository:
         fields["currency"] = profile.get("currency")
         fields["updated_at"] = utcnow()
         with self.session_factory.begin() as session:
-            insert_ignore(session, Company, [fields], ["ticker"])
-            company = session.scalar(select(Company).where(Company.ticker == profile["ticker"]))
+            try:
+                cik = normalize_cik(profile.get("cik"))
+            except ProviderError:
+                raise ApiError("incompatible_financial_identity", "Financial ownership requires a valid SEC issuer identifier.", 409) from None
+            # Legacy registry rows may store an otherwise valid CIK without
+            # ten-digit padding. Resolve all possible representations through
+            # its unique index (at most ten keys), never create a second issuer
+            # because its equivalent historical identifier has fewer zeros.
+            digits = str(int(cik))
+            cik_keys = [digits.zfill(width) for width in range(len(digits), 11)]
+            matches = session.scalars(select(SecurityIssuer).where(SecurityIssuer.cik.in_(cik_keys))).all()
+            if len(matches) > 1:
+                raise ApiError("incompatible_financial_identity", "Multiple registry issuers represent this SEC identifier; ownership requires explicit reconciliation.", 409)
+            explicit_issuer = profile.get("issuer_id")
+            if explicit_issuer:
+                issuer = matches[0] if matches else None
+                if issuer is None or issuer.id != explicit_issuer:
+                    raise ApiError("incompatible_financial_identity", "The selected stable issuer is not registered with this SEC identifier; historical data cannot be reassigned.", 409)
+            else:
+                # A bare symbol cannot authorize ownership by a different issuer.
+                historical = session.scalars(select(Company).where(Company.ticker == profile["ticker"])).all()
+                if any(normalize_cik(row.cik) != cik for row in historical):
+                    raise ApiError("incompatible_financial_identity", "This ticker has historical data for another issuer. Select the registered issuer explicitly; historical observations cannot be reassigned.", 409)
+                historical_owners = {row.issuer_id for row in historical}
+                issuer = matches[0] if matches else None
+                if len(historical_owners) > 1 or historical_owners and (issuer is None or issuer.id not in historical_owners):
+                    raise ApiError("incompatible_financial_identity", "Historical company ownership conflicts with the registered SEC issuer; existing observations cannot be reassigned.", 409)
+                if issuer is None:
+                    source_key = "legacy-financial-cik:" + cik
+                    insert_ignore(session, SecurityIssuer, [{"id": str(uuid5(NAMESPACE_URL, source_key)),
+                        "source_key": source_key, "cik": cik, "name": profile["name"], "source_refs": [],
+                        "business_category": "unknown", "classification_evidence": {}, "updated_at": utcnow()}], ["cik"])
+                    issuer = session.scalar(select(SecurityIssuer).where(SecurityIssuer.cik == cik))
+            fields.update(cik=cik, issuer_id=issuer.id)
+            insert_ignore(session, Company, [fields], ["ticker", "issuer_id"])
+            company = session.scalar(select(Company).where(Company.ticker == profile["ticker"], Company.issuer_id == issuer.id))
+            if normalize_cik(company.cik) != cik:
+                raise ApiError("incompatible_financial_identity", "This ticker has historical data for another issuer. Its existing observations cannot be reassigned.", 409)
             for key, value in fields.items():
                 if value is not None:
                     setattr(company, key, value)

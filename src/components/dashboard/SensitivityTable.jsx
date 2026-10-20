@@ -6,8 +6,9 @@ import {
   validateModelAssumptions,
 } from "@/valuation/modelSelector";
 import { dollars, percent, number } from "@/lib/financialFormatting";
+import ProviderSensitivity from "./ProviderSensitivity";
 
-export default function SensitivityTable({ company, valuation }) {
+function DemoSensitivityTable({ company, valuation }) {
   const availableDCF = valuation.scenarios.base.results.find(
     (result) => result.id === "fcff",
   ).applicable;
@@ -178,4 +179,10 @@ export default function SensitivityTable({ company, valuation }) {
       )}
     </section>
   );
+}
+
+export default function SensitivityTable(props) {
+  return props.valuation.providerMode
+    ? <ProviderSensitivity {...props} />
+    : <DemoSensitivityTable {...props} />;
 }

@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import re
 import time
+from datetime import UTC, date, datetime
 from typing import Any
 
 import httpx
@@ -17,9 +18,31 @@ import httpx
 from app.providers.base import JsonHttpProvider, ProviderError, normalize_cik, validate_ticker
 
 
+def filing_regime(filing):
+    """Annual filing forms establish reporter regime, never currency or GAAP."""
+    filings = filing.get("filings")
+    recent = filings.get("recent") if isinstance(filings, dict) else None
+    if not isinstance(recent, dict) or not isinstance(recent.get("form"), list) or not isinstance(recent.get("filingDate"), list):
+        return None
+    records = []
+    for form, filed in zip(recent["form"], recent["filingDate"]):
+        if form not in {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"} or not isinstance(filed, str):
+            continue
+        try:
+            observed = date.fromisoformat(filed)
+        except ValueError:
+            continue
+        records.append((observed, form))
+    if not records:
+        return None
+    _, form = max(records)
+    return "foreign_private_issuer" if form.startswith(("20-F", "40-F")) else "us_domestic_reporter"
+
+
 class SecEdgarProvider(JsonHttpProvider):
     name = "sec"
     TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+    EXCHANGE_TICKERS_URL = "https://www.sec.gov/files/company_tickers_exchange.json"
     DATA_ORIGIN = "https://data.sec.gov"
 
     def __init__(
@@ -104,6 +127,20 @@ class SecEdgarProvider(JsonHttpProvider):
         )
         return matches[: min(50, max(1, limit))]
 
+    async def security_directory(self):
+        """Acquire registrant references, never infer an actively listed universe."""
+        from app.registry.importers import sec_reference_records
+        raw = await self._sec_json(self.EXCHANGE_TICKERS_URL)
+        records = sec_reference_records(raw, source_url=self.EXCHANGE_TICKERS_URL)
+        if not records:
+            raise ProviderError("invalid_provider_response", "The SEC exchange reference contains no usable records.", 502)
+        now = datetime.now(UTC)
+        return {"records": records, "provenance": {"source": "sec-edgar-reference", "as_of": now.date().isoformat(),
+                "retrieved_at": now.isoformat(), "source_url": self.EXCHANGE_TICKERS_URL,
+                "complete_scope": False, "scope": "SEC registrant/ticker references, not a verified actively listed equity universe.",
+                "rights": "Official SEC reference data; access remains subject to SEC fair-access requirements.",
+                "version": "sec-exchange-reference-1"}}
+
     async def company(self, ticker: str) -> dict[str, Any]:
         symbol = validate_ticker(ticker)
         alias = symbol.replace(".", "-")
@@ -144,6 +181,7 @@ class SecEdgarProvider(JsonHttpProvider):
             "provider": self.name,
             "has_multiple_share_classes": multiple_classes,
             "share_class_basis_verified": False,
+            "filing_regime": filing_regime(filing),
             "warnings": warnings,
         }
 
@@ -152,8 +190,54 @@ class SecEdgarProvider(JsonHttpProvider):
         payload = await self._sec_json(f"{self.DATA_ORIGIN}/api/xbrl/companyfacts/CIK{identifier}.json")
         if not isinstance(payload.get("facts"), dict):
             raise ProviderError("invalid_provider_response", "SEC company facts are unavailable.", 502)
+        if "cik" in payload:
+            try:
+                matching_identity = normalize_cik(payload["cik"]) == identifier
+            except ProviderError:
+                matching_identity = False
+            if not matching_identity:
+                raise ProviderError("incompatible_financial_identity", "SEC facts do not match the requested company identifier.", 502)
         return payload
 
     async def submissions(self, cik: str | int) -> dict:
         identifier = normalize_cik(cik)
-        return await self._sec_json(f"{self.DATA_ORIGIN}/submissions/CIK{identifier}.json")
+        result = await self._sec_json(f"{self.DATA_ORIGIN}/submissions/CIK{identifier}.json")
+        if result.get("cik") is not None:
+            try:
+                matches = normalize_cik(result["cik"]) == identifier
+            except ProviderError:
+                matches = False
+            if not matches:
+                raise ProviderError("incompatible_financial_identity", "SEC submissions do not match the selected issuer.", 502)
+        return result
+
+    async def company_for_identity(self, identity: dict) -> dict:
+        """Enrich an already resolved instrument without resolving its symbol again."""
+        filing = await self.submissions(identity["cik"])
+        if filing.get("cik") is None:
+            raise ProviderError("incompatible_financial_identity", "SEC submissions omit the issuer identifier required for the selected security.", 502)
+        tickers = filing.get("tickers") if isinstance(filing.get("tickers"), list) else []
+        exchanges = filing.get("exchanges") if isinstance(filing.get("exchanges"), list) else []
+        permitted = {identity["ticker"]}
+        for alias in identity.get("symbol_aliases", []):
+            value = alias.get("symbol", alias.get("alias")) if isinstance(alias, dict) else alias
+            if isinstance(value, str):
+                permitted.add(value)
+        symbols = identity.get("provider_symbols") or {}
+        if isinstance(symbols, dict):
+            permitted.update(value for value in symbols.values() if isinstance(value, str))
+        matches = [index for index, symbol in enumerate(tickers) if symbol in permitted]
+        if tickers and not matches and identity.get("listing_status") == "active":
+            raise ProviderError("incompatible_security_identity", "SEC listed symbols do not match the resolved security.", 502)
+        index = matches[0] if matches else None
+        exchange = exchanges[index] if index is not None and index < len(exchanges) else identity.get("exchange")
+        warnings = []
+        if len(tickers) > 1:
+            warnings.append({"field": "shares", "code": "share_class_basis_unverified",
+                             "message": "SEC issuer facts cover multiple listed securities; a class-specific share and EPS basis must be verified."})
+        return {**identity, "name": filing.get("name") or identity["name"], "exchange": exchange,
+                "sector": None, "industry": filing.get("sicDescription") or None,
+                "description": filing.get("description") or None, "sic": str(filing["sic"]) if filing.get("sic") else None,
+                "currency": None, "provider": self.name,
+                "has_multiple_share_classes": len(tickers) > 1 if tickers else None,
+                "share_class_basis_verified": False, "filing_regime": filing_regime(filing), "warnings": warnings}

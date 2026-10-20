@@ -37,8 +37,8 @@ const sections = [
   ["Research Insights", "insights"],
 ];
 
-export default function DashboardLayout({ children }) {
-  const { pathname, hash } = useLocation();
+export default function DashboardLayout({ children, showAIResearch = false }) {
+  const { pathname, search, hash } = useLocation();
   const { mode } = useDataMode();
   return (
     <div className="research-shell">
@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }) {
           {sections.map(([label, id]) => (
             <Link
               key={id}
-              to={`${pathname}#${id}`}
+              to={`${pathname}${search}#${id}`}
               aria-current={
                 (hash || "#overview") === `#${id}` ? "location" : undefined
               }
@@ -56,6 +56,7 @@ export default function DashboardLayout({ children }) {
               {label}
             </Link>
           ))}
+          {showAIResearch && <Link to={`${pathname}${search}#ai-research`} aria-current={hash === "#ai-research" ? "location" : undefined}>AI Research</Link>}
         </nav>
         <div className="sidebar-note">
           {mode === "provider" ? "Provider workspace" : "Demonstration preview"}

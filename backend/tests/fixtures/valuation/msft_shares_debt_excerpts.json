@@ -1,0 +1,444 @@
+{
+  "description": "Small exact MSFT source excerpts for Phase 5 missing-shares/debt audit; not complete companyfacts. Inventory absence/latest dates were calculated from the complete retained raw SEC cache.",
+  "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+  "retrieved_at": "2026-10-15T06:29:45.656013+00:00",
+  "primary_filing_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm",
+  "primary_filing_accession": "0001193125-26-323660",
+  "raw_concept_inventory": {
+    "dei:EntityCommonStockSharesOutstanding": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-07-23",
+      "present_at_fy2026_end": false
+    },
+    "us-gaap:Revenues": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2010-12-31",
+      "present_at_fy2026_end": false
+    },
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:NetIncomeLoss": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:EarningsPerShareDiluted": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:CommonStockSharesOutstanding": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:DebtCurrent": {
+      "present_in_raw_companyfacts": false
+    },
+    "us-gaap:ShortTermBorrowings": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2018-06-30",
+      "present_at_fy2026_end": false
+    },
+    "us-gaap:CommercialPaper": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2025-06-30",
+      "present_at_fy2026_end": false
+    },
+    "us-gaap:LongTermDebt": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:LongTermDebtCurrent": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:LongTermDebtNoncurrent": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:DebtLongtermAndShorttermCombinedAmount": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2015-03-31",
+      "present_at_fy2026_end": false
+    },
+    "us-gaap:DebtInstrumentCarryingAmount": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:FinanceLeaseLiability": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    },
+    "us-gaap:OperatingLeaseLiability": {
+      "present_in_raw_companyfacts": true,
+      "latest_observation_date": "2026-06-30",
+      "present_at_fy2026_end": true
+    }
+  },
+  "companyfacts_excerpt": {
+    "cik": 789019,
+    "entityName": "MICROSOFT CORPORATION",
+    "facts": {
+      "dei": {
+        "EntityCommonStockSharesOutstanding": {
+          "label": "Entity Common Stock, Shares Outstanding",
+          "description": "Indicate number of shares or other units outstanding of each of registrant's classes of capital or common stock or other ownership interests, if and as stated on cover of related periodic report. Where multiple classes or units exist define each class/interest by adding class of stock items such as Common Class A [Member], Common Class B [Member] or Partnership Interest [Member] onto the Instrument [Domain] of the Entity Listings, Instrument.",
+          "units": {
+            "shares": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-07-23",
+                "val": 7425545491,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        }
+      },
+      "us-gaap": {
+        "Revenues": {
+          "label": "Revenues",
+          "description": "Amount of revenue recognized from goods sold, services rendered, insurance premiums, or other activities that constitute an earning process. Includes, but is not limited to, investment and interest income before deduction of interest expense when recognized as a component of revenue, and sales and trading gain (loss).",
+          "units": {
+            "USD": [
+              {
+                "fp": "Q2",
+                "fy": 2011,
+                "end": "2010-12-31",
+                "val": 36148000000,
+                "accn": "0001193125-11-015947",
+                "form": "10-Q",
+                "filed": "2011-01-27",
+                "start": "2010-07-01"
+              },
+              {
+                "fp": "Q2",
+                "fy": 2011,
+                "end": "2010-12-31",
+                "val": 19953000000,
+                "accn": "0001193125-11-015947",
+                "form": "10-Q",
+                "filed": "2011-01-27",
+                "frame": "CY2010Q4",
+                "start": "2010-10-01"
+              }
+            ]
+          }
+        },
+        "RevenueFromContractWithCustomerExcludingAssessedTax": {
+          "label": "Revenue from Contract with Customer, Excluding Assessed Tax",
+          "description": "Amount, excluding tax collected from customer, of revenue from satisfaction of performance obligation by transferring promised good or service to customer. Tax collected from customer is tax assessed by governmental authority that is both imposed on and concurrent with specific revenue-producing transaction, including, but not limited to, sales, use, value added and excise.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 331839000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026",
+                "start": "2025-07-01"
+              }
+            ]
+          }
+        },
+        "NetIncomeLoss": {
+          "label": "Net Income (Loss) Attributable to Parent",
+          "description": "The portion of profit or loss for the period, net of income taxes, which is attributable to the parent.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 133749000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026",
+                "start": "2025-07-01"
+              }
+            ]
+          }
+        },
+        "EarningsPerShareDiluted": {
+          "label": "Earnings Per Share, Diluted",
+          "description": "The amount of net income (loss) for the period available to each share of common stock or common unit outstanding during the reporting period and to each share or unit that would have been outstanding assuming the issuance of common shares or units for all dilutive potential common shares or units outstanding during the reporting period.",
+          "units": {
+            "USD/shares": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 17.95,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026",
+                "start": "2025-07-01"
+              }
+            ]
+          }
+        },
+        "CommonStockSharesOutstanding": {
+          "label": "Common Stock, Shares, Outstanding",
+          "description": "Number of shares of common stock outstanding. Common stock represent the ownership interest in a corporation.",
+          "units": {
+            "shares": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 7427000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "WeightedAverageNumberOfSharesOutstandingBasic": {
+          "label": "Weighted Average Number of Shares Outstanding, Basic",
+          "description": "Number of [basic] shares or units, after adjustment for contingently issuable shares or units and other shares or units not deemed outstanding, determined by relating the portion of time within a reporting period that common shares or units have been outstanding to the total time in that period.",
+          "units": {
+            "shares": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 7429000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026",
+                "start": "2025-07-01"
+              }
+            ]
+          }
+        },
+        "WeightedAverageNumberOfDilutedSharesOutstanding": {
+          "label": "Weighted Average Number of Shares Outstanding, Diluted",
+          "description": "The average number of shares or units issued and outstanding that are used in calculating diluted EPS or earnings per unit (EPU), determined based on the timing of issuance of shares or units in the period.",
+          "units": {
+            "shares": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 7453000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026",
+                "start": "2025-07-01"
+              }
+            ]
+          }
+        },
+        "ShortTermBorrowings": {
+          "label": "Short-term Debt",
+          "description": "Reflects the total carrying amount as of the balance sheet date of debt having initial terms less than one year or the normal operating cycle, if longer.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2018,
+                "end": "2018-06-30",
+                "val": 0,
+                "accn": "0001564590-18-019062",
+                "form": "10-K",
+                "filed": "2018-08-03",
+                "frame": "CY2018Q2I"
+              }
+            ]
+          }
+        },
+        "CommercialPaper": {
+          "label": "Commercial Paper",
+          "description": "Carrying value as of the balance sheet date of short-term borrowings using unsecured obligations issued by banks, corporations and other borrowers to investors. The maturities of these money market securities generally do not exceed 270 days.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2025,
+                "end": "2025-06-30",
+                "val": 0,
+                "accn": "0000950170-25-100235",
+                "form": "10-K",
+                "filed": "2025-07-30",
+                "frame": "CY2025Q2I"
+              }
+            ]
+          }
+        },
+        "LongTermDebt": {
+          "label": "Long-term Debt",
+          "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 40294000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "LongTermDebtCurrent": {
+          "label": "Long-term Debt, Current Maturities",
+          "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 9227000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "LongTermDebtNoncurrent": {
+          "label": "Long-term Debt, Excluding Current Maturities",
+          "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 31067000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "DebtLongtermAndShorttermCombinedAmount": {
+          "label": "Debt, Long-term and Short-term, Combined Amount",
+          "description": "Represents the aggregate of total long-term debt, including current maturities and short-term debt.",
+          "units": {
+            "USD": [
+              {
+                "fp": "Q3",
+                "fy": 2015,
+                "end": "2015-03-31",
+                "val": 31800000000,
+                "accn": "0001193125-15-144151",
+                "form": "10-Q",
+                "filed": "2015-04-23",
+                "frame": "CY2015Q1I"
+              }
+            ]
+          }
+        },
+        "DebtInstrumentCarryingAmount": {
+          "label": "Long-term Debt, Gross",
+          "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 46136000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "FinanceLeaseLiability": {
+          "label": "Finance Lease, Liability",
+          "description": "Present value of lessee's discounted obligation for lease payments from finance lease.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 66594000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        },
+        "OperatingLeaseLiability": {
+          "label": "Operating Lease, Liability",
+          "description": "Present value of lessee's discounted obligation for lease payments from operating lease.",
+          "units": {
+            "USD": [
+              {
+                "fp": "FY",
+                "fy": 2026,
+                "end": "2026-06-30",
+                "val": 21925000000,
+                "accn": "0001193125-26-323660",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026Q2I"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "fmp_share_float_excerpt": {
+    "retrieved_at": "2026-10-14T14:18:34.455583+00:00",
+    "endpoint": "shares-float",
+    "status_code": 200,
+    "symbol": "MSFT",
+    "date": "2026-10-13 21:32:45",
+    "outstandingShares": 7425550000,
+    "source": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm"
+  },
+  "limitations": [
+    "FMP share-float date is a provider processing timestamp, not verified share-observation date.",
+    "Latest dated filing-cover shares are not current-day quote shares.",
+    "Missing short-term borrowing components are unknown, including when an older observation was zero.",
+    "Long-term debt, gross debt instruments and finance/operating leases have separate scopes and must not be summed without a verified consistent methodology."
+  ]
+}

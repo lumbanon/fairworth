@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import AnalysisWorkspace from "./AnalysisWorkspace";
 import DashboardLayout from "./DashboardLayout";
 import DataModeControl from "./DataModeControl";
+import { stockLocation, securityFormLabel, listingVerificationSummary } from "@/lib/securityIdentity";
 
-function ProviderWorkspace({ ticker, retry }) {
+function ProviderWorkspace({ ticker, instrumentId, listingId, retry }) {
   const { setMode } = useDataMode();
   const [state, setState] = useState({ status: "loading" });
   useEffect(() => {
     const controller = new AbortController();
-    loadStock(ticker, { signal: controller.signal })
+    loadStock(ticker, { signal: controller.signal, instrumentId, listingId })
       .then((data) => {
         if (!controller.signal.aborted)
           setState({ status: "ready", company: adaptProviderStock(data) });
@@ -23,9 +24,9 @@ function ProviderWorkspace({ ticker, retry }) {
         if (!controller.signal.aborted) setState({ status: "error", error });
       });
     return () => controller.abort();
-  }, [ticker]);
+  }, [ticker, instrumentId, listingId]);
   if (state.status === "ready")
-    return <AnalysisWorkspace key={ticker} company={state.company} />;
+    return <AnalysisWorkspace key={`${state.company.instrumentId ?? ticker}-${state.company.listingId ?? "legacy"}`} company={state.company} />;
   return (
     <DashboardLayout>
       <DataModeControl />
@@ -51,6 +52,7 @@ function ProviderWorkspace({ ticker, retry }) {
                 : `Unable to load ${ticker} provider data.`}
             </h1>
             <p role="alert">{state.error.message}</p>
+            {state.error.code === "identity_ambiguous" && <div className="provider-identity-candidates"><p>Select the exchange, share class and listing you intend to research.</p>{(state.error.details?.candidates ?? []).map((candidate) => <Link key={candidate.listing_id ?? candidate.instrument_id} to={stockLocation(candidate)}>{[candidate.ticker, candidate.name, candidate.exchange || "Exchange unverified", securityFormLabel(candidate), candidate.share_class ? `Class ${candidate.share_class}` : "Share class unverified", `CIK ${candidate.cik || "unavailable"}`, candidate.listing_status ? `Listing ${candidate.listing_status.replaceAll("_", " ")}` : "Listing status unverified", listingVerificationSummary(candidate).label, candidate.identity_status && `Identity ${candidate.identity_status.replaceAll("_", " ")}`, candidate.valid_from && `From ${candidate.valid_from}`, candidate.valid_to && `Until ${candidate.valid_to}`, candidate.listing_id && `Listing ID ${candidate.listing_id}`].filter(Boolean).join(" · ")}</Link>)}</div>}
             <p>
               No demonstration figures have been substituted. You can retry or
               intentionally select demonstration mode.
@@ -70,14 +72,16 @@ function ProviderWorkspace({ ticker, retry }) {
   );
 }
 
-export default function StockDataWorkspace({ ticker }) {
+export default function StockDataWorkspace({ ticker, instrumentId, listingId }) {
   const { mode } = useDataMode();
   const [attempt, setAttempt] = useState(0);
   if (mode === "provider")
     return (
       <ProviderWorkspace
-        key={`${ticker}-${attempt}`}
+        key={`${ticker}-${instrumentId ?? "unresolved"}-${listingId ?? "unresolved"}-${attempt}`}
         ticker={ticker}
+        instrumentId={instrumentId}
+        listingId={listingId}
         retry={() => setAttempt((value) => value + 1)}
       />
     );

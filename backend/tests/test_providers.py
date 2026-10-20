@@ -350,3 +350,42 @@ async def test_fmp_error_json_is_safe_and_missing_api_key_disables_access():
         with pytest.raises(ProviderError) as disabled:
             await FmpMarketDataProvider(client, "").quote("MSFT")
         assert disabled.value.code == "provider_disabled"
+
+
+@pytest.mark.asyncio
+async def test_subscription_restrictions_are_not_retried_and_are_symbol_specific():
+    requests = []
+    def handler(request):
+        requests.append(request.url.params['symbol'])
+        if request.url.params['symbol'] == 'ORCL':
+            return httpx.Response(402, text='Subscription error with private upstream detail')
+        return httpx.Response(200, json=[{'symbol':'AAPL','price':100,'currency':'USD','exchange':'NASDAQ','timestamp':int(datetime.now(UTC).timestamp())}])
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = FmpMarketDataProvider(client, 'offline-fixture-key', retries=2)
+        for _ in range(3):
+            with pytest.raises(ProviderError) as denied:
+                await provider.quote('ORCL')
+            assert denied.value.code == 'provider_subscription_required'
+            assert denied.value.retryable is False
+            assert 'private' not in denied.value.message
+        assert (await provider.quote('AAPL'))['price'] == 100
+    assert requests == ['ORCL','AAPL']
+
+
+@pytest.mark.asyncio
+async def test_history_and_dividends_survive_unavailable_optional_profile():
+    calls = []
+    def handler(request):
+        calls.append(request.url.path)
+        if request.url.path.endswith('/profile'):
+            return httpx.Response(403)
+        if request.url.path.endswith('/dividends'):
+            return httpx.Response(200, json=[{'symbol':'AAPL','date':'2025-01-01','dividend':0.5}])
+        return httpx.Response(200, json=[{'symbol':'AAPL','date':'2025-01-01','close':100}])
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = FmpMarketDataProvider(client, 'offline-fixture-key')
+        prices = await provider.historical_prices('AAPL')
+        dividends = await provider.dividends('AAPL')
+        assert prices[0]['close'] == 100 and prices[0]['currency'] is None
+        assert dividends[0]['dividend'] == 0.5 and dividends[0]['currency'] is None
+    assert calls.count('/stable/profile') == 1

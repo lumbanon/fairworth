@@ -1,0 +1,563 @@
+{
+  "fixture_kind": "synthetic_complete_financial_scope",
+  "data_mode": "synthetic",
+  "description": "Synthetic aggregate observations for deterministic contract tests only. Positive tests inject an explicitly synthetic reviewed mapping; the production reviewed scope mapping is empty. No real provider, real financial coverage or inferred economic scope is claimed.",
+  "company": {
+    "ticker": "SYN",
+    "cik": "0000000001",
+    "issuer_id": "synthetic-issuer",
+    "instrument_id": "synthetic-common",
+    "listing_id": "synthetic-listing"
+  },
+  "retrieved_at": "2026-03-01T00:00:00Z",
+  "currency": "USD",
+  "annual": [
+    {
+      "fiscal_year": 2023,
+      "fiscal_period": "FY",
+      "start_date": "2023-01-01",
+      "end_date": "2023-12-31",
+      "currency": "USD",
+      "metrics": {
+        "revenue": 1000,
+        "operating_current_assets": 300,
+        "operating_current_liabilities": 200,
+        "debt_issuance": 60,
+        "debt_principal_repayments": 40
+      },
+      "provenance": {
+        "revenue": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "Revenues",
+            "metric": "revenue",
+            "unit": "USD",
+            "value": 1000,
+            "val": 1000,
+            "end": "2023-12-31",
+            "filed": "2024-02-04",
+            "accn": "0000000001-24-000001",
+            "form": "10-K",
+            "fy": 2023,
+            "fp": "FY",
+            "start": "2023-01-01"
+          }
+        ],
+        "operating_current_assets": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentAssets",
+            "metric": "operating_current_assets",
+            "unit": "USD",
+            "value": 300,
+            "val": 300,
+            "end": "2023-12-31",
+            "filed": "2024-02-04",
+            "accn": "0000000001-24-000001",
+            "form": "10-K",
+            "fy": 2023,
+            "fp": "FY",
+            "financial_scope": "noncash_noninvestment_operating_current_assets",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "operating_current_liabilities": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentLiabilities",
+            "metric": "operating_current_liabilities",
+            "unit": "USD",
+            "value": 200,
+            "val": 200,
+            "end": "2023-12-31",
+            "filed": "2024-02-04",
+            "accn": "0000000001-24-000001",
+            "form": "10-K",
+            "fy": 2023,
+            "fp": "FY",
+            "financial_scope": "nondebt_nonfinancing_operating_current_liabilities",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_issuance": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtIssuance",
+            "metric": "debt_issuance",
+            "unit": "USD",
+            "value": 60,
+            "val": 60,
+            "end": "2023-12-31",
+            "filed": "2024-02-04",
+            "accn": "0000000001-24-000001",
+            "form": "10-K",
+            "fy": 2023,
+            "fp": "FY",
+            "start": "2023-01-01",
+            "financial_scope": "complete_conventional_debt_issuance",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_principal_repayments": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtPrincipalRepayments",
+            "metric": "debt_principal_repayments",
+            "unit": "USD",
+            "value": 40,
+            "val": 40,
+            "end": "2023-12-31",
+            "filed": "2024-02-04",
+            "accn": "0000000001-24-000001",
+            "form": "10-K",
+            "fy": 2023,
+            "fp": "FY",
+            "start": "2023-01-01",
+            "financial_scope": "complete_conventional_debt_principal_repayments",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "fiscal_year": 2024,
+      "fiscal_period": "FY",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "currency": "USD",
+      "metrics": {
+        "revenue": 1000,
+        "operating_current_assets": 320,
+        "operating_current_liabilities": 200,
+        "debt_issuance": 80,
+        "debt_principal_repayments": 40
+      },
+      "provenance": {
+        "revenue": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "Revenues",
+            "metric": "revenue",
+            "unit": "USD",
+            "value": 1000,
+            "val": 1000,
+            "end": "2024-12-31",
+            "filed": "2025-02-04",
+            "accn": "0000000001-25-000001",
+            "form": "10-K",
+            "fy": 2024,
+            "fp": "FY",
+            "start": "2024-01-01"
+          }
+        ],
+        "operating_current_assets": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentAssets",
+            "metric": "operating_current_assets",
+            "unit": "USD",
+            "value": 320,
+            "val": 320,
+            "end": "2024-12-31",
+            "filed": "2025-02-04",
+            "accn": "0000000001-25-000001",
+            "form": "10-K",
+            "fy": 2024,
+            "fp": "FY",
+            "financial_scope": "noncash_noninvestment_operating_current_assets",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "operating_current_liabilities": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentLiabilities",
+            "metric": "operating_current_liabilities",
+            "unit": "USD",
+            "value": 200,
+            "val": 200,
+            "end": "2024-12-31",
+            "filed": "2025-02-04",
+            "accn": "0000000001-25-000001",
+            "form": "10-K",
+            "fy": 2024,
+            "fp": "FY",
+            "financial_scope": "nondebt_nonfinancing_operating_current_liabilities",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_issuance": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtIssuance",
+            "metric": "debt_issuance",
+            "unit": "USD",
+            "value": 80,
+            "val": 80,
+            "end": "2024-12-31",
+            "filed": "2025-02-04",
+            "accn": "0000000001-25-000001",
+            "form": "10-K",
+            "fy": 2024,
+            "fp": "FY",
+            "start": "2024-01-01",
+            "financial_scope": "complete_conventional_debt_issuance",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_principal_repayments": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtPrincipalRepayments",
+            "metric": "debt_principal_repayments",
+            "unit": "USD",
+            "value": 40,
+            "val": 40,
+            "end": "2024-12-31",
+            "filed": "2025-02-04",
+            "accn": "0000000001-25-000001",
+            "form": "10-K",
+            "fy": 2024,
+            "fp": "FY",
+            "start": "2024-01-01",
+            "financial_scope": "complete_conventional_debt_principal_repayments",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "fiscal_year": 2025,
+      "fiscal_period": "FY",
+      "start_date": "2025-01-01",
+      "end_date": "2025-12-31",
+      "currency": "USD",
+      "metrics": {
+        "revenue": 1000,
+        "operating_current_assets": 340,
+        "operating_current_liabilities": 200,
+        "debt_issuance": 70,
+        "debt_principal_repayments": 40
+      },
+      "provenance": {
+        "revenue": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "Revenues",
+            "metric": "revenue",
+            "unit": "USD",
+            "value": 1000,
+            "val": 1000,
+            "end": "2025-12-31",
+            "filed": "2026-02-04",
+            "accn": "0000000001-26-000001",
+            "form": "10-K",
+            "fy": 2025,
+            "fp": "FY",
+            "start": "2025-01-01"
+          }
+        ],
+        "operating_current_assets": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentAssets",
+            "metric": "operating_current_assets",
+            "unit": "USD",
+            "value": 340,
+            "val": 340,
+            "end": "2025-12-31",
+            "filed": "2026-02-04",
+            "accn": "0000000001-26-000001",
+            "form": "10-K",
+            "fy": 2025,
+            "fp": "FY",
+            "financial_scope": "noncash_noninvestment_operating_current_assets",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "operating_current_liabilities": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedOperatingCurrentLiabilities",
+            "metric": "operating_current_liabilities",
+            "unit": "USD",
+            "value": 200,
+            "val": 200,
+            "end": "2025-12-31",
+            "filed": "2026-02-04",
+            "accn": "0000000001-26-000001",
+            "form": "10-K",
+            "fy": 2025,
+            "fp": "FY",
+            "financial_scope": "nondebt_nonfinancing_operating_current_liabilities",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_issuance": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtIssuance",
+            "metric": "debt_issuance",
+            "unit": "USD",
+            "value": 70,
+            "val": 70,
+            "end": "2025-12-31",
+            "filed": "2026-02-04",
+            "accn": "0000000001-26-000001",
+            "form": "10-K",
+            "fy": 2025,
+            "fp": "FY",
+            "start": "2025-01-01",
+            "financial_scope": "complete_conventional_debt_issuance",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ],
+        "debt_principal_repayments": [
+          {
+            "source": "sec",
+            "cik": "0000000001",
+            "taxonomy": "synthetic-review-fixture",
+            "concept": "ReviewedDebtPrincipalRepayments",
+            "metric": "debt_principal_repayments",
+            "unit": "USD",
+            "value": 40,
+            "val": 40,
+            "end": "2025-12-31",
+            "filed": "2026-02-04",
+            "accn": "0000000001-26-000001",
+            "form": "10-K",
+            "fy": 2025,
+            "fp": "FY",
+            "start": "2025-01-01",
+            "financial_scope": "complete_conventional_debt_principal_repayments",
+            "scope_complete": true,
+            "value_state": "verified_value"
+          }
+        ]
+      },
+      "warnings": []
+    }
+  ],
+  "raw_source": {
+    "cik": 1,
+    "facts": {
+      "synthetic-review-fixture": {
+        "Revenues": {
+          "units": {
+            "USD": [
+              {
+                "start": "2023-01-01",
+                "end": "2023-12-31",
+                "val": 1000,
+                "accn": "0000000001-24-000001",
+                "filed": "2024-02-04",
+                "form": "10-K",
+                "fy": 2023,
+                "fp": "FY"
+              },
+              {
+                "start": "2024-01-01",
+                "end": "2024-12-31",
+                "val": 1000,
+                "accn": "0000000001-25-000001",
+                "filed": "2025-02-04",
+                "form": "10-K",
+                "fy": 2024,
+                "fp": "FY"
+              },
+              {
+                "start": "2025-01-01",
+                "end": "2025-12-31",
+                "val": 1000,
+                "accn": "0000000001-26-000001",
+                "filed": "2026-02-04",
+                "form": "10-K",
+                "fy": 2025,
+                "fp": "FY"
+              }
+            ]
+          }
+        },
+        "ReviewedOperatingCurrentAssets": {
+          "units": {
+            "USD": [
+              {
+                "end": "2023-12-31",
+                "val": 300,
+                "accn": "0000000001-24-000001",
+                "filed": "2024-02-04",
+                "form": "10-K",
+                "fy": 2023,
+                "fp": "FY"
+              },
+              {
+                "end": "2024-12-31",
+                "val": 320,
+                "accn": "0000000001-25-000001",
+                "filed": "2025-02-04",
+                "form": "10-K",
+                "fy": 2024,
+                "fp": "FY"
+              },
+              {
+                "end": "2025-12-31",
+                "val": 340,
+                "accn": "0000000001-26-000001",
+                "filed": "2026-02-04",
+                "form": "10-K",
+                "fy": 2025,
+                "fp": "FY"
+              }
+            ]
+          }
+        },
+        "ReviewedOperatingCurrentLiabilities": {
+          "units": {
+            "USD": [
+              {
+                "end": "2023-12-31",
+                "val": 200,
+                "accn": "0000000001-24-000001",
+                "filed": "2024-02-04",
+                "form": "10-K",
+                "fy": 2023,
+                "fp": "FY"
+              },
+              {
+                "end": "2024-12-31",
+                "val": 200,
+                "accn": "0000000001-25-000001",
+                "filed": "2025-02-04",
+                "form": "10-K",
+                "fy": 2024,
+                "fp": "FY"
+              },
+              {
+                "end": "2025-12-31",
+                "val": 200,
+                "accn": "0000000001-26-000001",
+                "filed": "2026-02-04",
+                "form": "10-K",
+                "fy": 2025,
+                "fp": "FY"
+              }
+            ]
+          }
+        },
+        "ReviewedDebtIssuance": {
+          "units": {
+            "USD": [
+              {
+                "start": "2023-01-01",
+                "end": "2023-12-31",
+                "val": 60,
+                "accn": "0000000001-24-000001",
+                "filed": "2024-02-04",
+                "form": "10-K",
+                "fy": 2023,
+                "fp": "FY"
+              },
+              {
+                "start": "2024-01-01",
+                "end": "2024-12-31",
+                "val": 80,
+                "accn": "0000000001-25-000001",
+                "filed": "2025-02-04",
+                "form": "10-K",
+                "fy": 2024,
+                "fp": "FY"
+              },
+              {
+                "start": "2025-01-01",
+                "end": "2025-12-31",
+                "val": 70,
+                "accn": "0000000001-26-000001",
+                "filed": "2026-02-04",
+                "form": "10-K",
+                "fy": 2025,
+                "fp": "FY"
+              }
+            ]
+          }
+        },
+        "ReviewedDebtPrincipalRepayments": {
+          "units": {
+            "USD": [
+              {
+                "start": "2023-01-01",
+                "end": "2023-12-31",
+                "val": 40,
+                "accn": "0000000001-24-000001",
+                "filed": "2024-02-04",
+                "form": "10-K",
+                "fy": 2023,
+                "fp": "FY"
+              },
+              {
+                "start": "2024-01-01",
+                "end": "2024-12-31",
+                "val": 40,
+                "accn": "0000000001-25-000001",
+                "filed": "2025-02-04",
+                "form": "10-K",
+                "fy": 2024,
+                "fp": "FY"
+              },
+              {
+                "start": "2025-01-01",
+                "end": "2025-12-31",
+                "val": 40,
+                "accn": "0000000001-26-000001",
+                "filed": "2026-02-04",
+                "form": "10-K",
+                "fy": 2025,
+                "fp": "FY"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

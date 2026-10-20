@@ -1,5 +1,5 @@
-// Phase 2 formulas use USD millions and millions of shares. API facts retain
-// absolute reported units. This adapter is the only place those units change.
+// Statement presentation uses millions; API facts retain absolute units.
+// Provider valuations use the Python response adapter, never these display units.
 const metricNames = {
   revenue: ["revenue"],
   costOfRevenue: ["cost_of_revenue"],
@@ -108,9 +108,10 @@ export function adaptProviderStock({
   quarterly,
   metrics,
   dataStatus,
+  coverage,
   requestWarnings = [],
 }) {
-  if (!profile?.company || !Array.isArray(annual?.periods))
+  if (!profile?.company || (annual != null && !Array.isArray(annual.periods)))
     throw new Error(
       "The financial data service returned an incomplete company response.",
     );
@@ -132,7 +133,7 @@ export function adaptProviderStock({
   const quarterlyFinancials = periods(quarterly);
   const latest = financials.at(-1) ?? adaptFinancialPeriod({ metrics: {} });
   const market = profile.market;
-  const currency = annual.currency ?? sourceCompany.currency;
+  const currency = annual?.currency ?? sourceCompany.currency;
   const warnings = collectWarnings(
     profile,
     market,
@@ -161,7 +162,7 @@ export function adaptProviderStock({
     /[.-][A-Z]$/.test(sourceCompany.ticker);
   if (sourceCompany.has_multiple_share_classes === true || shareClassUnknown) {
     const message =
-      "Issuer-wide SEC earnings and share counts have not been verified for this ticker’s share class. All per-share valuation estimates are unavailable; no share-class conversion is assumed.";
+      "Issuer-wide SEC earnings and share counts have not been verified for this ticker’s share class. Python checks each model’s required share basis; no share-class conversion is assumed.";
     modelCompatibility.all = message;
     warnings.push({
       field: "shares",
@@ -200,7 +201,7 @@ export function adaptProviderStock({
     )
   ) {
     const message =
-      "Reported book equity includes noncontrolling interests. A common-share equity basis is unavailable for the Phase 2 book-value formulas.";
+      "Reported book equity includes noncontrolling interests. A compatible common-share equity basis needs verification for book-value methods.";
     for (const id of ["pb", "residual", "graham"])
       modelCompatibility[id] = message;
     warnings.push({
@@ -215,10 +216,10 @@ export function adaptProviderStock({
     for (const id of ["pe", "peg", "graham"]) modelCompatibility[id] = message;
   } else if (
     Math.abs(latest.netIncome / latest.shares - latest.eps) >
-    Math.max(0.02, Math.abs(latest.eps) * 0.01)
+    0.02
   ) {
     const message =
-      "Reported diluted EPS does not reconcile with net income divided by diluted weighted shares. The Phase 2 earnings formulas are unavailable for this reporting basis.";
+      "Reported diluted EPS does not reconcile with net income divided by diluted weighted shares. Python validates the model-specific earnings basis before using historical per-share estimates.";
     for (const id of ["pe", "peg", "graham"]) modelCompatibility[id] = message;
     warnings.push({
       field: "diluted_eps",
@@ -226,32 +227,41 @@ export function adaptProviderStock({
       message,
     });
   }
+  const incompatibleFinancialUnits = (annual?.periods ?? []).some((period) =>
+    Object.entries(period.provenance ?? {}).some(([field, sources]) => {
+      const expectedUnit = field.includes("shares") ? "shares" : field.includes("eps") ? `${currency}/shares` : currency;
+      return Array.isArray(sources) && sources.some((source) => source.unit != null && source.unit !== expectedUnit);
+    }),
+  );
   if (
-    currency !== "USD" ||
-    (market?.price != null && market.currency !== "USD")
+    !/^[A-Z]{3}$/.test(currency ?? "") ||
+    incompatibleFinancialUnits ||
+    (market?.price != null && market.currency !== currency)
   ) {
     modelCompatibility.all =
-      "The current valuation engine requires compatible USD financial statements and USD market prices. No currency conversion has been invented.";
+      "Financial and market currencies are unavailable or incompatible. Python validates intrinsic-value units and comparison-price currency separately; no currency conversion is invented.";
     warnings.push({
       field: "currency",
       code: "incompatible_currency",
       message: modelCompatibility.all,
     });
   }
-  warnings.push({
-    field: "assumptions",
-    code: "user_assumptions_required",
-    message:
-      "Forward growth rates, discount rates, forecast periods, and target multiples are user assumptions. Enter them explicitly before calculating an estimate; no demonstration assumptions have been copied.",
-  });
-  warnings.push({
-    field: "cash_flow",
-    code: "cash_flow_basis_unavailable",
-    message:
-      "Reported free cash flow is shown in the statements. It is not substituted for FCFE or FCFF; enterprise-value models also require verified other claims.",
-  });
   return {
     ticker: sourceCompany.ticker,
+    displaySymbol: coverage?.identity?.display_symbol ?? sourceCompany.display_symbol ?? sourceCompany.ticker,
+    instrumentId: sourceCompany.instrument_id ?? coverage?.identity?.instrument_id ?? null,
+    listingId: sourceCompany.listing_id ?? coverage?.identity?.listing_id ?? null,
+    issuerId: sourceCompany.issuer_id ?? coverage?.identity?.issuer_id ?? null,
+    identity: { ...sourceCompany, ...(coverage?.identity ?? {}) },
+    instrumentType: sourceCompany.instrument_type ?? coverage?.identity?.instrument_type,
+    securityForm: coverage?.identity?.security_form ?? sourceCompany.security_form,
+    issuerBusinessCategory: coverage?.identity?.issuer_business_category ?? sourceCompany.issuer_business_category,
+    listingVerification: coverage?.identity?.listing_verification ?? sourceCompany.listing_verification,
+    shareClass: sourceCompany.share_class ?? coverage?.identity?.share_class,
+    listingStatus: sourceCompany.listing_status ?? coverage?.identity?.listing_status,
+    identityStatus: sourceCompany.identity_status ?? coverage?.identity?.identity_status,
+    adrMetadata: sourceCompany.adr_metadata ?? coverage?.identity?.adr_metadata ?? {},
+    coverage,
     companyName: sourceCompany.name,
     exchange: sourceCompany.exchange,
     sector: sourceCompany.sector,
@@ -284,14 +294,14 @@ export function adaptProviderStock({
     quarterlyFinancials,
     dataStatus,
     profileStatus: profile.status,
-    financialStatus: annual.status,
+    financialStatus: annual?.status ?? "unavailable",
     warnings,
     modelCompatibility,
     sourceReferences: [
       ...(profile.source_references ?? []),
-      ...(annual.source_references ?? []),
+      ...(annual?.source_references ?? []),
     ],
-    financialRetrievedAt: annual.retrieved_at,
+    financialRetrievedAt: annual?.retrieved_at,
     updatedLabel: latest.periodEnd
       ? `Latest annual period ended ${latest.periodEnd}`
       : "Annual financial statements unavailable",

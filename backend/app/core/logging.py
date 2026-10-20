@@ -6,3 +6,4 @@ def configure_logging():
     # Upstream URLs may contain licensed provider keys: suppress HTTP request logging.
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)

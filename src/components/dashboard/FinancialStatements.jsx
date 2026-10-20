@@ -386,7 +386,7 @@ function ProviderFinancialStatements({ company }) {
         Monetary totals shown in reported currency millions / billions; EPS
         retains reported per-share units. Weighted diluted shares and
         point-in-time shares have different reporting bases. Annual inputs alone
-        feed the Phase 2 valuation engine.{" "}
+        feed the Python valuation engine.{" "}
         {company.quarterlyFinancials.length
           ? "Quarterly statements use compatible standalone source periods."
           : "Quarterly data is unavailable."}{" "}

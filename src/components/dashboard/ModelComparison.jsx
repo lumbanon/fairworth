@@ -4,6 +4,12 @@ import { Input } from "@/components/ui/input";
 import { modelDefinitions } from "@/data/modelDefinitions";
 import { dollars, percent, direction } from "@/lib/financialFormatting";
 import { marketDistanceScale } from "@/lib/valuationChartColors";
+import { providerClassificationLabel } from "@/lib/providerValuation";
+import ProviderCalculationDetails from "./ProviderCalculationDetails";
+import ProviderAssumptionSource from "./ProviderAssumptionSource";
+import { completenessValue, diagnosticLabel } from "@/lib/providerDiagnostics";
+import ProviderModelInputPaths from "./ProviderModelInputPaths";
+import ProviderModelBlockers from "./ProviderModelBlockers";
 
 const ComparisonChart = lazy(() => import("./ComparisonChart"));
 const statuses = {
@@ -58,7 +64,7 @@ export default function ModelComparison({
             {valuation.results.map((result) => {
               const isEnabled = valuation.enabled[result.id];
               const upside =
-                result.status === "valid" &&
+                valuation.providerMode ? result.upside : result.status === "valid" &&
                 Number.isFinite(company.price) &&
                 company.price > 0
                   ? (result.fairValue / company.price - 1) * 100
@@ -84,7 +90,7 @@ export default function ModelComparison({
                       <span>{result.name}</span>
                     </label>
                   </th>
-                  <td>{dollars(result.fairValue)}</td>
+                  <td>{dollars(result.fairValue, valuation.providerMode ? company.currency : "USD")}</td>
                   <td className={direction(upside)}>{percent(upside, true)}</td>
                   <td>
                     <Input
@@ -93,7 +99,7 @@ export default function ModelComparison({
                       max="1000"
                       step="1"
                       disabled={!result.applicable || !isEnabled}
-                      value={valuation.weights[result.id]}
+                      value={valuation.weights[result.id] ?? 0}
                       aria-label={`${result.name} raw weight`}
                       className="research-weight-input"
                       onChange={(event) =>
@@ -120,6 +126,9 @@ export default function ModelComparison({
                         ? "Disabled"
                         : statuses[result.status]}
                     </span>
+                    {valuation.providerMode && result.classification && <span className="normalized-weight">{providerClassificationLabel(result.classification) || "Classification unavailable"}</span>}
+                    {valuation.providerMode && (typeof result.sourceQuality === "string" || result.sourceQuality?.level) && <span className="normalized-weight">Source quality: {typeof result.sourceQuality === "string" ? result.sourceQuality : result.sourceQuality.level}</span>}
+                    {valuation.providerMode && <ProviderModelBlockers eligibility={result.eligibility} compact />}
                   </td>
                   <td>
                     <button
@@ -142,8 +151,10 @@ export default function ModelComparison({
       </div>
       {details &&
         (() => {
-          const model = modelDefinitions.find((item) => item.id === details);
           const result = valuation.results.find((item) => item.id === details);
+          const model = valuation.providerMode
+            ? result.definition
+            : modelDefinitions.find((item) => item.id === details);
           return (
             <div id={`details-${details}`} className="model-details">
               <h3>{model.name}</h3>
@@ -156,15 +167,25 @@ export default function ModelComparison({
               </p>
               <p>
                 <strong>Required data:</strong>{" "}
-                {model.requiredInputs.join(", ")}. Default raw weight:{" "}
-                {model.defaultWeight}.
+                {model.requiredInputPaths?.length > 1 ? "Review the alternative financial input paths below" : model.requiredInputs.join(", ")}. Suggested raw weight:{" "}
+                {valuation.providerMode ? valuation.suggestedWeights[result.id] ?? 0 : model.defaultWeight}.
               </p>
               {result.warnings.map((warning) => (
                 <p key={warning} className="negative">
                   {warning}
                 </p>
               ))}
-              {result.applicable && (
+              {valuation.providerMode && result.classificationReasons?.map((reason) => <p className="research-caption" key={reason}>{reason}</p>)}
+              {valuation.providerMode && <ProviderModelBlockers eligibility={result.eligibility} />}
+              {valuation.providerMode && result.eligibility.missing_inputs?.length > 0 && <p className="research-caption"><strong>Missing inputs: </strong>{result.eligibility.missing_inputs.map((field) => field.replaceAll("_", " ")).join(", ")}. Provide a supported assumption or review the source basis. Missing financial facts remain unavailable.</p>}
+              {valuation.providerMode && result.sourceQuality?.warnings?.map((warning, index) => <p className="research-caption" key={index}>{typeof warning === "string" ? warning : warning.message}</p>)}
+              {valuation.providerMode && <p className="research-caption"><strong>Weight basis: </strong>{diagnosticLabel(valuation.diagnostics?.aggregation?.per_model_weight_sources?.[result.id] ?? "Basis not supplied")}. {result.eligibility.weight_explanation || "Configured weights are normalized across contributing eligible models."}</p>}
+              {valuation.providerMode && <ProviderModelInputPaths paths={result.eligibility.input_paths} />}
+              {valuation.providerMode && result.definition.requiredInputs.some((key) => valuation.assumptionMetadata?.[key]) && <details className="provider-model-assumptions"><summary>Main assumptions and sources</summary>
+                {result.definition.requiredInputs.filter((key) => valuation.assumptionMetadata?.[key]).map((key) => <div key={key} className="provider-assumption-record"><h4>{diagnosticLabel(key)} · {completenessValue(valuation.assumptionMetadata[key])}</h4><ProviderAssumptionSource metadata={valuation.assumptionMetadata[key]} overridden={valuation.overriddenKeys?.includes(key)} /></div>)}
+              </details>}
+              {valuation.providerMode && <ProviderCalculationDetails details={result.details} currency={company.currency} />}
+              {(result.applicable || valuation.providerMode) && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -189,18 +210,19 @@ export default function ModelComparison({
             results={valuation.results}
             enabled={valuation.enabled}
             fairValue={valuation.summary.fairValue}
-            marketPrice={company.price}
+            marketPrice={valuation.providerMode ? valuation.comparisonPrice : company.price}
+            currency={valuation.providerMode ? company.currency : "USD"}
           />
         </Suspense>
       </div>
       <p className="research-chart-key">
         <span>
           <i className="chart-key-line" aria-hidden="true" />
-          Market price: {dollars(company.price)}
+          {valuation.providerMode && valuation.market?.source_type === "user" ? "User-provided market price" : "Market price"}: {dollars(valuation.providerMode ? valuation.comparisonPrice : company.price, valuation.providerMode ? company.currency : "USD")}
         </span>
         <span>
           <i className="chart-key-line chart-key-blue" aria-hidden="true" />
-          Weighted estimate: {dollars(valuation.summary.fairValue)}
+          Weighted estimate: {dollars(valuation.summary.fairValue, valuation.providerMode ? company.currency : "USD")}
         </span>
       </p>
       <div
@@ -208,7 +230,7 @@ export default function ModelComparison({
         role="group"
         aria-label="Bar color scale"
       >
-        <p>Absolute difference from market price</p>
+        <p>{valuation.providerMode && valuation.comparisonPrice == null ? "Comparison price unavailable · neutral bars" : "Absolute difference from market price"}</p>
         <div>
           {marketDistanceScale.map((band) => (
             <span key={band.label}>

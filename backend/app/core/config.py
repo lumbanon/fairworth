@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from datetime import date
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +23,50 @@ class Settings(BaseSettings):
     historical_cache_ttl_seconds: int = Field(default=3600, ge=1)
     market_max_age_seconds: int = Field(default=172800, ge=1)
     api_history_limit: int = Field(default=365, ge=1, le=2000)
+    # Search reads persistent reference data; new directory access is opt-in.
+    registry_bootstrap_enabled: bool = False
+    registry_cache_ttl_seconds: int = Field(default=86400, ge=60, le=604800)
+    valuation_input_cache_seconds: int = Field(default=60, ge=1, le=300)
+    valuation_calculation_timeout_seconds: float = Field(default=8, ge=1, le=30)
+    valuation_forecast_years: int = Field(default=5, ge=1, le=20)
+    valuation_terminal_growth: float = Field(default=0.02, ge=-0.05, le=0.05)
+    valuation_benchmark_cost_of_equity: float = Field(default=0.10, gt=0, le=0.5)
+    valuation_allow_benchmark_cost_of_equity: bool = True
+    valuation_minimum_forecast_growth: float = Field(default=-0.15, ge=-0.95, le=0)
+    valuation_maximum_forecast_growth: float = Field(default=0.20, ge=0, le=1)
+    valuation_maximum_growth_dispersion: float = Field(default=1.0, ge=0, le=5)
+    valuation_historical_multiple_years: int = Field(default=5, ge=3, le=10)
+    valuation_historical_multiple_minimum_years: int = Field(default=3, ge=3, le=10)
+    valuation_automatic_inputs_enabled: bool = True
+    valuation_treasury_enabled: bool = True
+    valuation_assumption_cache_seconds: int = Field(default=86400, ge=60, le=604800)
+    valuation_erp_value: float | None = Field(default=None, ge=0, le=0.3)
+    valuation_erp_source: str = ""
+    valuation_erp_publication_date: date | None = None
+    valuation_erp_methodology: str = ""
+    valuation_erp_market: str = "US"
+    # AI is opt-in; no implicit model or paid generation on installation.
+    ai_research_enabled: bool = False
+    openai_api_key: str = Field(default="", repr=False)
+    openai_model: str = Field(default="", max_length=100)
+    openai_request_timeout: float = Field(default=45, ge=1, le=120)
+    openai_max_output_tokens: int = Field(default=5000, ge=256, le=8000)
+    ai_max_context_tokens: int = Field(default=64000, ge=24000, le=64000)
+    ai_report_cache_ttl: int = Field(default=1800, ge=30, le=86400)
+    ai_max_concurrent_requests: int = Field(default=2, ge=1, le=4)
+    ai_client_requests_per_minute: int = Field(default=6, ge=1, le=30)
+    ai_client_requests_per_hour: int = Field(default=20, ge=1, le=100)
+    ai_global_generations_per_day: int = Field(default=50, ge=1, le=500)
+    ai_filings_enabled: bool = True
+    ai_filing_max_bytes: int = Field(default=1500000, ge=10000, le=3000000)
+    ai_filing_excerpt_chars: int = Field(default=2500, ge=300, le=5000)
+    ai_filing_max_documents: int = Field(default=2, ge=1, le=2)
+    ai_filing_cache_ttl: int = Field(default=86400, ge=300, le=604800)
+
+    @field_validator("valuation_erp_value", "valuation_erp_publication_date", mode="before")
+    @classmethod
+    def empty_optional_research_setting(cls, value):
+        return None if isinstance(value, str) and not value.strip() else value
 
     @field_validator("cors_origins")
     @classmethod

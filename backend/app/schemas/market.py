@@ -28,6 +28,7 @@ class PriceObservation(ApiModel):
 
 class PricesResponse(Envelope):
     ticker: str
+    identity: dict | None = None
     currency: str | None = None
     prices: list[PriceObservation]
     provider: str

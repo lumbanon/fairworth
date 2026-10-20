@@ -1,0 +1,1258 @@
+{
+  "description": "JPM latest annual normalized SEC excerpt from retained public companyfacts. No new financial retrieval; missing fields retained. No ordinary-share or current-listing assertion.",
+  "source": {
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json",
+    "retrieved_at": "2026-10-15T12:19:29.838468+00:00",
+    "sha256_canonical_json": "c5daa30ca30705122778539776ea7deb9861da18b89c618c75a9fb82f6c83d52"
+  },
+  "profile": {
+    "company": {
+      "ticker": "JPM",
+      "name": "JPMORGAN CHASE & CO",
+      "cik": "0000019617",
+      "exchange": "NYSE",
+      "sic": "6021",
+      "has_multiple_share_classes": true,
+      "share_class_basis_verified": false
+    }
+  },
+  "normalized": {
+    "currency": "USD",
+    "status": "partial",
+    "normalization_version": 4,
+    "source_references": [
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-12-000163",
+        "form": "10-K",
+        "filed": "2012-02-29",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961712000163/0000019617-12-000163-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-11-019773",
+        "form": "10-K",
+        "filed": "2011-02-28",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012311019773/0000950123-11-019773-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-10-016029",
+        "form": "10-K",
+        "filed": "2010-02-24",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012310016029/0000950123-10-016029-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-10-102689",
+        "form": "10-Q",
+        "filed": "2010-11-09",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012310102689/0000950123-10-102689-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-10-074254",
+        "form": "10-Q",
+        "filed": "2010-08-06",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012310074254/0000950123-10-074254-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-10-047138",
+        "form": "10-Q",
+        "filed": "2010-05-10",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012310047138/0000950123-10-047138-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-13-000221",
+        "form": "10-K",
+        "filed": "2013-02-28",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961713000221/0000019617-13-000221-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-11-000264",
+        "form": "10-Q",
+        "filed": "2011-11-04",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961711000264/0000019617-11-000264-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0001193125-11-212045",
+        "form": "10-Q",
+        "filed": "2011-08-05",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000119312511212045/0001193125-11-212045-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-11-045948",
+        "form": "10-Q",
+        "filed": "2011-05-06",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012311045948/0000950123-11-045948-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-14-000289",
+        "form": "10-K",
+        "filed": "2014-02-20",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961714000289/0000019617-14-000289-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-12-000308",
+        "form": "10-Q",
+        "filed": "2012-11-08",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961712000308/0000019617-12-000308-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-12-000264",
+        "form": "10-Q",
+        "filed": "2012-08-09",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961712000264/0000019617-12-000264-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-12-000262",
+        "form": "10-Q/A",
+        "filed": "2012-08-09",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961712000262/0000019617-12-000262-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-12-000213",
+        "form": "10-Q",
+        "filed": "2012-05-10",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961712000213/0000019617-12-000213-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-15-000272",
+        "form": "10-K",
+        "filed": "2015-02-24",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961715000272/0000019617-15-000272-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-13-000400",
+        "form": "10-Q",
+        "filed": "2013-11-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961713000400/0000019617-13-000400-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-13-000354",
+        "form": "10-Q",
+        "filed": "2013-08-07",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961713000354/0000019617-13-000354-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-13-000300",
+        "form": "10-Q",
+        "filed": "2013-05-08",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961713000300/0000019617-13-000300-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-16-000902",
+        "form": "10-K",
+        "filed": "2016-02-23",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961716000902/0000019617-16-000902-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-14-000451",
+        "form": "10-Q",
+        "filed": "2014-11-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961714000451/0000019617-14-000451-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-14-000409",
+        "form": "10-Q",
+        "filed": "2014-08-04",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961714000409/0000019617-14-000409-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-14-000339",
+        "form": "10-Q",
+        "filed": "2014-05-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961714000339/0000019617-14-000339-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-17-000314",
+        "form": "10-K",
+        "filed": "2017-02-28",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961717000314/0000019617-17-000314-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-15-000464",
+        "form": "10-Q",
+        "filed": "2015-11-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961715000464/0000019617-15-000464-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-15-000367",
+        "form": "10-Q",
+        "filed": "2015-08-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961715000367/0000019617-15-000367-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-15-000318",
+        "form": "10-Q",
+        "filed": "2015-05-05",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961715000318/0000019617-15-000318-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-18-000057",
+        "form": "10-K",
+        "filed": "2018-02-27",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961718000057/0000019617-18-000057-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-19-000054",
+        "form": "10-K",
+        "filed": "2019-02-26",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961719000054/0000019617-19-000054-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-16-001150",
+        "form": "10-Q",
+        "filed": "2016-11-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961716001150/0000019617-16-001150-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-16-001056",
+        "form": "10-Q",
+        "filed": "2016-08-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961716001056/0000019617-16-001056-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-16-000960",
+        "form": "10-Q",
+        "filed": "2016-04-29",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961716000960/0000019617-16-000960-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-18-000206",
+        "form": "10-Q",
+        "filed": "2018-10-31",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961718000206/0000019617-18-000206-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-18-000151",
+        "form": "10-Q",
+        "filed": "2018-08-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961718000151/0000019617-18-000151-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-18-000092",
+        "form": "10-Q",
+        "filed": "2018-05-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961718000092/0000019617-18-000092-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-17-000552",
+        "form": "10-Q",
+        "filed": "2017-11-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961717000552/0000019617-17-000552-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-17-000486",
+        "form": "10-Q",
+        "filed": "2017-08-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961717000486/0000019617-17-000486-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-17-000364",
+        "form": "10-Q",
+        "filed": "2017-05-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961717000364/0000019617-17-000364-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-20-000257",
+        "form": "10-K",
+        "filed": "2020-02-25",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961720000257/0000019617-20-000257-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-21-000236",
+        "form": "10-K",
+        "filed": "2021-02-23",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961721000236/0000019617-21-000236-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-19-000232",
+        "form": "10-Q",
+        "filed": "2019-11-04",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961719000232/0000019617-19-000232-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-19-000127",
+        "form": "10-Q",
+        "filed": "2019-08-06",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961719000127/0000019617-19-000127-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-19-000067",
+        "form": "10-Q",
+        "filed": "2019-05-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961719000067/0000019617-19-000067-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-22-000272",
+        "form": "10-K",
+        "filed": "2022-02-22",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961722000272/0000019617-22-000272-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-20-000438",
+        "form": "10-Q",
+        "filed": "2020-11-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961720000438/0000019617-20-000438-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-20-000372",
+        "form": "10-Q",
+        "filed": "2020-08-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961720000372/0000019617-20-000372-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-20-000299",
+        "form": "10-Q",
+        "filed": "2020-05-07",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961720000299/0000019617-20-000299-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-23-000231",
+        "form": "10-K",
+        "filed": "2023-02-21",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961723000231/0000019617-23-000231-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-21-000458",
+        "form": "10-Q",
+        "filed": "2021-11-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961721000458/0000019617-21-000458-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-21-000373",
+        "form": "10-Q",
+        "filed": "2021-08-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961721000373/0000019617-21-000373-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-21-000292",
+        "form": "10-Q",
+        "filed": "2021-05-04",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961721000292/0000019617-21-000292-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-24-000225",
+        "form": "10-K",
+        "filed": "2024-02-16",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961724000225/0000019617-24-000225-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-22-000492",
+        "form": "10-Q",
+        "filed": "2022-11-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961722000492/0000019617-22-000492-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-22-000422",
+        "form": "10-Q",
+        "filed": "2022-08-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961722000422/0000019617-22-000422-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-22-000319",
+        "form": "10-Q",
+        "filed": "2022-05-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961722000319/0000019617-22-000319-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-25-000270",
+        "form": "10-K",
+        "filed": "2025-02-14",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961725000270/0000019617-25-000270-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-23-000524",
+        "form": "10-Q",
+        "filed": "2023-11-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961723000524/0000019617-23-000524-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-23-000432",
+        "form": "10-Q",
+        "filed": "2023-08-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961723000432/0000019617-23-000432-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-23-000310",
+        "form": "10-Q",
+        "filed": "2023-05-03",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961723000310/0000019617-23-000310-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0001628280-26-008131",
+        "form": "10-K",
+        "filed": "2026-02-13",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/0001628280-26-008131-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-24-000611",
+        "form": "10-Q",
+        "filed": "2024-10-30",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961724000611/0000019617-24-000611-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-24-000453",
+        "form": "10-Q",
+        "filed": "2024-08-02",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961724000453/0000019617-24-000453-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-24-000326",
+        "form": "10-Q",
+        "filed": "2024-05-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961724000326/0000019617-24-000326-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0001628280-25-048859",
+        "form": "10-Q",
+        "filed": "2025-11-04",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000162828025048859/0001628280-25-048859-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-25-000615",
+        "form": "10-Q",
+        "filed": "2025-08-05",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961725000615/0000019617-25-000615-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000019617-25-000421",
+        "form": "10-Q",
+        "filed": "2025-05-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000001961725000421/0000019617-25-000421-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0001628280-26-054343",
+        "form": "10-Q",
+        "filed": "2026-08-06",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026054343/0001628280-26-054343-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0001628280-26-029344",
+        "form": "10-Q",
+        "filed": "2026-05-01",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000162828026029344/0001628280-26-029344-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-09-032832",
+        "form": "10-Q",
+        "filed": "2009-08-10",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012309032832/0000950123-09-032832-index.html"
+      },
+      {
+        "provider": "sec",
+        "cik": "0000019617",
+        "accession_number": "0000950123-09-060099",
+        "form": "10-Q",
+        "filed": "2009-11-09",
+        "url": "https://www.sec.gov/Archives/edgar/data/19617/000095012309060099/0000950123-09-060099-index.html"
+      }
+    ],
+    "annual": [
+      {
+        "fiscal_year": 2025,
+        "fiscal_period": "FY",
+        "start_date": "2025-01-01",
+        "end_date": "2025-12-31",
+        "currency": "USD",
+        "metrics": {
+          "revenue": 182447000000.0,
+          "cost_of_revenue": null,
+          "gross_profit": null,
+          "operating_income": null,
+          "pretax_income": 72595000000.0,
+          "income_tax_expense": 15547000000.0,
+          "net_income": 57048000000.0,
+          "basic_eps": 20.05,
+          "diluted_eps": 20.02,
+          "weighted_average_diluted_shares": 2781500000.0,
+          "weighted_average_basic_shares": 2776500000.0,
+          "cash_and_cash_equivalents": null,
+          "short_term_investments": null,
+          "total_current_assets": null,
+          "total_assets": 4424900000000.0,
+          "short_term_debt": 64776000000.0,
+          "current_debt_including_lease_obligations": null,
+          "commercial_paper": null,
+          "current_long_term_debt": null,
+          "long_term_debt": null,
+          "long_term_debt_including_current": null,
+          "gross_debt_instrument_carrying_amount": null,
+          "reported_total_debt": null,
+          "long_term_investments": null,
+          "noncurrent_marketable_securities": null,
+          "finance_lease_liability": null,
+          "finance_lease_liability_current": null,
+          "finance_lease_liability_noncurrent": null,
+          "operating_lease_liability": 9337000000.0,
+          "operating_lease_liability_current": null,
+          "operating_lease_liability_noncurrent": null,
+          "total_liabilities": 4062462000000.0,
+          "liabilities_and_equity": 4424900000000.0,
+          "total_equity_including_noncontrolling_interests": null,
+          "shareholders_equity": 362438000000.0,
+          "shares_outstanding": 2696200000.0,
+          "operating_cash_flow": -147782000000.0,
+          "capital_expenditures": null,
+          "depreciation_and_amortization": null,
+          "depreciation_expense": null,
+          "intangible_amortization_expense": 292000000.0,
+          "minority_interest": null,
+          "preferred_stock_value_outstanding": null,
+          "preferred_stock_stated_value": null,
+          "accounts_receivable": null,
+          "inventory": null,
+          "accounts_payable": null,
+          "dividends_paid": 16625000000.0,
+          "share_repurchases": 31591000000.0,
+          "interest_expense": null,
+          "stock_based_compensation": 3614000000.0,
+          "long_term_debt_proceeds": null,
+          "long_term_debt_repayments": null,
+          "total_debt_repayments": null,
+          "debt_repayments_maturing_over_three_months": null,
+          "net_commercial_paper_borrowing": null,
+          "change_in_accounts_receivable": null,
+          "change_in_inventory": null,
+          "change_in_accounts_payable": null,
+          "free_cash_flow": null,
+          "total_debt": null
+        },
+        "provenance": {
+          "revenue": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 182447000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "Revenues",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 182447000000,
+              "metric": "revenue",
+              "source": "sec"
+            }
+          ],
+          "pretax_income": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 72595000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 72595000000,
+              "metric": "pretax_income",
+              "source": "sec"
+            }
+          ],
+          "income_tax_expense": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 15547000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "IncomeTaxExpenseBenefit",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 15547000000,
+              "metric": "income_tax_expense",
+              "source": "sec"
+            }
+          ],
+          "net_income": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 57048000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "start": "2025-01-01",
+              "concept": "NetIncomeLoss",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 57048000000,
+              "frame": null,
+              "metric": "net_income",
+              "source": "sec"
+            }
+          ],
+          "basic_eps": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 20.05,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "EarningsPerShareBasic",
+              "taxonomy": "us-gaap",
+              "unit": "USD/shares",
+              "value": 20.05,
+              "metric": "basic_eps",
+              "source": "sec"
+            }
+          ],
+          "diluted_eps": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 20.02,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "EarningsPerShareDiluted",
+              "taxonomy": "us-gaap",
+              "unit": "USD/shares",
+              "value": 20.02,
+              "metric": "diluted_eps",
+              "source": "sec"
+            }
+          ],
+          "weighted_average_diluted_shares": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 2781500000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "WeightedAverageNumberOfDilutedSharesOutstanding",
+              "taxonomy": "us-gaap",
+              "unit": "shares",
+              "value": 2781500000,
+              "metric": "weighted_average_diluted_shares",
+              "source": "sec"
+            }
+          ],
+          "weighted_average_basic_shares": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 2776500000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "WeightedAverageNumberOfSharesOutstandingBasic",
+              "taxonomy": "us-gaap",
+              "unit": "shares",
+              "value": 2776500000,
+              "metric": "weighted_average_basic_shares",
+              "source": "sec"
+            }
+          ],
+          "total_assets": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "Assets",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "metric": "total_assets",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "Assets",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "frame": null,
+              "metric": "total_assets",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "Assets",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "frame": null,
+              "metric": "total_assets",
+              "source": "sec"
+            }
+          ],
+          "short_term_debt": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 64776000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "ShortTermBorrowings",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 64776000000,
+              "start": null,
+              "metric": "short_term_debt",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 64776000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "ShortTermBorrowings",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 64776000000,
+              "start": null,
+              "frame": null,
+              "metric": "short_term_debt",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 64776000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "ShortTermBorrowings",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 64776000000,
+              "start": null,
+              "frame": null,
+              "metric": "short_term_debt",
+              "source": "sec"
+            }
+          ],
+          "operating_lease_liability": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 9337000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "OperatingLeaseLiability",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 9337000000,
+              "start": null,
+              "metric": "operating_lease_liability",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 9337000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "OperatingLeaseLiability",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 9337000000,
+              "start": null,
+              "frame": null,
+              "metric": "operating_lease_liability",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 9337000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "OperatingLeaseLiability",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 9337000000,
+              "start": null,
+              "frame": null,
+              "metric": "operating_lease_liability",
+              "source": "sec"
+            }
+          ],
+          "total_liabilities": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4062462000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "Liabilities",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4062462000000,
+              "start": null,
+              "metric": "total_liabilities",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4062462000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "Liabilities",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4062462000000,
+              "start": null,
+              "frame": null,
+              "metric": "total_liabilities",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 4062462000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "Liabilities",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4062462000000,
+              "start": null,
+              "frame": null,
+              "metric": "total_liabilities",
+              "source": "sec"
+            }
+          ],
+          "liabilities_and_equity": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "LiabilitiesAndStockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "metric": "liabilities_and_equity",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "LiabilitiesAndStockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "frame": null,
+              "metric": "liabilities_and_equity",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 4424900000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "LiabilitiesAndStockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 4424900000000,
+              "start": null,
+              "frame": null,
+              "metric": "liabilities_and_equity",
+              "source": "sec"
+            }
+          ],
+          "shareholders_equity": [
+            {
+              "fp": "Q2",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 362438000000,
+              "accn": "0001628280-26-054343",
+              "form": "10-Q",
+              "filed": "2026-08-06",
+              "frame": "CY2025Q4I",
+              "concept": "StockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 362438000000,
+              "start": null,
+              "metric": "shareholders_equity",
+              "source": "sec"
+            },
+            {
+              "fp": "Q1",
+              "fy": 2026,
+              "end": "2025-12-31",
+              "val": 362438000000,
+              "accn": "0001628280-26-029344",
+              "form": "10-Q",
+              "filed": "2026-05-01",
+              "concept": "StockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 362438000000,
+              "start": null,
+              "frame": null,
+              "metric": "shareholders_equity",
+              "source": "sec"
+            },
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 362438000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "concept": "StockholdersEquity",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 362438000000,
+              "start": null,
+              "frame": null,
+              "metric": "shareholders_equity",
+              "source": "sec"
+            }
+          ],
+          "shares_outstanding": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 2696200000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025Q4I",
+              "concept": "CommonStockSharesOutstanding",
+              "taxonomy": "us-gaap",
+              "unit": "shares",
+              "value": 2696200000,
+              "start": null,
+              "metric": "shares_outstanding",
+              "source": "sec"
+            }
+          ],
+          "operating_cash_flow": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": -147782000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "NetCashProvidedByUsedInOperatingActivities",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": -147782000000,
+              "metric": "operating_cash_flow",
+              "source": "sec"
+            }
+          ],
+          "intangible_amortization_expense": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 292000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "AmortizationOfIntangibleAssets",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 292000000,
+              "metric": "intangible_amortization_expense",
+              "source": "sec"
+            }
+          ],
+          "dividends_paid": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 16625000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "PaymentsOfDividends",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 16625000000,
+              "metric": "dividends_paid",
+              "source": "sec"
+            }
+          ],
+          "share_repurchases": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 31591000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "PaymentsForRepurchaseOfCommonStock",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 31591000000,
+              "metric": "share_repurchases",
+              "source": "sec"
+            }
+          ],
+          "stock_based_compensation": [
+            {
+              "fp": "FY",
+              "fy": 2025,
+              "end": "2025-12-31",
+              "val": 3614000000,
+              "accn": "0001628280-26-008131",
+              "form": "10-K",
+              "filed": "2026-02-13",
+              "frame": "CY2025",
+              "start": "2025-01-01",
+              "concept": "ShareBasedCompensation",
+              "taxonomy": "us-gaap",
+              "unit": "USD",
+              "value": 3614000000,
+              "metric": "stock_based_compensation",
+              "source": "sec"
+            }
+          ]
+        },
+        "warnings": [
+          {
+            "field": "free_cash_flow",
+            "code": "missing_capex",
+            "message": "FY2025 FY (2025-12-31): capital expenditure data is unavailable; free cash flow cannot be calculated."
+          },
+          {
+            "field": "total_debt",
+            "code": "missing_debt_components",
+            "message": "FY2025 FY (2025-12-31): complete current and noncurrent debt components are unavailable."
+          }
+        ]
+      }
+    ],
+    "quarterly": [],
+    "warnings": []
+  }
+}
