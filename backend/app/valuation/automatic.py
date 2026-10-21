@@ -36,6 +36,20 @@ def usable_observation(record, *, unit=None):
 def compatible_statement_observation(record, inputs, field):
     """Do not overwrite a financial baseline with a different-period fact."""
     selected = inputs.get("reporting_period") or {}
+    if field == "debt":
+        # Re-check the original validated baseline as well as its diagnostic.
+        # Cached/API periods can omit their redundant currency field; they
+        # must not lose a conflict when the dataset provides that currency.
+        from app.services.normalization import reconcile_debt_evidence
+        baseline_facts = inputs.get("facts", {})
+        baseline = {**selected, "currency": inputs.get("currency"),
+                    "metrics": {key: fact.get("value") for key, fact in baseline_facts.items() if isinstance(fact, dict)},
+                    "provenance": {key: fact.get("provenance", []) for key, fact in baseline_facts.items() if isinstance(fact, dict)}}
+        if (inputs.get("financial_reconciliations", {}).get("debt", {}).get("status") == "conflict"
+                or reconcile_debt_evidence(baseline)["status"] == "conflict"):
+            # Another observation of one candidate cannot resolve competing
+            # same-period debt disclosures in the annual baseline.
+            return False
     selected_end = day(selected.get("end_date"))
     period = record.get("period") or record.get("financial_period") or {}
     declared_end = day(period.get("end_date", period.get("end"))) if isinstance(period, dict) else None
@@ -52,7 +66,7 @@ def compatible_statement_observation(record, inputs, field):
         return False
     if provenance:
         metric = "total_debt" if field == "debt" else "cash_and_cash_equivalents" if field == "cash" else field
-        checked = _fact(metric, record.get("value"), {**selected, "provenance": {metric: provenance}}, inputs.get("currency"), record.get("retrieved_at"))
+        checked = _fact(metric, record.get("value"), {**selected, "currency": inputs.get("currency"), "provenance": {metric: provenance}}, inputs.get("currency"), record.get("retrieved_at"))
         return checked["value"] is not None
     # Explicit source IDs can support additional non-SEC verified disclosures;
     # a provider label alone cannot establish a fact's original identity.

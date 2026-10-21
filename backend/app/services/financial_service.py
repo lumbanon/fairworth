@@ -5,6 +5,8 @@ from app.services.cache_service import CachedResult
 from app.services.company_service import combined_status, warning
 from app.services.metrics import calculate_metrics
 from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
+from app.core.database import as_utc
+from app.repositories.financial_repository import parse_instant
 
 
 class FinancialService:
@@ -48,10 +50,20 @@ class FinancialService:
                 if "ifrs-full" in raw.payload.get("facts", {}):
                     normalized.setdefault("warnings", []).append(warning("accounting_standard", "unsupported_ifrs_normalization", "IFRS source observations are retained, but compatible normalized financial fields are unavailable; no US GAAP or currency conversion was inferred."))
             self.repository.save_financials(company_id, extract_observations(raw.payload), normalized)
-            return CachedResult(normalized, raw.status, raw.retrieved_at, raw.warnings)
+            # Cache-only metadata is added after saving the financial snapshot;
+            # source expiry cannot change financial snapshot hashes or values.
+            normalized["_source_cache_provenance"] = {
+                "retrieved_at": as_utc(raw.retrieved_at).isoformat(),
+                "expires_at": as_utc(raw.expires_at).isoformat() if raw.expires_at is not None else None}
+            return CachedResult(normalized, raw.status, raw.retrieved_at, raw.warnings, expires_at=raw.expires_at)
 
         result = await self.cache.get_or_load(f"sec:financials:{company['cik']}:{cache_scope(company)}:v{NORMALIZATION_VERSION}", self.settings.sec_cache_ttl_seconds,
                                              "sec-edgar", load)
+        source_clock = result.payload.get("_source_cache_provenance") or {}
+        source_retrieved, source_expiry = parse_instant(source_clock.get("retrieved_at")), parse_instant(source_clock.get("expires_at"))
+        result.expires_at = (min(as_utc(result.expires_at), as_utc(source_expiry))
+                             if result.expires_at is not None and source_expiry is not None
+                             and source_retrieved is not None and as_utc(source_retrieved) == as_utc(result.retrieved_at) else None)
         # The normalized document has no raw SEC `cik` field. Its identity is
         # established by the validated raw source and issuer-scoped cache key.
         if result.payload.get("cik") is not None and normalize_cik(result.payload["cik"]) != normalize_cik(company["cik"]):

@@ -64,25 +64,40 @@ export function securityFormRestriction(value) {
 export function listingVerificationSummary(value) {
   const identity = securityIdentity(value);
   const verification = identity.listing_verification ?? {};
+  const expiry = identity.proof_expiry?.listing ?? {};
   const conflicts = Array.isArray(verification.conflicts) ? verification.conflicts : [];
-  const conflicting = verification.status === "conflicting" || verification.confidence === "conflicted" || conflicts.length > 0;
+  const conflicting = expiry.state === "conflicting" || verification.status === "conflicting" || verification.confidence === "conflicted" || conflicts.length > 0;
   const verified = !conflicting && verification.status === "verified" && verification.confidence === "source_backed";
   const freshness = [identity.registry_status, verification.freshness].filter((status) => status != null);
-  const stale = freshness.includes("stale") || verification.stale === true;
-  const observedOn = verification.observed_on;
+  const expired = expiry.state === "verification_expired" || verification.freshness === "verification_expired";
+  const stale = expired || freshness.includes("stale") || verification.stale === true;
+  const observedOn = verification.observed_on ?? expiry.observed_on;
   let validDate = false;
   if (typeof observedOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(observedOn)) {
     const observation = new Date(`${observedOn}T00:00:00.000Z`);
     validDate = Number.isFinite(observation.getTime()) && observation.toISOString().slice(0, 10) === observedOn && observedOn <= new Date().toISOString().slice(0, 10);
   }
-  const current = verified && validDate && !stale && freshness.length > 0 && freshness.every((status) => status === "fresh");
+  const current = verified && validDate && !stale && (!expiry.state || expiry.state === "verified") && freshness.length > 0 && freshness.every((status) => status === "fresh");
   let label = "Reference only · listing unverified";
   if (conflicting) label = "Listing sources conflict";
+  else if (expired) label = "Listing verification expired";
   else if (verified && !validDate) label = "Listing observation date unverified";
   else if (verified && identity.listing_status === "active") label = current ? "Verified active listing" : stale ? "Dated active-listing observation" : "Dated listing observation";
   else if (verified && ["inactive", "delisted", "suspended"].includes(identity.listing_status)) label = current ? `Verified ${identity.listing_status} listing` : stale ? `Dated ${identity.listing_status}-listing observation` : "Dated listing observation";
   else if (verified) label = "Listing status unverified";
-  return { ...verification, label, verified, current, stale, conflicting, observed_on: observedOn ?? null };
+  return { ...verification, ...expiry, label, verified, current, expired, stale, conflicting, observed_on: observedOn ?? null };
+}
+
+// Listing freshness and SEC issuer ownership are independent server assessments.
+// Never promote either proof using a quote or a financial retrieval timestamp.
+export function issuerLinkageSummary(value) {
+  const identity = securityIdentity(value);
+  const linkage = identity.issuer_linkage ?? identity.listing_verification?.issuer_linkage ?? {};
+  const expiry = identity.proof_expiry?.issuer_linkage ?? {};
+  const state = expiry.state;
+  const expired = state === "verification_expired";
+  const labels = { verified: "Verified issuer linkage", verification_expired: "Issuer linkage verification expired", conflicting: "Issuer linkage sources conflict", unverified: "Issuer linkage unverified" };
+  return { ...linkage, ...expiry, expired, current: state === "verified", label: labels[state] ?? "Issuer linkage freshness unassessed" };
 }
 
 export function listingSourceUrl(value) {

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field
 
 from app.schemas.common import ApiModel, Envelope
@@ -18,6 +20,8 @@ class SecurityIdentity(ApiModel):
     issuer_classification_evidence: dict = Field(default_factory=dict)
     listing_verification: dict = Field(default_factory=dict)
     issuer_linkage: dict = Field(default_factory=dict)
+    verification_state: Literal["verified", "verification_expired", "unverified", "conflicting"] | None = None
+    proof_expiry: dict = Field(default_factory=dict)
     filing_regime: str | None = None
     listing_status: str | None = None
     identity_status: str | None = None

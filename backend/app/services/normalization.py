@@ -10,11 +10,12 @@ from __future__ import annotations
 
 import math
 import re
+from copy import deepcopy
 from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
-NORMALIZATION_VERSION = 5
+NORMALIZATION_VERSION = 6
 
 # Ordered alternatives are never summed. Explicit total revenue takes priority
 # over a contract-revenue subtotal; differing aliases produce a quality warning.
@@ -34,6 +35,11 @@ METRIC_DEFINITIONS = {
     "weighted_average_diluted_shares": (("WeightedAverageNumberOfDilutedSharesOutstanding",), "shares", "duration"),
     "weighted_average_basic_shares": (("WeightedAverageNumberOfSharesOutstandingBasic",), "shares", "duration"),
     "cash_and_cash_equivalents": (("CashAndCashEquivalentsAtCarryingValue",), "USD", "instant"),
+    # These are disclosure scopes, never aliases for unrestricted bridge cash.
+    "cash_including_restricted_cash": (("CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",), "USD", "instant"),
+    "restricted_cash_current": (("RestrictedCashCurrent",), "USD", "instant"),
+    "restricted_cash_noncurrent": (("RestrictedCashNoncurrent",), "USD", "instant"),
+    "restricted_cash_and_investments": (("RestrictedCashAndInvestments",), "USD", "instant"),
     "short_term_investments": (("ShortTermInvestments", "MarketableSecuritiesCurrent"), "USD", "instant"),
     "total_current_assets": (("AssetsCurrent",), "USD", "instant"),
     "total_assets": (("Assets",), "USD", "instant"),
@@ -44,6 +50,7 @@ METRIC_DEFINITIONS = {
     "long_term_debt": (("LongTermDebtNoncurrent",), "USD", "instant"),
     "long_term_debt_including_current": (("LongTermDebt",), "USD", "instant"),
     "gross_debt_instrument_carrying_amount": (("DebtInstrumentCarryingAmount",), "USD", "instant"),
+    "debt_discount_premium_and_issuance_costs_net": (("DebtInstrumentUnamortizedDiscountPremiumAndDebtIssuanceCostsNet",), "USD", "instant"),
     "reported_total_debt": (("DebtLongtermAndShorttermCombinedAmount",), "USD", "instant"),
     "long_term_investments": (("LongTermInvestments",), "USD", "instant"),
     "noncurrent_marketable_securities": (("MarketableSecuritiesNoncurrent",), "USD", "instant"),
@@ -97,6 +104,7 @@ ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
 NON_ADDITIVE = {"basic_eps", "diluted_eps", "weighted_average_diluted_shares", "weighted_average_basic_shares", "common_net_income_diluted"}
 NON_NEGATIVE = {
     "cash_and_cash_equivalents", "short_term_investments", "total_current_assets", "total_assets",
+    "cash_including_restricted_cash", "restricted_cash_current", "restricted_cash_noncurrent", "restricted_cash_and_investments",
     "short_term_debt", "current_long_term_debt", "long_term_debt", "total_liabilities",
     "reported_total_debt", "liabilities_and_equity",
     "shares_outstanding", "weighted_average_diluted_shares", "capital_expenditures",
@@ -373,6 +381,128 @@ def complete_conventional_debt_provenance(records: list[dict], *, end_date: str 
     return _compatible(list(groups.values()), fiscal_year=year)
 
 
+def reconcile_debt_evidence(period: dict) -> dict:
+    """Retain competing debt scopes without choosing away a source conflict.
+
+    Candidates are evidence inventory, not extra valuation inputs. In particular,
+    gross instrument amounts, leases, issuance costs and commercial paper are
+    not added to a carrying-value aggregate. A numerical coincidence does not
+    establish a missing disclosure's sign, scope or completeness.
+    """
+    metrics, sources = period.get("metrics", {}), period.get("provenance", {})
+    fiscal_year, end = period.get("fiscal_year"), period.get("end_date")
+
+    def safe_copy(value):
+        # Legacy invalid observations remain unavailable, with source identity
+        # inspectable, rather than introducing non-JSON numbers into the API.
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        if isinstance(value, dict):
+            return {key: safe_copy(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [safe_copy(item) for item in value]
+        return deepcopy(value)
+
+    def amount(field):
+        value = metrics.get(field)
+        return value if (not isinstance(value, bool) and isinstance(value, (float, int))
+                         and math.isfinite(value) and value >= 0) else None
+
+    def verified_records(field):
+        records = sources.get(field)
+        value = amount(field)
+        if value is None or not isinstance(records, list) or not records:
+            return False
+        concepts = METRIC_DEFINITIONS[field][0]
+        derived = field == "long_term_debt_including_current" and any(
+            isinstance(record, dict) and record.get("derivation") for record in records)
+        allowed = {"LongTermDebtCurrent", "LongTermDebtNoncurrent"} if derived else set(concepts)
+        values = defaultdict(set)
+        for record in records:
+            if not isinstance(record, dict):
+                return False
+            value = record.get("value", record.get("val"))
+            filed = _day(record.get("filed"))
+            if (record.get("source") != "sec" or record.get("taxonomy") != "us-gaap"
+                    or record.get("concept") not in allowed or record.get("unit") != "USD"
+                    or record.get("start") is not None or record.get("end") != end
+                    or record.get("form") not in FORMS or filed is None
+                    or _day(end) is None or filed < _day(end)
+                    or not re.fullmatch(r"\d{10}-\d{2}-\d{6}", str(record.get("accn") or ""))
+                    or isinstance(value, bool) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or value < 0
+                    or isinstance(record.get("coefficient", 1), bool)
+                    or record.get("coefficient", 1) != 1
+                    or ("val" in record and record["val"] != value)):
+                return False
+            if derived and record.get("derivation") != "long_term_debt_including_current":
+                return False
+            if not derived and record.get("derivation"):
+                return False
+            values[record["concept"]].add(value)
+        if any(len(group) != 1 for group in values.values()) or (derived and set(values) != allowed):
+            return False
+        if not derived:
+            # Ordered concept alternatives are not additive. Every retained
+            # source observation must agree with this field's reported amount.
+            return all(math.isclose(item, amount(field), rel_tol=1e-10, abs_tol=.005)
+                       for group in values.values() for item in group)
+        original = sum(next(iter(group)) for group in values.values())
+        return math.isclose(original, amount(field), rel_tol=1e-10, abs_tol=.005)
+
+    definitions = (
+        ("reported_total_debt", ("reported_total_debt",), True),
+        ("short_term_plus_long_term", ("short_term_debt", "long_term_debt_including_current"), True),
+        ("short_term_plus_current_noncurrent", ("short_term_debt", "current_long_term_debt", "long_term_debt"), True),
+        ("reported_long_term", ("long_term_debt_including_current",), False),
+        ("current_plus_noncurrent", ("current_long_term_debt", "long_term_debt"), False),
+    )
+    candidates = []
+    for identifier, fields, full_scope in definitions:
+        missing = [field for field in fields if amount(field) is None]
+        groups = [sources.get(field, []) for field in fields]
+        compatible = period.get("currency") == "USD" and not missing and all(verified_records(field) for field in fields) and _compatible(groups, fiscal_year=fiscal_year)
+        records = [record for group in groups if isinstance(group, list) for record in group if isinstance(record, dict)]
+        value = sum(amount(field) for field in fields) if not missing else None
+        value = value if value is not None and math.isfinite(value) else None
+        compatible = bool(compatible and value is not None)
+        scope_complete = bool(compatible and full_scope and complete_conventional_debt_provenance(records, end_date=end))
+        candidates.append({"id": identifier, "component_fields": list(fields), "value": value,
+            "unit": period.get("currency"), "end_date": end, "missing_inputs": missing,
+            "compatible_source_context": bool(compatible), "scope_complete": scope_complete,
+            "scope": "complete_conventional_financial_debt" if full_scope else "long_term_debt_subtotal",
+            "provenance": safe_copy(records)})
+    indexed = {candidate["id"]: candidate for candidate in candidates}
+    comparisons = []
+    for left_id, right_id in (
+        ("reported_long_term", "current_plus_noncurrent"),
+        ("reported_total_debt", "short_term_plus_long_term"),
+        ("reported_total_debt", "short_term_plus_current_noncurrent"),
+    ):
+        left, right = indexed[left_id], indexed[right_id]
+        compatible = left["compatible_source_context"] and right["compatible_source_context"] and _compatible(
+            [left["provenance"], right["provenance"]], fiscal_year=fiscal_year)
+        difference = left["value"] - right["value"] if compatible else None
+        matches = compatible and math.isclose(left["value"], right["value"], rel_tol=1e-9, abs_tol=1)
+        comparisons.append({"left_candidate": left_id, "right_candidate": right_id,
+            "compatible_source_context": bool(compatible), "difference": difference,
+            "status": "matches" if matches else "conflict" if compatible else "not_comparable"})
+    conflict = any(comparison["status"] == "conflict" for comparison in comparisons)
+    effective = None if conflict else amount("total_debt")
+    excluded = {"gross_debt_instrument_carrying_amount": "Gross instrument carrying amount is not net conventional debt.",
+        "debt_discount_premium_and_issuance_costs_net": "Discount/premium/issuance-cost signs and instrument scope require original disclosure review; no automatic reconciliation.",
+        "commercial_paper": "A borrowing subtotal does not establish all short-term debt.",
+        "current_debt_including_lease_obligations": "Current debt includes potentially overlapping lease obligations.",
+        "finance_lease_liability": "Lease scope is separate from conventional financial debt.",
+        "operating_lease_liability": "Operating leases are not silently added to conventional financial debt."}
+    return {"methodology_version": "debt-scope-reconciliation-1", "status": "conflict" if conflict else "available" if effective is not None else "unavailable",
+        "effective_total_debt": effective, "unit": period.get("currency"), "end_date": end,
+        "candidates": candidates, "comparisons": comparisons,
+        "separate_scopes": [{"field": field, "value": safe_copy(metrics[field]), "reason": reason,
+                             "provenance": safe_copy(sources.get(field, []))}
+                            for field, reason in excluded.items() if metrics.get(field) is not None]}
+
+
 def _new_period(start: str, end: str, year: int, fp: str) -> dict:
     return {
         "fiscal_year": year,
@@ -478,6 +608,15 @@ def _derive_period(period: dict) -> None:
         _warn(warnings, "total_debt", "unverified_debt_scope", f"{label}: DebtCurrent can include capital leases and commercial paper is only a short-term borrowing subtotal; neither establishes complete conventional financial debt.")
     else:
         _warn(warnings, "total_debt", "missing_debt_components", f"{label}: complete current and noncurrent debt components are unavailable.")
+
+    reconciliation = reconcile_debt_evidence(period)
+    period.setdefault("financial_reconciliations", {})["debt"] = reconciliation
+    if reconciliation["status"] == "conflict":
+        metrics["total_debt"] = None
+        sources.pop("total_debt", None)
+        _warn(warnings, "total_debt", "unresolved_debt_reconciliation", f"{label}: compatible reported debt candidates disagree; original totals, components and discrepancies are retained, and no candidate is chosen as complete valuation debt.")
+    if metrics["cash_including_restricted_cash"] is not None:
+        _warn(warnings, "cash_including_restricted_cash", "restricted_cash_scope", f"{label}: this reported balance includes restricted cash; it is not substituted for unrestricted cash and cash equivalents or operating working capital.")
 
     if metrics["weighted_average_diluted_shares"] is None and metrics["shares_outstanding"] is None:
         _warn(warnings, "shares", "missing_share_count", f"{label}: no share count is available for this reporting period.")

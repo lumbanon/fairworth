@@ -12,7 +12,8 @@ IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "ticker", "displa
                    "source_refs", "classification_evidence", "provider_symbols", "adr_metadata", "adr_ratio", "adr_ratio_verified",
                    "security_form", "issuer_business_category", "issuer_classification_evidence", "listing_verification", "issuer_linkage",
                    "share_basis_verified", "reporting_currency", "quote_currency", "filing_regime", "valid_from", "valid_to", "symbol_reassigned",
-                   "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status", "registry_warnings")
+                   "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status", "registry_warnings",
+                   "verification_state", "proof_expiry")
 ORDINARY_TYPES = {"common_stock", "domestic_common_stock", "foreign_ordinary", "foreign_ordinary_share",
                   "adr", "ads", "reit", "financial_institution", "insurance"}
 UNSUPPORTED_TYPES = {"etf", "closed_end_fund", "fund", "preferred", "preferred_stock", "warrant", "rights", "right", "unit", "other"}
@@ -34,7 +35,8 @@ def cache_scope(company):
     parts = {key: company.get(key) for key in ("issuer_id", "instrument_id", "listing_id", "cik", "ticker", "exchange_mic",
                                              "valid_from", "valid_to", "provider_symbols", "instrument_type", "identity_status",
                                              "listing_status", "adr_metadata", "symbol_reassigned", "share_class", "symbol_aliases",
-                                             "security_form", "issuer_business_category", "issuer_classification_evidence", "listing_verification", "filing_regime")}
+                                             "security_form", "issuer_business_category", "issuer_classification_evidence", "listing_verification", "filing_regime",
+                                             "verification_state", "proof_expiry")}
     parts = {key: None if value in ({}, []) else value for key, value in parts.items()}
     parts["symbol_reassigned"] = bool(parts["symbol_reassigned"])
     return "security-v2:" + hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:40]

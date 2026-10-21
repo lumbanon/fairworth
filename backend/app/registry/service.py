@@ -1,6 +1,6 @@
 """Persistent discovery with an optional once-per-process cold bootstrap."""
 import asyncio
-from datetime import datetime, time as midnight
+from datetime import UTC, datetime, time as midnight, timedelta
 import time
 
 from starlette.concurrency import run_in_threadpool
@@ -55,7 +55,7 @@ class SecurityRegistryService:
     def import_snapshot(self, records, provenance):
         return self.repository.import_snapshot(records, provenance)
 
-    def _reference_status(self, record):
+    def _reference_status(self, record, *, now=None):
         """Date source observations independently of import/retrieval clocks."""
         source_date = record.get("registry_as_of", record.get("as_of"))
         try:
@@ -63,7 +63,7 @@ class SecurityRegistryService:
         except (TypeError, ValueError):
             return "partial", [{"field": "security_registry", "code": "missing_registry_reference_date",
                                 "message": "The security reference has no usable source observation date; current listing identity freshness is unverified."}]
-        now = utcnow()
+        now = now or utcnow()
         observed_at = datetime.combine(observed, midnight.min, tzinfo=now.tzinfo)
         if observed > now.date():
             return "partial", [{"field": "security_registry", "code": "future_registry_reference_date",
@@ -73,16 +73,44 @@ class SecurityRegistryService:
                               "message": f"The security reference source date ({observed.isoformat()}) exceeds the configured freshness period; its original classifications and listing status are retained as dated observations."}]
         return "fresh", []
 
+    def _proof_expiry(self, proof, *, supported, now, scope_matches=True):
+        """Explain the existing observation-date TTL without renewing any proof.
+
+        Date-only observations use the existing midnight UTC policy anchor;
+        publication and retrieval clocks remain separate original evidence.
+        """
+        status, issues = self._reference_status({"registry_as_of": proof.get("observed_on")}, now=now)
+        try:
+            observed = datetime.fromisoformat(str(proof.get("observed_on"))).date()
+            anchor = datetime.combine(observed, midnight.min, tzinfo=UTC)
+        except (TypeError, ValueError):
+            anchor = None
+        ttl = getattr(self.settings, "registry_cache_ttl_seconds", 86400)
+        state = ("unverified" if not supported or not scope_matches or not proof.get("source")
+                 else "verification_expired" if status == "stale"
+                 else "verified" if status == "fresh" else "unverified")
+        reason = ("The proof does not match the selected issuer, symbol and exchange." if not scope_matches
+                  else "A supported original source observation is required." if not supported or not proof.get("source")
+                  else issues[0]["message"] if issues else "The original source observation is within its existing freshness policy.")
+        return {"state": state, "source": proof.get("source"), "source_url": proof.get("source_url"),
+                "observed_on": proof.get("observed_on"), "published_at": proof.get("published_at"),
+                "source_timezone": proof.get("source_timezone"), "retrieved_at": proof.get("retrieved_at"),
+                "policy_anchor_at": anchor.isoformat() if anchor else None,
+                "expires_at": (anchor + timedelta(seconds=ttl)).isoformat() if anchor else None,
+                "ttl_seconds": ttl, "reason": reason}
+
     def _with_freshness(self, identity):
-        status, warnings = self._reference_status(identity)
+        now = utcnow()
+        status, warnings = self._reference_status(identity, now=now)
         verification = dict(identity.get("listing_verification") or {})
         if verification:
             verification.update(freshness=status, stale=status != "fresh")
         resolved_identity_status = identity.get("identity_status")
         linkage = verification.get("issuer_linkage") or identity.get("issuer_linkage")
+        matches = False
         if isinstance(linkage, dict) and linkage:
             linkage = dict(linkage)
-            link_status, _ = self._reference_status({"registry_as_of": linkage.get("observed_on")})
+            link_status, _ = self._reference_status({"registry_as_of": linkage.get("observed_on")}, now=now)
             symbols = {identity.get("ticker"), *(identity.get("symbol_aliases") or [])}
             matches = (linkage.get("issuer_id") == identity.get("issuer_id")
                        and linkage.get("cik") == identity.get("cik") and bool(identity.get("cik"))
@@ -101,8 +129,17 @@ class SecurityRegistryService:
                 resolved_identity_status = "reference_only"
             warnings.append({"field": "issuer_linkage", "code": "stale_issuer_symbol_reference" if link_status == "stale" else "issuer_symbol_reference_unverified",
                 "message": "The SEC issuer-symbol reference is dated or unverified independently of the listing observation. A fresh directory file does not refresh issuer ownership; financial identity remains reference-only."})
+        expiry = {
+            "listing": self._proof_expiry(verification, supported=verification.get("status") == "verified", now=now),
+            "issuer_linkage": self._proof_expiry(linkage, supported=bool(linkage), now=now, scope_matches=matches),
+        }
+        states = {proof["state"] for proof in expiry.values()}
+        verification_state = ("conflicting" if verification.get("status") == "conflicting" or resolved_identity_status in {"conflicting", "ambiguous"}
+                              else "verification_expired" if "verification_expired" in states
+                              else "verified" if states == {"verified"} and resolved_identity_status == "verified" else "unverified")
         return {**identity, "registry_status": status, "registry_warnings": warnings,
                 "identity_status": resolved_identity_status, "issuer_linkage": linkage,
+                "verification_state": verification_state, "proof_expiry": expiry,
                 **({"listing_verification": verification} if verification else {})}
 
     async def search(self, query, limit=10, offset=0, listing_status=None):

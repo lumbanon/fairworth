@@ -4,10 +4,11 @@ from app.registry.listing_sources import US_MICS, exchange_mic
 
 
 def sec_issuer_linkage(*, ticker, venue, cik, issuer_id, observed_on, registry_version,
-                       source, source_url, record_hash=None):
+                       source, source_url, record_hash=None, retrieved_at=None, published_at=None):
     """An issuer-symbol clock is independent of exchange directory membership."""
     return {"source": source, "observed_on": str(observed_on), "registry_version": registry_version,
             "record_hash": record_hash, "source_url": source_url, "ticker": ticker,
+            "retrieved_at": retrieved_at, "published_at": published_at,
             "exchange_mic": venue, "cik": cik, "issuer_id": issuer_id,
             "match_method": "exact_sec_symbol_venue_issuer"}
 

@@ -13,6 +13,7 @@ from app.services.cache_service import CachedResult
 from app.services.security_identity import cache_scope, same_identity, applicability, scope_kwargs
 from app.valuation.coverage import calculate_with_coverage
 from app.valuation.inputs import build_valuation_inputs
+from app.valuation.financial_currentness import source_cache_policy, unverified_currentness
 from app.valuation.schemas import ValuationRequest
 
 
@@ -74,6 +75,11 @@ class ValuationService:
             else:
                 company, result, warnings, status = dataset
                 financial_source = {"status": result.status, "warnings": deepcopy(result.payload.get("warnings", [])) + deepcopy(result.warnings)}
+            financial_source["source_cache"] = source_cache_policy(result.retrieved_at, getattr(self.settings, "sec_cache_ttl_seconds", None),
+                                                                   actual_expires_at=getattr(result, "expires_at", None))
+            # A document download/cache hit is not evidence that the selected
+            # annual period is the latest filing applicable to this issuer.
+            financial_source["currentness"] = unverified_currentness()
             if not same_identity(profile["company"], company):
                 raise ApiError("incompatible_financial_identity", "The financial snapshot does not match the requested company.", 502)
             normalized = {**result.payload, "warnings": warnings}

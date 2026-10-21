@@ -80,6 +80,8 @@ export default function useProviderValuation(company) {
     results: data.scenarios[name].results.map((result) => ({ ...result, fairValue: null, upside: null, status: "insufficient-data", classification: "unavailable" })),
     summary: { ...emptyProviderValuation().scenarios[name].summary, classification: "unavailable" },
     confidence: null, diagnostics: null, dataCompleteness: null,
+    publication: null,
+    independence: null,
   }])) : data.scenarios;
   return {
     ...data,

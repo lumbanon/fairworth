@@ -193,7 +193,10 @@ class EvidenceContextAssembler:
                                 "issuer_business_category": company.get("issuer_business_category"),
                                 "share_class": company.get("share_class"),
                                 "exchange": company.get("exchange"),
-                                "verification": identity.get("listing_verification")},
+                                "verification": identity.get("listing_verification"),
+                                **({"verification_state": identity["verification_state"],
+                                    "proof_expiry": identity.get("proof_expiry", {})}
+                                   if "verification_state" in identity else {})},
                          observation_date=listing_proof.get("observed_on"),
                          retrieved_at=listing_proof.get("retrieved_at"), source_url=listing_proof.get("source_url"),
                          quality_warnings=["Directory membership is a dated listing observation, not proof of uninterrupted trading or compatible financial share basis.",

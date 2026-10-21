@@ -181,17 +181,18 @@ def test_conflicting_long_term_aggregate_blocks_derived_complete_debt():
     assert annual["metrics"]["total_debt"] is None
 
 
-def test_reported_complete_debt_keeps_source_when_complete_components_disagree():
+def test_reported_complete_debt_keeps_source_without_choosing_a_conflicting_candidate():
     annual = normalize_company_facts(payload({
         "Revenues": ("USD", [observation(100)]),
         "ShortTermBorrowings": ("USD", [observation(5, None)]),
         "LongTermDebt": ("USD", [observation(50, None)]),
         "DebtLongtermAndShorttermCombinedAmount": ("USD", [observation(60, None)]),
     }))["annual"][0]
-    assert annual["metrics"]["total_debt"] == 60
+    assert annual["metrics"]["total_debt"] is None
+    assert annual["metrics"]["reported_total_debt"] == 60
     assert annual["metrics"]["short_term_debt"] == 5
     assert annual["metrics"]["long_term_debt_including_current"] == 50
-    assert annual["provenance"]["total_debt"][0]["concept"] == "DebtLongtermAndShorttermCombinedAmount"
+    assert annual["provenance"]["reported_total_debt"][0]["concept"] == "DebtLongtermAndShorttermCombinedAmount"
     assert any(w["code"] == "conflicting_debt_components" for w in annual["warnings"])
 
 

@@ -15,8 +15,10 @@ from app.valuation.history import analyze_history
 from app.valuation.models import required_inputs
 from app.valuation.schemas import MODEL_IDS
 from app.valuation.weighting import GROUPS
+from app.valuation.publication import publication_status
+from app.valuation.independence import build_independence
 
-VERSION = "model-coverage-1"
+VERSION = "model-coverage-2"
 MODEL_ASSUMPTIONS = {
     "fcff": {"wacc", "terminal_growth", "forecast_years", "projected_fcff", "fcff", "cash_flow_growth", "revenue_growth", "capex_ratio", "da_ratio", "nwc_ratio", "operating_margin", "tax_rate", "projected_revenue"},
     "fcfe": {"cost_of_equity", "terminal_growth", "forecast_years", "projected_fcfe", "fcfe", "cash_flow_growth", "revenue_growth", "capex_ratio", "da_ratio", "nwc_ratio", "net_margin", "net_borrowing", "projected_revenue"},
@@ -99,9 +101,9 @@ def compatibility(inputs, market, as_of):
     basis, company = inputs.get("basis", {}), inputs.get("company", {})
     shares = basis.get("share_basis_verified") is True
     currency = inputs.get("currency")
-    observed_currency = market.get("provider_currency", market.get("currency"))
-    comparable = bool(currency and observed_currency and currency == observed_currency)
     provider_market = inputs.get("market") or market
+    observed_currency = provider_market.get("provider_currency", provider_market.get("currency"))
+    comparable = bool(currency and observed_currency and currency == observed_currency)
     quote_date = _timestamp(provider_market.get("price_timestamp"))
     price = provider_market.get("price")
     valid_quote = (_finite(price) and price > 0 and comparable and quote_date is not None
@@ -196,6 +198,8 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
         for model in case["models"]:
             model["eligibility"]["blockers"] = model_blockers(inputs, model)
         case.setdefault("data_completeness", {}).update(reporting_periods=deepcopy(periods), compatibility=deepcopy(checks))
+        case["publication"] = publication_status(inputs, case, checks, clock)
+        case["independence"] = build_independence(inputs, case["models"], case["summary"], case["assumptions"])
     base = result["scenarios"]["base"]
     result["data_completeness"] = deepcopy(base["data_completeness"])
     models = base["models"]
@@ -225,9 +229,12 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
         "required_valuation_assumptions": supported_assumptions,
         "at_least_one_eligible_model": bool(valid),
         "fresh_quote": checks["market_price"]["status"] == "available",
-        "published_fair_value": base["summary"].get("fair_value") is not None,
+        "historical_illustrative_value": base["summary"].get("fair_value") is not None and base["publication"]["result_type"] == "historical_illustration",
+        "published_fair_value": base["publication"]["result_type"] == "current_eligible",
     }
     result["financial_coverage"] = {"methodology_version": VERSION, "as_of": clock.isoformat(),
+        "publication": deepcopy(base["publication"]),
+        "independence": deepcopy(base["independence"]),
         "identity": security_identity(company), "stages": {key: {"status": "available" if value else "unavailable"} for key, value in stages.items()},
         "eligible_model_count": len(valid), "contributing_model_count": base["summary"]["count"],
         "contributing_model_families": families, "reporting_period_count": len(periods),
@@ -242,7 +249,7 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
             "Sufficient history means a supported three-year growth window, not a universal model requirement.",
             "Required assumptions counts an available nonempty forecast/rate/multiple path separately from facts and model suitability; Graham has no numerical forecast assumptions.",
             "Two method families do not establish independent financial evidence; independence remains unverified.",
-            "Published policy-based or single-model estimates remain illustrative and retain all quality warnings."]}
+            "Policy-based and single-model estimates retain their classifications and quality warnings independently of publication currentness."]}
     result["financial_coverage"]["stages"]["at_least_two_independent_model_families"] = {
         "status": "unverified", "reason": "Method families are counted separately; independent financial evidence has not been established."}
     return result

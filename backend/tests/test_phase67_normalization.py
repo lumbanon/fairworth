@@ -275,7 +275,7 @@ def test_retained_financial_periods_and_all_existing_nonnull_values_are_preserve
     statements, _, _ = source_examples()
     original = max(statements[ticker]["normalized"]["annual"], key=lambda row: row["end_date"])
     prepared, _, audit = phase6_company_inputs(ticker)
-    assert prepared["normalization_version"] == NORMALIZATION_VERSION == 5
+    assert prepared["normalization_version"] == NORMALIZATION_VERSION == 6
     assert all(prepared["reporting_period"][key] == original[key]
                for key in ("fiscal_year", "fiscal_period", "start_date", "end_date"))
     for field, value in original["metrics"].items():

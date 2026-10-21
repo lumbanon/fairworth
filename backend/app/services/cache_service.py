@@ -22,6 +22,7 @@ class CachedResult:
     retrieved_at: object
     warnings: list
     cache_ttl_seconds: int | None = None
+    expires_at: object | None = None
 
 
 class CacheService:
@@ -102,7 +103,7 @@ class CacheService:
     def _stale(entry, provider, error):
         warning = {"field": provider, "code": "stale_provider_failure",
                    "message": f"Cached {provider} data is stale because the provider could not refresh it ({error.code})."}
-        return CachedResult(entry.payload, "stale", as_utc(entry.retrieved_at), [warning])
+        return CachedResult(entry.payload, "stale", as_utc(entry.retrieved_at), [warning], expires_at=as_utc(entry.expires_at))
 
     def _read(self, key):
         with self.session_factory() as session:
@@ -131,7 +132,7 @@ class CacheService:
         async with self._key_lock(key) as acquired:
             entry = self._read(key)
             if entry and as_utc(entry.expires_at) > utcnow():
-                return CachedResult(entry.payload, "fresh", as_utc(entry.retrieved_at), [])
+                return CachedResult(entry.payload, "fresh", as_utc(entry.retrieved_at), [], expires_at=as_utc(entry.expires_at))
             if not acquired:
                 error = ProviderError("cache_refresh_busy", "This financial-data snapshot is being refreshed. Retry shortly.", 503, True)
                 if entry:
@@ -142,7 +143,7 @@ class CacheService:
             while not self._acquire_lease(key, owner):
                 refreshed = self._read_fresh(key)
                 if refreshed:
-                    return CachedResult(refreshed.payload, "fresh", as_utc(refreshed.retrieved_at), [])
+                    return CachedResult(refreshed.payload, "fresh", as_utc(refreshed.retrieved_at), [], expires_at=as_utc(refreshed.expires_at))
                 if time.monotonic() >= deadline:
                     error = ProviderError("cache_refresh_busy", "This financial-data snapshot is being refreshed. Retry shortly.", 503, True)
                     if entry:
@@ -155,7 +156,7 @@ class CacheService:
                 # lease acquisition. Recheck while ownership is exclusive.
                 entry = self._read(key)
                 if entry and as_utc(entry.expires_at) > utcnow():
-                    return CachedResult(entry.payload, "fresh", as_utc(entry.retrieved_at), [])
+                    return CachedResult(entry.payload, "fresh", as_utc(entry.retrieved_at), [], expires_at=as_utc(entry.expires_at))
                 heartbeat = asyncio.create_task(self._heartbeat(key, owner))
                 load_task = asyncio.ensure_future(loader())
                 completed, _ = await asyncio.wait((load_task, heartbeat), return_when=asyncio.FIRST_COMPLETED)
@@ -170,9 +171,12 @@ class CacheService:
                         return payload
                     effective_ttl = min(ttl, max(1, payload.cache_ttl_seconds)) if payload.cache_ttl_seconds is not None else ttl
                     retrieved_at = self._write(key, payload.payload, effective_ttl, provider, payload.retrieved_at, owner=owner)
-                    return CachedResult(payload.payload, payload.status, retrieved_at, payload.warnings)
+                    expires_at = retrieved_at + timedelta(seconds=effective_ttl)
+                    if payload.expires_at is not None:
+                        expires_at = min(expires_at, as_utc(payload.expires_at))
+                    return CachedResult(payload.payload, payload.status, retrieved_at, payload.warnings, expires_at=expires_at)
                 retrieved_at = self._write(key, payload, ttl, provider, owner=owner)
-                return CachedResult(payload, "fresh", retrieved_at, [])
+                return CachedResult(payload, "fresh", retrieved_at, [], expires_at=retrieved_at + timedelta(seconds=ttl))
             except ProviderError as error:
                 if not entry:
                     raise

@@ -10,6 +10,7 @@ export default function ProviderValuationDiagnostics({ valuation, currency }) {
   const aggregation = diagnostics.aggregation ?? {};
   const dataQuality = diagnostics.data_quality ?? {};
   const confidence = valuation.confidence;
+  const independence = valuation.independence;
   const modelName = (id) => valuation.results.find((model) => model.id === id)?.name || id;
   const range = aggregation.estimate_range;
   const finiteRange = Number.isFinite(range?.minimum) && Number.isFinite(range?.maximum);
@@ -27,6 +28,20 @@ export default function ProviderValuationDiagnostics({ valuation, currency }) {
         <p><strong>Model dispersion: </strong>{diagnosticLabel(aggregation.dispersion?.status)}{Number.isFinite(aggregation.dispersion?.relative_spread) ? ` · ${percent(aggregation.dispersion.relative_spread * 100)} relative spread` : ""}. <strong>Weights: </strong>{diagnosticLabel(aggregation.weight_source)}.</p>
         {diagnosticMessages(aggregation.warnings).map((warning, index) => <p className="research-caption" key={index}>{warning}</p>)}
       </div>
+      {independence && <div className="provider-aggregation-summary" data-testid="model-independence">
+        <p><strong>Independent corroboration: </strong>{({ unavailable: "Unavailable", unverified: "Not established" })[independence.corroboration?.status] || "Not assessed"}.</p>
+        <p>{independence.corroboration?.reason || "No independent evidence assessment was supplied."}</p>
+        <p className="research-caption">{independence.contributing_model_count ?? "Unavailable"} contributing models across {independence.method_family_count ?? "Unavailable"} method families. Distinct families and weighted averages do not establish independent evidence.</p>
+        {independence.pairs?.length > 0 && <details className="provider-diagnostic-details"><summary>Shared model dependencies ({independence.pairs.length} {independence.pairs.length === 1 ? "pair" : "pairs"})</summary>
+          {independence.pairs.map((pair, index) => <div key={index}>
+            <h3>{pair.models?.map(modelName).join(" / ") || "Model pair unavailable"}</h3>
+            <p className="research-caption">Shared assumptions: {pair.shared_assumptions?.length ? pair.shared_assumptions.map(diagnosticLabel).join(", ") : "None reported"}.</p>
+            <p className="research-caption">Shared observed inputs: {pair.shared_observed_inputs?.length ? pair.shared_observed_inputs.map(diagnosticLabel).join(", ") : "None reported"}.</p>
+            <p className="research-caption">Pair assessment: {pair.status === "not_established" ? "Independent corroboration not established" : "Not assessed"}.</p>
+            {pair.shared_source_records?.length > 0 && <details className="research-original-diagnostics"><summary>Shared source evidence ({pair.shared_source_records.length})</summary><pre>{JSON.stringify(pair.shared_source_records, null, 2)}</pre></details>}
+          </div>)}
+        </details>}
+      </div>}
       <details className="provider-diagnostic-details"><summary>Why this estimate has its confidence classification</summary>
         {diagnosticMessages(dataQuality.reasons ?? dataQuality.factors).map((reason, index) => <p key={index}>{reason}</p>)}
         {(confidence?.factors ?? []).map((factor, index) => <p key={index}><strong>{factor.name}: </strong>{factor.explanation} ({diagnosticLabel(factor.status)})</p>)}

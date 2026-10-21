@@ -1,5 +1,5 @@
 import { dollars, percent, direction } from "@/lib/financialFormatting";
-import { providerClassificationLabel } from "@/lib/providerValuation";
+import { providerClassificationLabel, providerPublicationLabel } from "@/lib/providerValuation";
 import { formatObservationDate } from "@/lib/researchPresentation";
 
 export default function ValuationSummary({ company, valuation }) {
@@ -51,6 +51,7 @@ export default function ValuationSummary({ company, valuation }) {
             {enabledCount} enabled · {summary.count} contributing
           </small>
           {valuation.providerMode && summary.classification && <small data-testid="weighted-classification">{providerClassificationLabel(summary.classification) || "Classification unavailable"}</small>}
+          {valuation.providerMode && <small data-testid="valuation-publication-type">{providerPublicationLabel(valuation.publication)}</small>}
           {valuation.providerMode && valuation.diagnostics && <small>Confidence: {valuation.confidence?.level || "unavailable"} · {valuation.diagnostics.coverage?.method_family_count ?? "Unavailable"} method {valuation.diagnostics.coverage?.method_family_count === 1 ? "family" : "families"}</small>}
         </div>
         <div>
@@ -71,6 +72,7 @@ export default function ValuationSummary({ company, valuation }) {
           <small>(Fair value − price) / fair value × 100</small>
         </div>
       </div>
+      {valuation.providerMode && valuation.publication?.result_type === "historical_illustration" && <p className="research-warning" data-testid="historical-valuation-warning">This illustrative calculation does not satisfy current publication requirements. Review its dated evidence and unresolved checks below. Calculating it today does not refresh its sources or establish a previously published valuation.</p>}
       {valuation.providerMode && summary.count === 1 && Number.isFinite(summary.fairValue) && <p className="research-warning provider-single-model-warning" data-testid="single-model-coverage-warning"><strong>Single-model estimate.</strong> Coverage is limited to one contributing model; this is not a robust multi-model consensus. Review its assumptions and the data-quality limitations below.</p>}
       {valuation.providerMode && summary.composition?.length > 0 && <div className="provider-valuation-composition" aria-label="Weighted estimate composition">
         <p className="research-caption">Weighted estimate composition: {summary.composition.map((part) => `${providerClassificationLabel(part.classification) || "Unclassified"}: ${Number.isFinite(part.weight) ? `${(part.weight * 100).toFixed(1)}%` : "Unavailable"} (${part.model_ids?.join(", ") || "No contributing models"})`).join(" · ")}</p>

@@ -26,6 +26,7 @@ class PeriodIdentity(ApiModel):
 class FinancialPeriod(PeriodIdentity):
     metrics: dict[str, float | None]
     provenance: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
+    financial_reconciliations: dict[str, Any] = Field(default_factory=dict)
     warnings: list[DataWarning] = Field(default_factory=list)
 
 

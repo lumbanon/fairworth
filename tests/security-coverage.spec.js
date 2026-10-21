@@ -403,3 +403,33 @@ test("source display symbols preserve the canonical ticker and exact selected se
   expect(unexpected).toEqual([]);
   await fitsViewport(page);
 });
+
+test("expired listing and issuer proofs expose their original sources and independent dates", async ({ page }) => {
+  const proof = { state: "verification_expired", observed_on: "2026-10-19", published_at: "1019202607:00", retrieved_at: "2026-10-20T12:00:00Z", expires_at: "2026-10-20T00:00:00Z", ttl_seconds: 86400 };
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "common_stock", listing_verification: { ...syntheticListingVerification, observed_on: "2026-10-19" }, verification_state: "verification_expired", proof_expiry: { listing: { ...proof, source: "Synthetic exchange directory", source_url: "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt", reason: "Exchange observation expired under the listing policy." }, issuer_linkage: { ...proof, source: "SEC issuer-symbol directory", source_url: "https://www.sec.gov/files/company_tickers_exchange.json", observed_on: "2026-10-18", expires_at: "2026-10-19T00:00:00Z", reason: "SEC ownership proof expired independently." } } } });
+  await page.goto("/stocks/GOOGL?instrument_id=fixture-alphabet-a&listing_id=fixture-xnas-googl");
+  await expect(page.locator(".company-listing-verification")).toContainText("Listing verification expired");
+  const coverage = page.getByRole("region", { name: "Company analysis coverage", exact: true });
+  await expect(coverage).toContainText("Issuer linkage verification expired");
+  await expect(coverage).toContainText("Exchange observation expired under the listing policy");
+  await expect(coverage).toContainText("SEC ownership proof expired independently");
+  await expect(coverage).not.toContainText("Verified active listing");
+  await coverage.getByText("Issuer linkage sources and dates", { exact: true }).click();
+  await expect(coverage).toContainText("2026-10-18");
+  await expect(coverage).toContainText("2026-10-19T00:00:00Z");
+  await expect(coverage.getByRole("link", { name: "View issuer linkage source", exact: true })).toHaveAttribute("href", "https://www.sec.gov/files/company_tickers_exchange.json");
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
+});
+
+test("a current exchange listing cannot renew expired SEC issuer ownership", async ({ page }) => {
+  const { unexpected } = await registryApi(page, { identityOverrides: { security_form: "common_stock", listing_verification: syntheticListingVerification, verification_state: "verification_expired", proof_expiry: { listing: { state: "verified" }, issuer_linkage: { state: "verification_expired", source: "SEC issuer-symbol directory", observed_on: "2026-10-18", expires_at: "2026-10-19T00:00:00Z", reason: "A recent listing refresh does not renew SEC issuer linkage." } } } });
+  await page.goto("/stocks/GOOGL?instrument_id=fixture-alphabet-a&listing_id=fixture-xnas-googl");
+  await expect(page.locator(".company-listing-verification")).toContainText("Verified active listing");
+  const coverage = page.getByRole("region", { name: "Company analysis coverage", exact: true });
+  await expect(coverage.getByTestId("issuer-linkage-verification")).toContainText("Issuer linkage verification expired");
+  await expect(coverage).toContainText("A recent listing refresh does not renew SEC issuer linkage");
+  await expect(coverage).not.toContainText("Listing verification expired");
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
+});
