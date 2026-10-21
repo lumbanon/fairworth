@@ -14,7 +14,7 @@ CATEGORIES = frozenset({"reported_fact", "historical_metric", "valuation_output"
 SECURITY_IDENTITY_FIELDS = ("issuer_id", "instrument_id", "listing_id", "cik", "ticker", "exchange",
                             "instrument_type", "listing_status", "identity_status", "share_class",
                             "registry_as_of", "registry_retrieved_at", "registry_version", "registry_status",
-                            "security_form", "issuer_business_category")
+                            "security_form", "issuer_business_category", "verification_state")
 LISTING_PROOF_FIELDS = ("status", "confidence", "source", "observed_on", "effective_on", "published_at",
                         "source_timezone", "record_hash", "parser_version", "version")
 _VOLATILE_KEYS = frozenset({"generated_at", "calculated_at", "retrieved_at", "expires_at"})
@@ -109,7 +109,14 @@ def security_identity(company):
     if not isinstance(company, dict) or not company.get("instrument_id"):
         return None
     result = {key: public_text(company.get(key), 150) for key in SECURITY_IDENTITY_FIELDS
-              if key in company or key not in {"security_form", "issuer_business_category"}}
+              if key in company or key not in {"security_form", "issuer_business_category", "verification_state"}}
+    expiry = company.get("proof_expiry")
+    if isinstance(expiry, dict):
+        result["proof_expiry"] = {
+            kind: {key: public_text(record.get(key), 200) for key in
+                   ("state", "source", "observed_on", "published_at", "source_timezone", "retrieved_at",
+                    "policy_anchor_at", "expires_at", "ttl_seconds", "reason")}
+            for kind, record in expiry.items() if kind in {"listing", "issuer_linkage"} and isinstance(record, dict)}
     proof = company.get("listing_verification")
     if isinstance(proof, dict):
         # Identity contains the exact observation/version, not an unbounded source
@@ -129,7 +136,7 @@ def same_security(left, right):
     if left.get("cik") != right.get("cik"):
         return False
     return all(left.get(key) == right.get(key) for key in ("issuer_id", "instrument_id", "listing_id",
-               "security_form", "issuer_business_category", "listing_verification")
+               "security_form", "issuer_business_category", "listing_verification", "verification_state", "proof_expiry")
                if left.get(key) is not None or right.get(key) is not None)
 
 

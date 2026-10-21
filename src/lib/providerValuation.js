@@ -48,6 +48,10 @@ export function providerClassificationLabel(classification) {
   return classificationLabels[classification] ?? null;
 }
 
+export function providerPublicationLabel(publication) {
+  return ({ historical_illustration: "Historical illustration", current_eligible: "Current eligible valuation", unavailable: "Unavailable" })[publication?.result_type] ?? "Current / historical status unassessed";
+}
+
 export function providerAssumptionEvidence(metadata = {}) {
   const legacyTypes = {
     reported_input: "fact", market_observation: "fact", historical_estimate: "estimate",
@@ -135,6 +139,8 @@ export function adaptProviderValuation(response, expectedTicker) {
       confidence: scenario.confidence,
       diagnostics: scenario.diagnostics ?? null,
       dataCompleteness: scenario.data_completeness ?? (name === "base" ? response.data_completeness : null) ?? null,
+      publication: scenario.publication ?? (name === "base" ? response.financial_coverage?.publication : null) ?? null,
+      independence: scenario.independence ?? (name === "base" ? response.financial_coverage?.independence : null) ?? null,
     }];
   }));
   const reverse = response.reverse_dcf ?? {};
@@ -151,6 +157,7 @@ export function adaptProviderValuation(response, expectedTicker) {
     diagnostics: response.scenarios.base.diagnostics ?? null,
     dataCompleteness: response.data_completeness ?? null,
     financials: response.financials ?? {},
+    financialCoverage: response.financial_coverage ?? null,
     automaticEvidence: response.automatic_evidence ?? {},
     warnings: strings(response.warnings),
     sourceNotices: response.warnings ?? [],
@@ -181,11 +188,13 @@ export function emptyProviderValuation() {
       summary: { fairValue: null, upside: null, marginOfSafety: null, normalizedWeights: {}, count: 0, warnings: [], classification: null, composition: [], sourceWarnings: [] },
       values: {}, metadata: {},
       diagnostics: null, dataCompleteness: null,
+      publication: null,
+      independence: null,
     }])),
     defaults: {}, suggestedWeights: {}, configuredWeights: {}, enabledModels: [],
     market: { price: null, source_type: "unavailable" }, comparisonPrice: null,
     sensitivity: null, reverseDCF: null, warnings: [],
-    diagnostics: null, dataCompleteness: null, financials: {}, automaticEvidence: {},
+    diagnostics: null, dataCompleteness: null, financials: {}, financialCoverage: null, automaticEvidence: {},
   };
 }
 

@@ -227,6 +227,8 @@ class ScenarioResult(ApiModel):
     confidence: dict[str, Any]
     diagnostics: dict[str, Any] = Field(default_factory=dict)
     data_completeness: dict[str, Any] = Field(default_factory=dict)
+    publication: dict[str, Any] = Field(default_factory=dict)
+    independence: dict[str, Any] = Field(default_factory=dict)
 
 
 class ValuationResponse(ApiModel):

@@ -58,6 +58,31 @@ function ReportingPeriods({ completeness }) {
   </div>;
 }
 
+function DebtReconciliation({ reconciliation }) {
+  if (!reconciliation || typeof reconciliation !== "object") return null;
+  const labels = { reported_total_debt: "Reported total debt", short_term_plus_long_term: "Short-term plus long-term components", short_term_plus_current_noncurrent: "Short-term plus current / noncurrent components", reported_long_term: "Reported long-term debt", current_plus_noncurrent: "Current plus noncurrent long-term debt" };
+  return <details className="provider-diagnostic-details" data-testid="debt-reconciliation"><summary>Debt scope reconciliation: {diagnosticLabel(reconciliation.status)}</summary>
+    <p className="research-caption">Candidates preserve reported scope and overlapping concepts. A disclosed candidate does not establish complete debt or unlock an enterprise-value model.</p>
+    <p><strong>Accepted total debt: </strong>{completenessValue({ value: reconciliation.effective_total_debt, unit: reconciliation.unit })}. Period end: {reconciliation.end_date || "Unavailable"}.</p>
+    {reconciliation.status === "conflict" && <p className="research-warning">Debt candidates conflict. Both source values remain inspectable; no arbitrary preference resolves the discrepancy.</p>}
+    {(reconciliation.candidates ?? []).map((candidate) => <details className="provider-input-record" key={candidate.id}>
+      <summary><span>{labels[candidate.id] || diagnosticLabel(candidate.id)}</span><strong>{completenessValue(candidate)}</strong></summary>
+      <dl className="provider-record-metadata">
+        <div><dt>Exact candidate value</dt><dd><code>{candidate.value == null ? "Unavailable" : String(candidate.value)}</code>{candidate.unit && ` ${candidate.unit}`}</dd></div>
+        <div><dt>Component fields</dt><dd>{candidate.component_fields?.map(diagnosticLabel).join(", ") || "Not supplied"}</dd></div>
+        <div><dt>Scope complete</dt><dd>{candidate.scope_complete === true ? "Confirmed for this candidate scope" : candidate.scope_complete === false ? "Incomplete" : "Not assessed"}</dd></div>
+        <div><dt>Compatible source context</dt><dd>{candidate.compatible_source_context === true ? "Confirmed" : candidate.compatible_source_context === false ? "Not compatible" : "Not assessed"}</dd></div>
+        <div><dt>Missing inputs</dt><dd>{candidate.missing_inputs?.length ? candidate.missing_inputs.map(diagnosticLabel).join(", ") : "None reported"}</dd></div>
+      </dl>
+      {providerSourceLinks(candidate).map((url, index) => <a key={url} href={url} target="_blank" rel="noreferrer">Debt source {index + 1}</a>)}
+      <details className="research-original-diagnostics"><summary>Exact candidate scope and provenance</summary><pre>{JSON.stringify(candidate, null, 2)}</pre></details>
+    </details>)}
+    {(reconciliation.comparisons ?? []).map((comparison, index) => <p className="research-caption" key={index}>{labels[comparison.left_candidate] || diagnosticLabel(comparison.left_candidate)} / {labels[comparison.right_candidate] || diagnosticLabel(comparison.right_candidate)}: {diagnosticLabel(comparison.status)}. Source-calculated difference: {completenessValue({ value: comparison.difference, unit: reconciliation.unit })}.</p>)}
+    {(reconciliation.separate_scopes ?? []).map((scope, index) => <p className="research-caption" key={index}><strong>{diagnosticLabel(scope.field)}: </strong>{completenessValue({ value: scope.value, unit: reconciliation.unit })}. {scope.reason}</p>)}
+    <details className="research-original-diagnostics"><summary>Complete debt reconciliation record</summary><pre>{JSON.stringify(reconciliation, null, 2)}</pre></details>
+  </details>;
+}
+
 export default function ProviderDataCompleteness({ valuation }) {
   const completeness = valuation.dataCompleteness;
   if (!completeness) return null;
@@ -68,6 +93,7 @@ export default function ProviderDataCompleteness({ valuation }) {
       <p className="research-caption">Financial period: {providerPeriodLabel(completeness.reporting_period) || "Unavailable"} · Financial snapshot retrieved: {completeness.as_of || "Unavailable"}</p>
       <FinancialBasis compatibility={completeness.compatibility} />
       <ReportingPeriods completeness={completeness} />
+      <DebtReconciliation reconciliation={completeness.financial_reconciliations?.debt} />
       <div className="provider-completeness-grid">
         {completenessGroups.map(([key, label]) => {
           const fields = completeness.groups?.[key];

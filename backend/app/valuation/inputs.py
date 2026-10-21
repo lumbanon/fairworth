@@ -81,9 +81,11 @@ def _fact(field: str, raw: Any, period: dict, currency: str | None, retrieved_at
                 for record in records):
             warnings.append(_warning(field, "incomplete_depreciation_amortization_scope", "Legacy property, plant and equipment depreciation/depletion/amortization observations do not establish company-wide depreciation and intangible amortization; original source evidence is retained."))
         if field == "total_debt" and isinstance(records, list) and any(record.get("source") == "sec" for record in records if isinstance(record, dict)):
-            from app.services.normalization import complete_conventional_debt_provenance
+            from app.services.normalization import complete_conventional_debt_provenance, reconcile_debt_evidence
             if not complete_conventional_debt_provenance(records, end_date=period.get("end_date")):
                 warnings.append(_warning(field, "incomplete_conventional_debt_scope", "Legacy debt observations do not establish complete conventional debt without lease overlap or missing borrowing components."))
+            if reconcile_debt_evidence({**period, "currency": currency})["status"] == "conflict":
+                warnings.append(_warning(field, "unresolved_debt_reconciliation", "Compatible reported debt totals and components disagree; the original amount remains visible but no conflicting candidate is accepted as complete valuation debt."))
         if not currency or not isinstance(records, list) or not records:
             warnings.append(_warning(field, "missing_fact_provenance", "A declared currency and original source observations are required."))
         else:
@@ -145,14 +147,24 @@ def normalize_annual_period(period: dict, currency: str | None, retrieved_at: An
     declared_currency = period.get("currency", currency)
     if not isinstance(declared_currency, str) or len(declared_currency) != 3 or not declared_currency.isupper():
         declared_currency = None
-    facts = {field: _fact(field, value, period, declared_currency, retrieved_at)
+    # FinancialPeriod API records omit currency and legitimately inherit the
+    # dataset's declared unit. Every fact and reconciliation must use that
+    # same validated currency rather than re-reading an absent raw field.
+    scoped_period = {**period, "currency": declared_currency}
+    facts = {field: _fact(field, value, scoped_period, declared_currency, retrieved_at)
              for field, value in period.get("metrics", {}).items()}
+    from app.services.normalization import reconcile_debt_evidence
+    reconciliations = deepcopy(period.get("financial_reconciliations", {}))
+    reconciliations["debt"] = reconcile_debt_evidence(scoped_period)
+    reconciliations["debt"]["effective_total_debt"] = facts.get("total_debt", {}).get("value")
+    if reconciliations["debt"]["status"] != "conflict":
+        reconciliations["debt"]["status"] = "available" if reconciliations["debt"]["effective_total_debt"] is not None else "unavailable"
     warnings = list(period.get("warnings", []))
     warnings.extend(item for fact in facts.values() for item in fact["warnings"])
     return {
         **{key: period.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")},
         "currency": declared_currency, "metrics": {field: fact["value"] for field, fact in facts.items()},
-        "facts": facts, "warnings": warnings,
+        "facts": facts, "warnings": warnings, "financial_reconciliations": reconciliations,
     }
 
 
@@ -243,6 +255,7 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
         "company": company, "currency": currency, "normalization_version": normalized.get("normalization_version"),
         "reporting_period": {key: latest.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")} if latest else None,
         "financial_retrieved_at": retrieved_at.isoformat() if isinstance(retrieved_at, datetime) else retrieved_at,
+        "financial_reconciliations": deepcopy(latest.get("financial_reconciliations", {})) if latest else {},
         "market": market, "values": values, "facts": facts, "annual_periods": periods,
         "source_references": references, "warnings": warnings,
         "basis": {"share_basis_verified": share_basis, "income_earnings_basis_verified": income_basis,

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { providerFixture } from "./helpers/providerFixture.js";
 import { providerDiagnosticsFixture } from "./helpers/providerDiagnosticsFixture.js";
 
-async function diagnosticsApi(page, { ticker = "MSFT", mode = "multiple", price = 100, failOnMultiple = false, partial = false } = {}) {
+async function diagnosticsApi(page, { ticker = "MSFT", mode = "multiple", price = 100, failOnMultiple = false, partial = false, publicationType = null, includeReconciliation = false } = {}) {
   const financial = providerFixture(ticker);
   const requests = [];
   const unexpected = [];
@@ -23,6 +23,20 @@ async function diagnosticsApi(page, { ticker = "MSFT", mode = "multiple", price 
       if (route.request().method() === "POST") requests.push(request);
       if (failOnMultiple && request.assumptions?.target_pe === 99) return route.fulfill({ status: 422, json: { error: { code: "invalid_assumptions", message: "The source basis no longer supports this calculation." } } });
       const json = providerDiagnosticsFixture(ticker, { request, mode, price });
+      if (publicationType) {
+        for (const scenario of Object.values(json.scenarios)) {
+          scenario.publication = { result_type: publicationType, current_eligible: publicationType === "current_eligible", blockers: publicationType === "current_eligible" ? [] : [{ code: "verification_expired", message: "The synthetic SEC issuer proof expired independently of listing retrieval." }], clocks: { calculated_at: "2026-10-20T12:00:00Z", listing: { observed_on: "2026-10-19", expires_at: "2026-10-20T00:00:00Z" }, issuer_linkage: { observed_on: "2026-10-18", expires_at: "2026-10-19T00:00:00Z" }, financial: { reporting_period: { end_date: "2025-12-31" }, filed_at: ["2026-02-10", "2026-02-11"], retrieved_at: "2026-10-20T10:00:00Z" }, quote: { observed_at: "2026-01-15T16:00:00Z", retrieved_at: "2026-10-20T11:00:00Z" } } };
+          scenario.independence = { contributing_models: scenario.diagnostics.coverage.contributing_models, contributing_model_count: scenario.summary.count, method_families: scenario.diagnostics.coverage.families.map((family) => family.id), method_family_count: scenario.diagnostics.coverage.method_family_count, pairs: scenario.summary.count < 2 ? [] : [{ models: ["pe", "fcff"], shared_assumptions: ["earnings_growth"], shared_observed_inputs: ["net_income"], shared_source_records: [{ concept: "NetIncomeLoss", accn: "synthetic-common-filing", unit: "USD", end: "2025-12-31" }], status: "not_established" }], corroboration: { status: scenario.summary.count < 2 ? "unavailable" : "unverified", reason: "The methods share observed inputs; independent corroboration has not been established." } };
+          if (publicationType === "current_eligible") {
+            scenario.publication.clocks.listing = { observed_on: "2026-10-20", expires_at: "2026-10-21T00:00:00Z" };
+            scenario.publication.clocks.issuer_linkage = { observed_on: "2026-10-20", expires_at: "2026-10-21T00:00:00Z" };
+            scenario.publication.clocks.quote.observed_at = "2026-10-20T11:00:00Z";
+            scenario.data_completeness.compatibility.market_price = { status: "available", reason: "Current observation supplied by the synthetic server fixture.", observation_date: "2026-10-20T11:00:00Z" };
+          }
+        }
+        if (publicationType === "current_eligible") json.market = { ...json.market, status: "fresh", price_timestamp: "2026-10-20T11:00:00Z" };
+      }
+      if (includeReconciliation) for (const scenario of Object.values(json.scenarios)) scenario.data_completeness.financial_reconciliations = { debt: { methodology_version: "synthetic-debt-scope-fixture-1", status: "conflict", effective_total_debt: null, unit: "USD", end_date: "2025-12-31", candidates: [{ id: "reported_total_debt", component_fields: ["total_debt"], value: 15000000.125, unit: "USD", end_date: "2025-12-31", missing_inputs: [], compatible_source_context: true, scope_complete: true, scope: "Reported debt only; candidate does not resolve conflicting components.", provenance: [{ concept: "LongTermDebtAndFinanceLeaseObligationsIncludingCurrentMaturities", accn: "synthetic-debt-filing", value: 15000000.125 }] }, { id: "short_term_plus_long_term", component_fields: ["short_term_debt", "long_term_debt"], value: 16000000.25, unit: "USD", end_date: "2025-12-31", missing_inputs: [], compatible_source_context: true, scope_complete: true, provenance: [] }], comparisons: [{ left_candidate: "reported_total_debt", right_candidate: "short_term_plus_long_term", compatible_source_context: true, difference: -1000000.125, status: "conflict" }], separate_scopes: [{ field: "finance_lease_liabilities", value: null, reason: "Lease scope remains separately assessed.", provenance: [] }] } };
       if (partial) for (const scenario of Object.values(json.scenarios)) {
         scenario.diagnostics = { data_quality: {}, coverage: {}, aggregation: {} };
         scenario.data_completeness = { groups: { available: [] }, fields: {} };
@@ -207,4 +221,55 @@ test("quote observation freshness remains independent from financial snapshot re
   await expect(quote).toContainText("remains stale despite recent retrieval");
   await expect(page.getByTestId("valuation-quote-observation")).toContainText("Jan 15, 2026");
   await fitsViewport(page);
+});
+
+test("historical illustration retains exact values and independent evidence clocks", async ({ page }) => {
+  const { unexpected } = await diagnosticsApi(page, { publicationType: "historical_illustration", mode: "single" });
+  await expect(page.getByTestId("weighted-fair-value")).toHaveText("$701.18");
+  await expect(page.getByTestId("valuation-publication-type")).toHaveText("Historical illustration");
+  await expect(page.getByTestId("historical-valuation-warning")).toContainText("does not satisfy current publication requirements");
+  const publication = page.getByTestId("valuation-publication-details");
+  await publication.locator(":scope > summary").click();
+  await expect(publication).toContainText("The synthetic SEC issuer proof expired independently");
+  await expect(publication).toContainText("2026-10-20T12:00:00Z");
+  await expect(publication).toContainText("2026-02-10, 2026-02-11");
+  await expect(publication).toContainText("2026-01-15T16:00:00Z");
+  await expect(publication).toContainText("2026-10-20T11:00:00Z");
+  await expect(page.getByTestId("single-model-coverage-warning")).toBeVisible();
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
+});
+
+test("current classification is server-owned and multiple families never imply independent corroboration", async ({ page }) => {
+  const { unexpected } = await diagnosticsApi(page, { publicationType: "current_eligible" });
+  await expect(page.getByTestId("valuation-publication-type")).toHaveText("Current eligible valuation");
+  await expect(page.getByTestId("historical-valuation-warning")).toHaveCount(0);
+  const independence = page.getByTestId("model-independence");
+  await expect(independence).toContainText("Independent corroboration: Not established");
+  await expect(independence).toContainText("2 contributing models across 2 method families");
+  await independence.getByText("Shared model dependencies (1 pair)", { exact: true }).click();
+  await expect(independence).toContainText("Shared assumptions: earnings growth");
+  await expect(independence).toContainText("Shared observed inputs: net income");
+  await independence.getByText("Shared source evidence (1)", { exact: true }).click();
+  await expect(independence.locator("pre")).toContainText("synthetic-common-filing");
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
+});
+
+test("unavailable publication and debt conflicts retain sources without inventing a fair value", async ({ page }) => {
+  const { unexpected } = await diagnosticsApi(page, { ticker: "ORCL", mode: "none", publicationType: "unavailable", includeReconciliation: true });
+  await expect(page.getByTestId("valuation-publication-type")).toHaveText("Unavailable");
+  await expect(page.getByTestId("weighted-fair-value")).toHaveText("—");
+  const debt = page.getByTestId("debt-reconciliation");
+  await debt.locator(":scope > summary").click();
+  await expect(debt).toContainText("Debt candidates conflict");
+  await expect(debt).toContainText("Accepted total debt: Unavailable");
+  await debt.getByText("Reported total debt", { exact: true }).click();
+  await expect(debt).toContainText("15000000.125 USD");
+  await debt.getByText("Complete debt reconciliation record", { exact: true }).click();
+  await expect(debt.locator(":scope > .research-original-diagnostics pre")).toContainText("-1000000.125");
+  await expect(debt.locator(":scope > .research-original-diagnostics pre")).toContainText("synthetic-debt-filing");
+  await expect(page.getByTestId("weighted-fair-value")).toHaveText("—");
+  await fitsViewport(page);
+  expect(unexpected).toEqual([]);
 });

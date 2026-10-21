@@ -1,11 +1,12 @@
 import { totalDollars, dollars } from "@/lib/financialFormatting";
 import { companyDescriptionPreview } from "@/lib/sourceNotices";
-import { issuerCategoryLabel, listingVerificationSummary, securityFormLabel } from "@/lib/securityIdentity";
+import { issuerCategoryLabel, issuerLinkageSummary, listingVerificationSummary, securityFormLabel } from "@/lib/securityIdentity";
 
 export default function CompanyHeader({ company }) {
   const provider = company.dataMode === "provider";
   const description = companyDescriptionPreview(company.description || "Company description unavailable from the configured provider.");
   const verification = listingVerificationSummary(company);
+  const issuerLinkage = issuerLinkageSummary(company);
   return (
     <section
       id="overview"
@@ -75,6 +76,7 @@ export default function CompanyHeader({ company }) {
           {company.displaySymbol && company.displaySymbol !== company.ticker && <span>Canonical symbol: {company.ticker}</span>}
           <span className="company-listing-verification">{verification.label}{verification.observed_on && ` · Listing observed ${verification.observed_on}`}</span>
           {company.identityStatus && <span>Security identity: {company.identityStatus.replaceAll("_", " ")}</span>}
+          {company.identity?.proof_expiry?.issuer_linkage && <span>{issuerLinkage.label}</span>}
         </div>
       )}
       {provider && ["adr", "ads"].includes(company.securityForm ?? company.instrumentType) && <p className="research-warning">This listed depositary security is distinct from its underlying issuer. Reporting currency, ADR ratio and per-security share basis must be compatible before a valuation can contribute. No currency or share-ratio conversion is assumed.</p>}

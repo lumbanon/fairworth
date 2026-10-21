@@ -1,0 +1,682 @@
+{
+  "fixture_version": "phase671-financial-scope-excerpts-1",
+  "data_mode": "retained_prior_authorized_sec",
+  "as_of": "2026-10-20T12:02:07.066938+00:00",
+  "limitations": [
+    "Exact public source excerpts from the completed Phase 6.7 acquisition; no new request is authorized or performed.",
+    "Only selected FY2025 debt and cash disclosure scopes are retained. Missing concepts do not establish absence in a complete filing.",
+    "A discount or issuance-cost amount matching a discrepancy does not establish the original debt-note reconciliation or sign.",
+    "Restricted cash and investments are not unrestricted enterprise-bridge cash."
+  ],
+  "issuers": [
+    {
+      "symbol": "AMZN",
+      "cik": "0001018724",
+      "source": {
+        "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
+        "sha256": "7549fb68446eee40e1f50a166fa06b2d2ee6349e07c8553a4828757e032d3cd4",
+        "retrieved_at": "2026-10-20T12:02:00.087364+00:00",
+        "bytes": 4478611
+      },
+      "selection": {
+        "complete_provider_document": false,
+        "end_date": "2025-12-31",
+        "purpose": "debt carrying-value candidate conflicts and separately reported cash restrictions"
+      },
+      "raw": {
+        "cik": 1018724,
+        "entityName": "AMAZON COM INC",
+        "facts": {
+          "us-gaap": {
+            "CashAndCashEquivalentsAtCarryingValue": {
+              "label": "Cash and Cash Equivalents, at Carrying Value",
+              "description": "Amount of currency on hand as well as demand deposits with banks or financial institutions. Includes other kinds of accounts that have the general characteristics of demand deposits. Also includes short-term, highly liquid investments that are both readily convertible to known amounts of cash and so near their maturity that they present insignificant risk of changes in value because of changes in interest rates. Excludes cash and cash equivalents within disposal group and discontinued operation.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 86810000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 86810000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 86810000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents": {
+              "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+              "description": "Amount of cash and cash equivalents, and cash and cash equivalents restricted to withdrawal or usage. Excludes amount for disposal group and discontinued operations. Cash includes, but is not limited to, currency on hand, demand deposits with banks or financial institutions, and other accounts with general characteristics of demand deposits. Cash equivalents include, but are not limited to, short-term, highly liquid investments that are both readily convertible to known amounts of cash and so near their maturity that they present insignificant risk of changes in value because of changes in interest rates.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 90106000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 90106000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 90106000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentCarryingAmount": {
+              "label": "Long-term Debt, Gross",
+              "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebt": {
+              "label": "Long-term Debt",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 68836000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 68836000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 68836000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtCurrent": {
+              "label": "Long-term Debt, Current Maturities",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 2748000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 2748000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 2748000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtNoncurrent": {
+              "label": "Long-term Debt, Excluding Current Maturities",
+              "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 65648000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "RestrictedCashCurrent": {
+              "label": "Restricted Cash, Current",
+              "description": "Amount of cash restricted as to withdrawal or usage, classified as current. Cash includes, but is not limited to, currency on hand, demand deposits with banks or financial institutions, and other accounts with general characteristics of demand deposits.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 300000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 300000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 300000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "RestrictedCashNoncurrent": {
+              "label": "Restricted Cash, Noncurrent",
+              "description": "Amount of cash restricted as to withdrawal or usage, classified as noncurrent. Cash includes, but is not limited to, currency on hand, demand deposits with banks or financial institutions, and other accounts with general characteristics of demand deposits.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 2996000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 2996000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 2996000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "RevenueFromContractWithCustomerExcludingAssessedTax": {
+              "label": "Revenue from Contract with Customer, Excluding Assessed Tax",
+              "description": "Amount, excluding tax collected from customer, of revenue from satisfaction of performance obligation by transferring promised good or service to customer. Tax collected from customer is tax assessed by governmental authority that is both imposed on and concurrent with specific revenue-producing transaction, including, but not limited to, sales, use, value added and excise.",
+              "units": {
+                "USD": [
+                  {
+                    "start": "2025-01-01",
+                    "end": "2025-12-31",
+                    "val": 716924000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06",
+                    "frame": "CY2025"
+                  }
+                ]
+              }
+            },
+            "ShortTermBorrowings": {
+              "label": "Short-term Debt",
+              "description": "Reflects the total carrying amount as of the balance sheet date of debt having initial terms less than one year or the normal operating cycle, if longer.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 455000000,
+                    "accn": "0001018724-26-000004",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-06"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 455000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 455000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "RestrictedCashAndInvestments": {
+              "label": "Restricted Cash and Investments",
+              "description": "Cash and investments whose use in whole or in part is restricted for the long-term, generally by contractual agreements or regulatory requirements. For use in an unclassified balance sheet.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 3296000000,
+                    "accn": "0001018724-26-000014",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 3296000000,
+                    "accn": "0001018724-26-000026",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-31",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "symbol": "GOOGL",
+      "cik": "0001652044",
+      "source": {
+        "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
+        "sha256": "a017f26ee88cb4a639d1c1ddb06d53b4afe22f0ac89cabec7cd67c88919fe1c5",
+        "retrieved_at": "2026-10-20T12:02:02.690961+00:00",
+        "bytes": 3164517
+      },
+      "selection": {
+        "complete_provider_document": false,
+        "end_date": "2025-12-31",
+        "purpose": "debt carrying-value candidate conflicts and separately reported cash restrictions"
+      },
+      "raw": {
+        "cik": 1652044,
+        "entityName": "Alphabet Inc.",
+        "facts": {
+          "us-gaap": {
+            "CashAndCashEquivalentsAtCarryingValue": {
+              "label": "Cash and Cash Equivalents, at Carrying Value",
+              "description": "Amount of currency on hand as well as demand deposits with banks or financial institutions. Includes other kinds of accounts that have the general characteristics of demand deposits. Also includes short-term, highly liquid investments that are both readily convertible to known amounts of cash and so near their maturity that they present insignificant risk of changes in value because of changes in interest rates. Excludes cash and cash equivalents within disposal group and discontinued operation.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents": {
+              "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+              "description": "Amount of cash and cash equivalents, and cash and cash equivalents restricted to withdrawal or usage. Excludes amount for disposal group and discontinued operations. Cash includes, but is not limited to, currency on hand, demand deposits with banks or financial institutions, and other accounts with general characteristics of demand deposits. Cash equivalents include, but are not limited to, short-term, highly liquid investments that are both readily convertible to known amounts of cash and so near their maturity that they present insignificant risk of changes in value because of changes in interest rates.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 30708000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentUnamortizedDiscountPremiumAndDebtIssuanceCostsNet": {
+              "label": "Debt Instrument, Unamortized Discount (Premium) and Debt Issuance Costs, Net",
+              "description": "Amount of unamortized debt discount (premium) and debt issuance costs.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": -542000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": -542000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": -542000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebt": {
+              "label": "Long-term Debt",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 49085000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtCurrent": {
+              "label": "Long-term Debt, Current Maturities",
+              "description": "Amount, after unamortized (discount) premium and debt issuance costs, of long-term debt, classified as current. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 1996000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 1996000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 1996000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "LongTermDebtNoncurrent": {
+              "label": "Long-term Debt, Excluding Current Maturities",
+              "description": "Amount after unamortized (discount) premium and debt issuance costs of long-term debt classified as noncurrent and excluding amounts to be repaid within one year or the normal operating cycle, if longer. Includes, but not limited to, notes payable, bonds payable, debentures, mortgage loans and commercial paper. Excludes capital lease obligations.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 46547000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 46547000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 46547000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            },
+            "Revenues": {
+              "label": "Revenues",
+              "description": "Amount of revenue recognized from goods sold, services rendered, insurance premiums, or other activities that constitute an earning process. Includes, but is not limited to, investment and interest income before deduction of interest expense when recognized as a component of revenue, and sales and trading gain (loss).",
+              "units": {
+                "USD": [
+                  {
+                    "start": "2025-01-01",
+                    "end": "2025-12-31",
+                    "val": 402836000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05",
+                    "frame": "CY2025"
+                  }
+                ]
+              }
+            },
+            "DebtInstrumentCarryingAmount": {
+              "label": "Long-term Debt, Gross",
+              "description": "Amount, before unamortized (discount) premium and debt issuance costs, of long-term debt. Includes, but is not limited to, notes payable, bonds payable, commercial loans, mortgage loans, convertible debt, subordinated debt and other types of debt.",
+              "units": {
+                "USD": [
+                  {
+                    "end": "2025-12-31",
+                    "val": 49085000000,
+                    "accn": "0001652044-26-000018",
+                    "fy": 2025,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": "2026-02-05"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 49085000000,
+                    "accn": "0001652044-26-000048",
+                    "fy": 2026,
+                    "fp": "Q1",
+                    "form": "10-Q",
+                    "filed": "2026-04-30"
+                  },
+                  {
+                    "end": "2025-12-31",
+                    "val": 49085000000,
+                    "accn": "0001652044-26-000071",
+                    "fy": 2026,
+                    "fp": "Q2",
+                    "form": "10-Q",
+                    "filed": "2026-07-23",
+                    "frame": "CY2025Q4I"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

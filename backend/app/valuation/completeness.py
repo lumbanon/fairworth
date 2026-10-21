@@ -9,7 +9,7 @@ import re
 
 from app.valuation.provenance import POLICY_TYPES, USER_TYPES
 
-COMPLETENESS_VERSION = "financial-completeness-1"
+COMPLETENESS_VERSION = "financial-completeness-2"
 GROUPS = ("available", "missing", "stale", "incompatible", "restricted", "derived", "policy", "user")
 LABELS = {"debt": "Complete conventional financial debt", "total_debt": "Complete conventional financial debt",
           "ebitda": "EBITDA operating-income proxy", "ebitda_margin": "EBITDA margin",
@@ -126,6 +126,7 @@ def build_data_completeness(inputs, assumptions, models, market):
                 add(key, {"value": None, "source_type": "unavailable",
                           "warnings": ["A required model input has no supported effective value."]})
     return {"methodology_version": COMPLETENESS_VERSION, "normalization_version": inputs.get("normalization_version"),
+            "financial_reconciliations": _json(inputs.get("financial_reconciliations", {})),
             "reporting_period": _json(period), "as_of": _json(as_of),
             "quote_observation_date": None if manual_price else market.get("price_timestamp"), "groups": groups, "fields": fields,
             "limitations": ["Groups can overlap; counts are not a completeness score or a probability of valuation accuracy.",

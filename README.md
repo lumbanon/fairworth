@@ -371,6 +371,13 @@ mocked transports and dedicated PostgreSQL connections remain available.
 
 ## Phase 6.7 financial evidence and model coverage
 
+The subsequent [Phase 6.7.1 audit](docs/phase671-valuation-coverage-completion.md)
+documents debt-scope reconciliation, independent source expiry, historical versus
+current publication and evidence dependence. Its bounded local acquisition and
+offline checks improve safeguards; additional real-data default valuation
+coverage remains blocked. No provider dataset is authorized for deployment by
+that audit.
+
 See the [financial coverage report](docs/phase67-financial-coverage.md) for the
 source/permission audit, all eleven model requirements, the 30-security sample,
 coverage denominators, preservation checks and remaining financial blockers.

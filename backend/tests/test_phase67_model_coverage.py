@@ -45,7 +45,7 @@ def test_every_alternative_path_and_missing_category_is_retained():
 
 def test_quote_uses_observation_date_never_retrieval_or_manual_value():
     from datetime import UTC, datetime
-    inputs = retained_inputs()["MSFT"]
+    inputs = deepcopy(retained_inputs()["MSFT"])
     inputs.pop("market", None)
     clock = datetime(2026, 10, 20, 12, tzinfo=UTC)
     market = {"price": 100, "currency": "USD", "status": "fresh", "source_type": "provider",
@@ -94,7 +94,7 @@ def test_unused_cashflow_paths_are_not_reported_as_blocking_components():
 
 def test_manual_comparison_and_currency_gate_do_not_destroy_independent_proofs():
     from datetime import UTC, datetime
-    inputs = retained_inputs()["MSFT"]
+    inputs = deepcopy(retained_inputs()["MSFT"])
     inputs["market"] = {"price": 100, "price_timestamp": "2026-10-20T11:00:00Z", "currency": "USD", "status": "fresh"}
     inputs["basis"]["share_basis_verified"] = True
     inputs["company"].update(instrument_id="fixture", security_form="adr", identity_status="verified", adr_metadata={})

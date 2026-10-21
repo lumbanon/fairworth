@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { dollars } from "@/lib/financialFormatting";
-import { providerPeriodLabel } from "@/lib/providerValuation";
+import { providerPeriodLabel, providerPublicationLabel } from "@/lib/providerValuation";
 import { isHistoricalNotice, noticeMessage } from "@/lib/sourceNotices";
+import { diagnosticMessages } from "@/lib/providerDiagnostics";
 import SourceNoticeGroups from "./SourceNoticeGroups";
 
 export default function ProviderValuationStatus({ company, valuation }) {
@@ -10,6 +11,8 @@ export default function ProviderValuationStatus({ company, valuation }) {
   const notices = valuation.sourceNotices ?? valuation.warnings;
   const historicalNotices = notices.filter(isHistoricalNotice);
   const currentNotices = notices.filter((notice) => !isHistoricalNotice(notice));
+  const publication = valuation.publication;
+  const clocks = publication?.clocks ?? {};
   return (
     <section className="research-quality-notice" aria-labelledby="valuation-engine-title" aria-busy={["loading", "calculating"].includes(valuation.status)}>
       <div><h2 id="valuation-engine-title">Python valuation engine</h2>
@@ -38,6 +41,24 @@ export default function ProviderValuationStatus({ company, valuation }) {
         </div>
       </div>
       {valuation.status === "ready" && valuation.summary.fairValue == null && <p className="research-caption">No supported weighted estimate is available. Open a model's details to see its missing inputs, then edit the relevant assumptions. An unsupported estimate is kept unavailable.</p>}
+      {publication && <details className="provider-confidence" data-testid="valuation-publication-details"><summary>Valuation publication basis: {providerPublicationLabel(publication)}</summary>
+        <p className="research-caption">Financial evidence availability, security compatibility and model eligibility are separate requirements. A manual comparison price does not establish a current provider quote.</p>
+        {(publication.blockers ?? []).length > 0 && <ul className="provider-blocker-list">{publication.blockers.map((blocker, index) => <li key={`${blocker.code}-${index}`}><strong>{blocker.code?.replaceAll("_", " ") || "Unresolved check"}</strong><p>{blocker.message}</p>{blocker.fields?.length > 0 && <p className="research-caption">Affected inputs: {blocker.fields.join(", ")}</p>}</li>)}</ul>}
+        <dl className="provider-record-metadata">
+          <div><dt>Calculation time</dt><dd>{clocks.calculated_at || valuation.calculatedAt || "Unavailable"}</dd></div>
+          <div><dt>Financial reporting period</dt><dd>{providerPeriodLabel(clocks.financial?.reporting_period) || "Unavailable"}</dd></div>
+          <div><dt>Financial filing dates</dt><dd>{Array.isArray(clocks.financial?.filed_at) ? clocks.financial.filed_at.join(", ") || "Unavailable" : clocks.financial?.filed_at || "Unavailable"}</dd></div>
+          <div><dt>Financial snapshot retrieved</dt><dd>{clocks.financial?.retrieved_at || "Unavailable"}</dd></div>
+          <div><dt>Listing observed</dt><dd>{clocks.listing?.observed_on || "Unavailable"}</dd></div>
+          <div><dt>Listing proof expires</dt><dd>{clocks.listing?.expires_at || "Unavailable"}</dd></div>
+          <div><dt>Issuer linkage observed</dt><dd>{clocks.issuer_linkage?.observed_on || "Unavailable"}</dd></div>
+          <div><dt>Issuer linkage proof expires</dt><dd>{clocks.issuer_linkage?.expires_at || "Unavailable"}</dd></div>
+          <div><dt>Provider quote observed</dt><dd>{clocks.quote?.observed_at || "Unavailable"}</dd></div>
+          <div><dt>Provider quote retrieved</dt><dd>{clocks.quote?.retrieved_at || "Unavailable"}</dd></div>
+        </dl>
+        {diagnosticMessages(publication.limitations).map((limitation, index) => <p className="research-caption" key={index}>{limitation}</p>)}
+        <details className="research-original-diagnostics"><summary>Complete publication evidence and clocks</summary><pre>{JSON.stringify(publication, null, 2)}</pre></details>
+      </details>}
       {Object.keys(valuation.snapshotDates ?? {}).length > 0 && <details className="provider-confidence"><summary>Financial and market snapshot dates</summary>
         {Object.entries(valuation.snapshotDates).map(([key, value]) => <p className="research-caption" key={key}><strong>{key.replaceAll("_", " ")}: </strong>{providerPeriodLabel(value) || "Unavailable"}</p>)}
       </details>}

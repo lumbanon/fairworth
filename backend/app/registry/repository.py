@@ -288,14 +288,15 @@ class SecurityRegistryRepository:
                     linkage = sec_issuer_linkage(ticker=current.ticker, venue=exchange_mic(current.exchange, current.exchange_mic),
                         cik=issuer.cik, issuer_id=issuer.id, observed_on=legacy_refresh.as_of.isoformat(),
                         registry_version=legacy_refresh.content_hash, source=legacy_refresh.source,
-                        source_url=sec_refs[0].get("url"))
+                        source_url=sec_refs[0].get("url"), retrieved_at=as_utc(legacy_refresh.retrieved_at).isoformat())
                 explicit_sec_refs = [ref for ref in row.source_refs if ref.get("provider") in {"sec", "sec-edgar"}]
                 if (meta.source_kind == "reference" and meta.source.startswith("sec-edgar") and explicit_sec_refs
                         and row.cik == issuer.cik and exchange_mic(row.exchange, row.exchange_mic)
                         and (not linkage or meta.as_of.isoformat() >= linkage["observed_on"])):
                     linkage = sec_issuer_linkage(ticker=row.ticker, venue=exchange_mic(row.exchange, row.exchange_mic),
                         cik=issuer.cik, issuer_id=issuer.id, observed_on=meta.as_of.isoformat(), registry_version=fingerprint,
-                        source=meta.source, source_url=explicit_sec_refs[0].get("url"), record_hash=row.source_record_hash)
+                        source=meta.source, source_url=explicit_sec_refs[0].get("url"), record_hash=row.source_record_hash,
+                        retrieved_at=as_utc(meta.retrieved_at or now).isoformat(), published_at=meta.published_at)
                 if linkage:
                     current.verification = {**(current.verification or {}), "issuer_linkage": linkage}
                 observation = SecurityListingObservation(id=identifier(), listing_id=current.id, refresh_id=refresh.id,
