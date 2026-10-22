@@ -5,6 +5,7 @@ import { providerPeriodLabel, providerPublicationLabel } from "@/lib/providerVal
 import { isHistoricalNotice, noticeMessage } from "@/lib/sourceNotices";
 import { diagnosticMessages } from "@/lib/providerDiagnostics";
 import SourceNoticeGroups from "./SourceNoticeGroups";
+import { providerQuoteCurrency } from "@/lib/marketDataPresentation";
 
 export default function ProviderValuationStatus({ company, valuation }) {
   const confidence = valuation.scenarios[valuation.activeScenario].confidence ?? valuation.confidence;
@@ -35,7 +36,7 @@ export default function ProviderValuationStatus({ company, valuation }) {
         </div>
         <div className="assumption-field">
           <p className="research-caption">Comparison source: {valuation.market.label || "Market provider price unavailable"}</p>
-          <p className="research-caption">Official provider quote: {dollars(company.price, company.market?.currency ?? null)} · {company.market?.price_timestamp || "Timestamp unavailable"}</p>
+          <p className="research-caption">Provider-observed quote: {dollars(company.price, providerQuoteCurrency(company.market))} · {company.market?.price_timestamp || "Timestamp unavailable"}</p>
           <p className="research-caption">Engine: {valuation.engineVersion || "Loading"} · Calculated: {valuation.calculatedAt || "Unavailable"}</p>
           {valuation.assumptionMethodologyVersion && <p className="research-caption">Assumption methodology: {valuation.assumptionMethodologyVersion}</p>}
         </div>

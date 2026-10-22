@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import asyncio
 import time
+from copy import deepcopy
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -19,6 +20,8 @@ import httpx
 
 from app.providers.base import JsonHttpProvider, ProviderError, validate_ticker
 from app.services.security_identity import cache_scope, check_provider_identity
+from app.providers.capabilities import capability_record, capability_snapshot
+from app.providers.currency import make_currency_evidence, resolve_quote_currency
 
 
 def _number(value: Any) -> float | None:
@@ -90,7 +93,9 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         stale_price_seconds: int = 259200,
         access_denial_ttl_seconds: int = 3600,
     ) -> None:
-        super().__init__(client, min_interval=min_interval, retries=retries, timeout=timeout)
+        # FMP's free allowance must not be consumed by automatic retries or
+        # repeated entitlement probes. SEC transport policy is independent.
+        super().__init__(client, min_interval=min_interval, retries=0, timeout=timeout)
         self.api_key = api_key.strip()
         self.enabled = bool(self.api_key)
         self.stale_price_seconds = max(60, stale_price_seconds)
@@ -99,6 +104,26 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         self._access_denials = {}
         self._endpoint_locks = {}
         self._endpoint_users = {}
+        self._capabilities = {}
+
+    def capability(self, endpoint, ticker, identity=None):
+        symbol = self._symbol(ticker, identity)
+        key = (endpoint, cache_scope(identity) if identity else symbol)
+        return deepcopy(self._capabilities.get(key, capability_record(endpoint)))
+
+    def capability_snapshot(self, ticker, identity=None):
+        from app.providers.capabilities import ENDPOINTS
+        scope = identity or {"ticker": self._symbol(ticker, identity)}
+        return capability_snapshot({endpoint: self.capability(endpoint, ticker, identity) for endpoint in ENDPOINTS}, scope)
+
+    def _observe_capability(self, key, error=None):
+        self._remember(self._capabilities, key, capability_record(key[0], observed_at=datetime.now(UTC).isoformat(),
+                       error_code=error.code if error else None, success=error is None))
+
+    def _cached_profile(self, ticker, identity=None):
+        key = cache_scope(identity) if identity else self._symbol(ticker, identity)
+        cached = self._profiles.get(key)
+        return deepcopy(cached[1]) if cached is not None and time.monotonic() - cached[0] < 3600 else {}
 
     @staticmethod
     def _remember(mapping, key, value):
@@ -128,19 +153,21 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         # Access can differ by symbol. Do not let an ORCL restriction disable AAPL.
         async with self._endpoint_lock(key):
             denial = self._access_denials.get(key)
-            if denial and time.monotonic() - denial[0] < self.access_denial_ttl_seconds:
+            permanent = denial and denial[1] in {"provider_subscription_required", "provider_access_denied", "provider_authentication_failed"}
+            if denial and (permanent or time.monotonic() - denial[0] < self.access_denial_ttl_seconds):
                 raise ProviderError(denial[1], denial[2], 503)
             try:
                 # endpoint is an internal constant; no user-controlled URL is accepted.
                 payload = await self._json(
                     f"{self.ORIGIN}/{endpoint}", params={**(parameters or {}), "symbol": symbol, "apikey": self.api_key}
                 )
-                if isinstance(payload, dict) and ("Error Message" in payload or "error" in payload):
+                if isinstance(payload, dict) and any(key in payload for key in ("Error Message", "error", "Error")):
                     raise ProviderError(
                         "provider_access_denied", "The market provider could not fulfill this request. Check access permissions.", 503
                     )
             except ProviderError as error:
-                if error.code in {"provider_subscription_required", "provider_access_denied"}:
+                self._observe_capability(key, error)
+                if error.code in {"provider_subscription_required", "provider_access_denied", "provider_authentication_failed", "provider_rate_limited"}:
                     self._remember(self._access_denials, key, (time.monotonic(), error.code, error.message))
                 raise
             self._access_denials.pop(key, None)
@@ -149,6 +176,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         if identity:
             for row in payload:
                 check_provider_identity(identity, row)
+        self._observe_capability(key)
         return payload
 
     @staticmethod
@@ -184,6 +212,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             "retrieved_at": datetime.now(UTC).isoformat(),
             "provider": self.name,
         }
+        result["currency_evidence"] = make_currency_evidence(row, identity, source_kind="provider_security_metadata", retrieved_at=result["retrieved_at"])
         if identity:
             check_provider_identity(identity, result)
         self._remember(self._profiles, profile_key, (time.monotonic(), result))
@@ -199,12 +228,9 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
         if price is None or price <= 0:
             raise ProviderError("invalid_provider_response", "The market provider returned an invalid stock price.", 502)
         warnings = []
-        profile = {}
-        if not row.get("currency") or not row.get("exchange"):
-            try:
-                profile = await self.profile(symbol, identity=identity)
-            except ProviderError:
-                warnings.append({"field": "currency", "code": "missing_quote_metadata", "message": "Quote currency or exchange metadata is unavailable."})
+        profile = self._cached_profile(symbol, identity)
+        if (not row.get("currency") or not row.get("exchange")) and not profile:
+            warnings.append({"field": "currency", "code": "missing_quote_metadata", "message": "Quote currency or exchange metadata is unavailable; no additional provider endpoint was requested."})
         timestamp = _number(row.get("timestamp"))
         price_timestamp = None
         if timestamp is not None:
@@ -220,11 +246,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 pass
         if price_timestamp is None:
             warnings.append({"field": "price_timestamp", "code": "missing_price_timestamp", "message": "The provider did not supply a usable market price timestamp."})
-        currency = row.get("currency") or profile.get("currency") or None
-        if currency is None:
-            warnings.append({"field": "currency", "code": "missing_currency", "message": "The quote currency is unavailable; currency-sensitive calculations must remain unavailable."})
-        if currency is not None and currency != "USD":
-            warnings.append({"field": "currency", "code": "incompatible_currency", "message": "The quote currency is not USD and cannot be combined with USD financial statements without a sourced conversion."})
+        currency = row.get("currency") or None
         market_cap = _number(row.get("marketCap"))
         shares = _number(row.get("sharesOutstanding"))
         if market_cap is not None and market_cap <= 0:
@@ -235,7 +257,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             warnings.append({"field": "shares_outstanding", "code": "invalid_share_count", "message": "A nonpositive provider share count was excluded."})
         if market_cap is not None and shares is not None and abs(market_cap - price * shares) > market_cap * 0.1:
             warnings.append({"field": "market_cap", "code": "inconsistent_market_cap", "message": "Market capitalization differs from the supplied price/share-count basis by more than 10%; reported values were not recalculated."})
-        return {
+        result = {
             "ticker": symbol,
             "price": price,
             "currency": currency,
@@ -247,14 +269,21 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
             "retrieved_at": datetime.now(UTC).isoformat(),
             "warnings": warnings,
         }
+        result["currency_evidence"] = make_currency_evidence(row, identity, source_kind="provider_quote", retrieved_at=result["retrieved_at"])
+        result = resolve_quote_currency(result, identity, [profile["currency_evidence"]] if profile.get("currency_evidence") else [])
+        warnings = result["warnings"]
+        if result["currency_resolution"]["status"] != "verified":
+            warnings.append({"field": "currency", "code": "quote_currency_unverified" if result["currency_resolution"]["status"] != "conflict" else "conflicting_quote_currency",
+                "message": "The observed quote has no compatible source-backed currency; currency-sensitive results remain unavailable."})
+        elif result["currency"] != "USD":
+            warnings.append({"field": "currency", "code": "incompatible_currency", "message": "The quote currency is not USD and cannot be combined with USD financial statements without a sourced conversion."})
+        result["provider_capability"] = self.capability("quote", symbol, identity)
+        result["provider_capabilities"] = self.capability_snapshot(symbol, identity)
+        return result
 
     async def historical_prices(self, ticker: str, limit: int = 365, identity: dict | None = None) -> list[dict]:
         symbol = self._symbol(ticker, identity)
         rows = await self._records("historical-price-eod/full", symbol, identity=identity)
-        try:
-            profile = await self.profile(symbol, identity=identity)
-        except ProviderError:
-            profile = {}  # Preserve entitled history even if optional profile metadata is unavailable.
         result = []
         for row in rows:
             if row.get("symbol", symbol) != symbol:
@@ -273,7 +302,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 "high": _number(row.get("high")),
                 "low": _number(row.get("low")),
                 "volume": _number(row.get("volume")),
-                "currency": profile.get("currency"),
+                "currency": row.get("currency"),
                 "provider": self.name,
                 # FMP documents full EOD as split adjusted. It is distinct from
                 # its dividend-adjusted endpoint, which is unsuitable for P/E.
@@ -286,10 +315,6 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
     async def dividends(self, ticker: str, limit: int = 100, identity: dict | None = None) -> list[dict]:
         symbol = self._symbol(ticker, identity)
         rows = await self._records("dividends", symbol, identity=identity)
-        try:
-            profile = await self.profile(symbol, identity=identity)
-        except ProviderError:
-            profile = {}
         result = []
         for row in rows:
             amount = _number(row.get("dividend"))
@@ -302,7 +327,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
                 "declaration_date": row.get("declarationDate"),
                 "record_date": row.get("recordDate"),
                 "payment_date": row.get("paymentDate"),
-                "currency": profile.get("currency"),
+                "currency": row.get("currency"),
                 "provider": self.name,
             })
         return result[: min(1000, max(1, limit))]
@@ -310,7 +335,7 @@ class FmpMarketDataProvider(JsonHttpProvider, MarketDataProvider):
     async def splits(self, ticker: str, identity: dict | None = None) -> list[dict]:
         """Full authorized split-event endpoint; a denied call is not no splits."""
         symbol = self._symbol(ticker, identity)
-        rows = await self._records("splits", symbol, identity=identity)
+        rows = await self._records("splits", symbol, {"limit": 1000}, identity=identity)
         result = []
         for row in rows:
             if row.get("symbol", symbol) != symbol:

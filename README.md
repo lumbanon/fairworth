@@ -447,3 +447,20 @@ remain. A financial retrieval never renews listing proof or supplies class/FX
 conversions. The full raw files remain ignored and were not imported into the
 website database. The report records every request, source hash, exact scope and
 remaining limitation; any further acquisition requires separate approval.
+
+## Phase 6.7.2 free-plan market integration
+
+The [Phase 6.7.2 report](docs/phase672-real-data-valuation-integration.md) records
+the entitlement guard, dated source-backed quote currency, read-only financial
+import audit, dashboard diagnostics and offline replay commands. Actual FMP
+loaders default to cached evidence only: `FMP_AUTHORIZED_ENDPOINTS={}`. An exact
+symbol/endpoint configuration permits acquisition only after operator review;
+it does not establish entitlement or public display rights. Retained access
+denials suppress automatic probes, and a shared rolling request budget bounds
+authorized calls. FMP calls have zero retries and no hidden profile fallback.
+
+The separately approved AAPL audit established one compatible USD quote, but
+split access returned HTTP 402. No current default valuation or independent
+second model became eligible. Original historical AAPL/MSFT illustrations remain
+reproducible. Raw acquisitions stay ignored, and no application financial data
+was imported. Further acquisition or material import requires separate approval.

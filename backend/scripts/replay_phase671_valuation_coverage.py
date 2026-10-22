@@ -161,7 +161,7 @@ def apply_local_updates(population, captured, inventory, clock):
                         return deepcopy(item["payload"])
                     async def profile(self, *_args, **_kwargs):
                         raise ProviderError("provider_access_denied", "No profile was acquired in the bounded audit.", 503)
-                adapter = object.__new__(LocalQuote)
+                adapter = LocalQuote(None, api_key="")  # Local raw-response adapter; _records never performs HTTP.
                 adapter.stale_price_seconds = 172800
                 acquired = instant(item["retrieved_at"])
                 class SourceClock(datetime):

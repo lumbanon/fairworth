@@ -189,6 +189,10 @@ def _candidate_sources(inputs, assumptions, model_id):
 def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
     """Add explanations to an engine result; preserve every number and decision."""
     result = deepcopy(valuation)
+    # Preserve source/presentation metadata without changing engine arithmetic.
+    for key in ("original_currency", "currency_resolution", "provider_capabilities", "reporting_currency_compatibility"):
+        if key in (inputs.get("market") or {}):
+            result.setdefault("market", {})[key] = deepcopy(inputs["market"][key])
     clock = _timestamp(as_of or result.get("calculated_at"))
     if clock is None:
         raise ValueError("Financial coverage requires an explicit zoned audit clock.")

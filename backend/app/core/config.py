@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     provider_retries: int = Field(default=2, ge=0, le=5)
     market_data_provider: str = "disabled"
     fmp_api_key: str = ""
+    # Explicit server-side acquisition scope; a key is not endpoint entitlement.
+    fmp_authorized_endpoints: dict[str, list[str]] = Field(default_factory=dict)
+    fmp_access_review_id: str = Field(default="initial", min_length=1, max_length=64)
+    fmp_daily_request_budget: int = Field(default=50, ge=1, le=250)
+    fmp_minimum_request_interval_seconds: float = Field(default=1, ge=1, le=60)
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     sec_cache_ttl_seconds: int = Field(default=21600, ge=1)
     company_cache_ttl_seconds: int = Field(default=86400, ge=1)
@@ -81,6 +86,17 @@ class Settings(BaseSettings):
         value = value.lower()
         if value not in {"disabled", "fmp"}:
             raise ValueError("MARKET_DATA_PROVIDER must be disabled or fmp.")
+        return value
+
+    @field_validator("fmp_authorized_endpoints")
+    @classmethod
+    def validate_fmp_scope(cls, value):
+        import re
+        endpoints = {"quote", "profile", "historical-price-eod/full", "dividends", "splits", "shares-float"}
+        if len(value) > 20 or any(not re.fullmatch(r"[A-Z][A-Z0-9.-]{0,9}", symbol)
+                or not isinstance(items, list) or not items or len(items) != len(set(items))
+                or not set(items) <= endpoints for symbol, items in value.items()):
+            raise ValueError("FMP_AUTHORIZED_ENDPOINTS requires at most 20 exact symbols and explicit supported free-plan candidate endpoints; no wildcard or paid statement fallback.")
         return value
 
 

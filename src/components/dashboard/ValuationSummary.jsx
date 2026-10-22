@@ -29,7 +29,7 @@ export default function ValuationSummary({ company, valuation }) {
             {dollars(
               valuation.providerMode ? valuation.comparisonPrice : company.price,
               company.dataMode === "provider"
-                ? (valuation.market?.currency ?? company.currency ?? null)
+                ? (valuation.market?.currency ?? null)
                 : "USD",
             )}
           </strong>
