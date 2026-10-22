@@ -28,7 +28,7 @@ export function providerModelBlockers(eligibility = {}) {
 }
 
 export function providerCompatibilityLabel(status) {
-  return ({ available: "Available", unavailable: "Unavailable", incompatible: "Incompatible", stale: "Stale observation", unverified: "Unverified" })[status] || "Not assessed";
+  return ({ available: "Available", unavailable: "Unavailable", incompatible: "Incompatible", stale: "Stale observation", unverified: "Unverified", quote_currency_unverified: "Quote currency unverified", conflict: "Conflicting evidence" })[status] || "Not assessed";
 }
 
 export function providerReportingPeriods(completeness = {}) {

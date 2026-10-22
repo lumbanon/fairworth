@@ -1,6 +1,8 @@
 import { totalDollars, dollars } from "@/lib/financialFormatting";
 import { companyDescriptionPreview } from "@/lib/sourceNotices";
 import { issuerCategoryLabel, issuerLinkageSummary, listingVerificationSummary, securityFormLabel } from "@/lib/securityIdentity";
+import { providerQuoteCurrency } from "@/lib/marketDataPresentation";
+import ProviderMarketEvidence from "./ProviderMarketEvidence";
 
 export default function CompanyHeader({ company }) {
   const provider = company.dataMode === "provider";
@@ -34,7 +36,7 @@ export default function CompanyHeader({ company }) {
           <strong>
             {dollars(
               company.price,
-              provider ? (company.market?.currency ?? null) : "USD",
+              provider ? providerQuoteCurrency(company.market) : "USD",
             )}
           </strong>
         </div>
@@ -54,7 +56,7 @@ export default function CompanyHeader({ company }) {
               provider
                 ? company.marketCap
                 : company.price * company.latest.shares,
-              provider ? (company.market?.currency ?? null) : "USD",
+              provider ? providerQuoteCurrency(company.market) : "USD",
             )}
           </strong>
         </span>
@@ -63,7 +65,7 @@ export default function CompanyHeader({ company }) {
       {provider && (
         <div className="company-metadata">
           <span>
-            Price timestamp:{" "}
+            Quote observed:{" "}
             <strong>{company.market?.price_timestamp || "Unavailable"}</strong>
           </span>
           <span>
@@ -79,6 +81,7 @@ export default function CompanyHeader({ company }) {
           {company.identity?.proof_expiry?.issuer_linkage && <span>{issuerLinkage.label}</span>}
         </div>
       )}
+      {provider && <ProviderMarketEvidence company={company} />}
       {provider && ["adr", "ads"].includes(company.securityForm ?? company.instrumentType) && <p className="research-warning">This listed depositary security is distinct from its underlying issuer. Reporting currency, ADR ratio and per-security share basis must be compatible before a valuation can contribute. No currency or share-ratio conversion is assumed.</p>}
       {provider && Object.keys(company.adrMetadata ?? {}).length > 0 && <details className="research-original-diagnostics"><summary>Depositary security basis and provenance</summary><pre>{JSON.stringify(company.adrMetadata, null, 2)}</pre></details>}
       <p className="research-demo-notice">

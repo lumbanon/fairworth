@@ -28,7 +28,9 @@ async def test_raw_treasury_split_statement_caches_survive_interpretation_versio
     for kind in ("cash_flow", "balance_sheet"):
         cache._write(f"market:fmp:statement:MSFT:{kind}:annual:v1.0.0", {"available": True, "data": []}, 3600, "fmp")
     assert (await service._treasury())["value"] == .04
-    assert (await service._splits("MSFT"))["complete"] is True
+    # The cached empty response remains readable without provider refresh, but
+    # absence of returned events does not establish a complete split history.
+    assert (await service._splits("MSFT"))["complete"] is False
     statements = await service._supplemental("MSFT")
     assert all(record["available"] for record in statements.values())
     assert cache._read(treasury_key).payload["data"] == yield_record

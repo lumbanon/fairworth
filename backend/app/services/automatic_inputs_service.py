@@ -11,8 +11,9 @@ import re
 from app.core.exceptions import ApiError
 from app.core.database import utcnow
 from app.providers.base import ProviderError, normalize_cik
-from app.services.security_identity import cache_scope, market_call, check_provider_identity
+from app.services.security_identity import cache_scope, check_provider_identity
 from app.services.cache_service import CachedResult
+from app.services.market_access import market_access_call
 from app.services.normalization import METRIC_DEFINITIONS, NORMALIZATION_VERSION, extract_observations, normalize_company_facts
 from app.valuation.inputs import normalize_annual_period, number, day
 
@@ -366,7 +367,7 @@ class AutomaticInputsService:
         # supported history window. Provider rows retain their adjustment basis.
         try:
             result = await self.cache.get_or_load(f"market:{market.name}:prices:{scope}:2000", self.settings.historical_cache_ttl_seconds,
-                                                 market.name, lambda: self._bounded(lambda: market_call(market, "historical_prices", company, 2000)))
+                                                 market.name, lambda: self._bounded(lambda: market_access_call(market, self.cache, self.settings, "historical_prices", company, 2000)))
             rows = deepcopy(result.payload)
             return {"prices": rows, "provider": market.name, "retrieved_at": _instant(result.retrieved_at),
                     "status": result.status, "warnings": result.warnings,
@@ -384,8 +385,18 @@ class AutomaticInputsService:
         market = self.companies.market
         if not hasattr(market, "splits"):
             return {"splits": [], "complete": False, "status": "unavailable", "provider": market.name}
-        result = await self._optional(f"market:{market.name}:splits:{scope}:v{PROVIDER_CACHE_VERSION}", market.name, lambda: market_call(market, "splits", company))
-        return {**result, "splits": result.get("data", []), "complete": bool(result.get("available")),
+        from app.providers.market_data import FmpMarketDataProvider
+        async def load():
+            events = await market_access_call(market, self.cache, self.settings, "splits", company)
+            return {"events": events, "complete": bool(events) and len(events) < 1000,
+                    "scope": "Dated provider event list below its explicit requested limit; empty or limit-sized responses do not establish completeness."}
+        key = f"market:{market.name}:splits:{scope}:v{PROVIDER_CACHE_VERSION}"
+        actual_fmp = isinstance(market, FmpMarketDataProvider)
+        result = await self._optional(key + (":scope2" if actual_fmp else ""), market.name,
+            load if actual_fmp else lambda: market_access_call(market, self.cache, self.settings, "splits", company))
+        data = result.get("data", {}) if actual_fmp else {}
+        return {**result, "splits": data.get("events", []) if actual_fmp else result.get("data", []),
+                "complete": bool(result.get("available")) and (data.get("complete") is True if actual_fmp else bool(result.get("data"))),
                 "adjustment_date": str(result.get("retrieved_at", ""))[:10]}
 
     async def _treasury(self):
@@ -448,12 +459,12 @@ class AutomaticInputsService:
             return _record(unit="ratio", description="An authorized beta provider is not configured.", status="unavailable")
         try:
             enrichment = await self.cache.get_or_load(f"market:{market.name}:profile:{scope}", self.settings.company_cache_ttl_seconds,
-                                                      market.name, lambda: self._bounded(lambda: market_call(market, "profile", company)))
+                                                      market.name, lambda: self._bounded(lambda: market_access_call(market, self.cache, self.settings, "profile", company)))
             if market.name == "fmp" and "beta" not in enrichment.payload:
                 # Phase 3 persisted profiles predate beta metadata. Backfill
                 # once through the same authorized endpoint/key. A present null
                 # beta is genuine absence and does not trigger another call.
-                refreshed = await self._bounded(lambda: market_call(market, "profile", company))
+                refreshed = await self._bounded(lambda: market_access_call(market, self.cache, self.settings, "profile", company))
                 refreshed_at = self.cache._write(f"market:{market.name}:profile:{scope}", refreshed,
                                                    self.settings.company_cache_ttl_seconds, market.name)
                 enrichment = CachedResult(refreshed, "fresh", refreshed_at, [])
@@ -478,7 +489,7 @@ class AutomaticInputsService:
             return {}
         async def load(kind):
             result = await self._optional(f"market:{market.name}:statement:{scope}:{kind}:annual:v{PROVIDER_CACHE_VERSION}", market.name,
-                                          lambda: market_call(market, "financial_statements", company, kind))
+                                          lambda: market_access_call(market, self.cache, self.settings, "financial_statements", company, kind))
             return kind, result
         return dict(await asyncio.gather(load("balance_sheet"), load("cash_flow")))
 

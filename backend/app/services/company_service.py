@@ -7,8 +7,11 @@ from app.core.database import as_utc, utcnow
 from app.providers.base import ProviderError
 from app.core.exceptions import ApiError
 from app.services.cache_service import CachedResult
-from app.services.security_identity import cache_scope, check_provider_identity, market_call, security_identity, scope_kwargs
+from app.services.security_identity import cache_scope, check_provider_identity, security_identity, scope_kwargs
 from app.repositories.financial_repository import parse_instant
+from app.services.market_access import market_access_call, capability_snapshot
+from app.providers.market_data import FmpMarketDataProvider
+from app.providers.currency import resolve_quote_currency
 
 
 def combined_status(*statuses):
@@ -24,6 +27,9 @@ class CompanyService:
         self.sec, self.market = sec, market
         self.cache, self.repository, self.settings = cache, repository, settings
         self.registry = registry
+
+    async def _market_data(self, method, identity, *args):
+        return await market_access_call(self.market, self.cache, self.settings, method, identity, *args)
 
     async def search(self, query, limit, offset=0, listing_status=None):
         if self.registry is not None:
@@ -92,9 +98,14 @@ class CompanyService:
         identity = identity or {"ticker": ticker}
         result = await self.cache.get_or_load(f"market:{self.market.name}:quote:{cache_scope(identity)}",
                                              self.settings.market_cache_ttl_seconds, self.market.name,
-                                             lambda: market_call(self.market, "quote", identity))
+                                             lambda: self._market_data("quote", identity))
         payload = dict(result.payload)
         check_provider_identity(identity, payload)
+        if isinstance(self.market, FmpMarketDataProvider):
+            metadata = self.cache._read(f"market:{self.market.name}:profile:{cache_scope(identity)}")
+            record = metadata.payload.get("currency_evidence") if metadata and isinstance(metadata.payload, dict) else None
+            payload = resolve_quote_currency(payload, identity, [record] if record else [], as_of=utcnow())
+        payload["provider_capabilities"] = capability_snapshot(self.market, self.cache, self.settings, identity)
         warnings = list(payload.get("warnings", [])) + result.warnings
         for field in ("price", "market_cap", "shares_outstanding"):
             value = payload.get(field)
@@ -115,7 +126,7 @@ class CompanyService:
         if payload.get("shares_outstanding") is None:
             warnings.append(warning("shares_outstanding", "missing_share_count", "The market provider did not supply a usable current share count."))
         if not payload.get("currency"):
-            warnings.append(warning("currency", "missing_market_currency", "The market provider did not identify the price currency."))
+            warnings.append(warning("currency", "quote_currency_unverified", "A dated source record has not verified this exact quoted security's currency."))
         elif financial_currency and payload["currency"] != financial_currency:
             warnings.append(warning("currency", "incompatible_currencies", "The market price and financial statements use different currencies; no currency conversion is applied."))
         price, shares, cap = (payload.get(key) for key in ("price", "shares_outstanding", "market_cap"))
@@ -123,6 +134,9 @@ class CompanyService:
             warnings.append(warning("market_cap", "market_cap_basis_mismatch", "Reported market capitalization differs from price multiplied by the supplied share count; the provider figure is preserved."))
         payload.update(price_timestamp=timestamp, provider=self.market.name, retrieved_at=result.retrieved_at,
                        status=combined_status(status, "partial" if warnings else "fresh"), warnings=warnings)
+        payload["reporting_currency_compatibility"] = {
+            "status": "unverified" if not financial_currency or not payload.get("currency") else "compatible" if payload["currency"] == financial_currency else "incompatible",
+            "reason": "Reporting and verified quote currency must both be established; no FX conversion or venue-based currency inference is made."}
         return jsonable_encoder(payload)
 
     async def profile(self, ticker, instrument_id=None, listing_id=None):
@@ -137,7 +151,7 @@ class CompanyService:
         try:
             enrichment = await self.cache.get_or_load(f"market:{self.market.name}:profile:{cache_scope(company)}",
                                                       self.settings.company_cache_ttl_seconds, self.market.name,
-                                                      lambda: market_call(self.market, "profile", company))
+                                                      lambda: self._market_data("profile", company))
             check_provider_identity(company, enrichment.payload)
             for field in ("exchange", "sector", "industry", "description", "currency"):
                 if enrichment.payload.get(field):
@@ -172,6 +186,7 @@ class CompanyService:
                                "url": f"https://data.sec.gov/submissions/CIK{company['cik']}.json",
                                "retrieved_at": identity.retrieved_at.isoformat()})
         return {"company": company, "market": market, "status": status, "warnings": warnings,
+                "provider_capabilities": capability_snapshot(self.market, self.cache, self.settings, company),
                 "source_references": references}
 
     async def historical_prices(self, ticker, limit, instrument_id=None, listing_id=None):
@@ -179,7 +194,7 @@ class CompanyService:
         ticker = company["ticker"]
         result = await self.cache.get_or_load(f"market:{self.market.name}:prices:{cache_scope(company)}:{limit}",
                                              self.settings.historical_cache_ttl_seconds, self.market.name,
-                                             lambda: market_call(self.market, "historical_prices", company, limit))
+                                             lambda: self._market_data("historical_prices", company, limit))
         warnings = list(result.warnings) + identity.warnings
         prices = []
         for item in result.payload[:limit]:
@@ -188,12 +203,10 @@ class CompanyService:
                 warnings.append(warning("close", "invalid_market_value", "An invalid historical close observation was omitted."))
                 continue
             prices.append(item)
-        currency = company.get("currency")
-        try:
-            quote = await self.market_quote(ticker, **({"identity": company} if company.get("instrument_id") else {}))
-            currency = quote.get("currency") or currency
-        except ProviderError as error:
-            warnings.append(warning("currency", error.code, "Historical price currency could not be confirmed from the market provider."))
+        units = {item.get("currency") for item in prices}
+        currency = next(iter(units)) if len(units) == 1 and all(isinstance(unit, str) and len(unit) == 3 for unit in units) else None
+        if currency is None:
+            warnings.append(warning("currency", "historical_currency_unverified", "Historical price observations lack a consistent explicit trading unit; no current quote or accounting currency is substituted."))
         return {"ticker": company["ticker"], "identity": security_identity(company), "currency": currency, "prices": prices, "provider": self.market.name,
                 "retrieved_at": result.retrieved_at, "status": combined_status(identity.status, result.status, "partial" if warnings else "fresh"),
                 "warnings": warnings, "source_references": [{"provider": self.market.name}]}

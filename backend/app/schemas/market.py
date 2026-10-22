@@ -14,6 +14,10 @@ class MarketQuote(Envelope):
     shares_outstanding: float | None = None
     provider: str
     retrieved_at: datetime
+    original_currency: str | None = None
+    currency_resolution: dict = Field(default_factory=dict)
+    provider_capabilities: dict = Field(default_factory=dict)
+    reporting_currency_compatibility: dict = Field(default_factory=dict)
 
 
 class PriceObservation(ApiModel):

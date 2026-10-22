@@ -61,6 +61,7 @@ class CompanyResponse(Envelope):
     company: CompanyProfile
     market: MarketQuote | None = None
     source_references: list[dict] = Field(default_factory=list)
+    provider_capabilities: dict = Field(default_factory=dict)
 
 
 class SearchResult(SecurityIdentity):

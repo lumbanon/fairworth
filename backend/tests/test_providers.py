@@ -244,7 +244,7 @@ async def test_disabled_market_provider_cannot_invent_quotes():
 
 
 @pytest.mark.asyncio
-async def test_market_quote_profile_currency_timestamp_and_history(no_wait):
+async def test_market_quote_missing_currency_never_triggers_profile(no_wait):
     requests = []
     instant = datetime.now(UTC).replace(microsecond=0)
 
@@ -264,13 +264,13 @@ async def test_market_quote_profile_currency_timestamp_and_history(no_wait):
         provider = FmpMarketDataProvider(client, "offline-fixture-key")
         quote = await provider.quote("MSFT")
         assert quote["price"] == 100.25
-        assert quote["currency"] == "USD"
+        assert quote["currency"] is None
         assert datetime.fromisoformat(quote["price_timestamp"]) == instant
         assert quote["shares_outstanding"] == 10000
-        assert quote["warnings"] == []
+        assert "quote_currency_unverified" in {item["code"] for item in quote["warnings"]}
         assert (await provider.historical_prices("MSFT", 1))[0]["date"] == "2024-12-31"
         assert (await provider.dividends("MSFT"))[0]["dividend"] == 0.5
-    assert sum(request.url.path == "/stable/profile" for request in requests) == 1
+    assert sum(request.url.path == "/stable/profile" for request in requests) == 0
 
 
 @pytest.mark.asyncio
@@ -388,4 +388,4 @@ async def test_history_and_dividends_survive_unavailable_optional_profile():
         dividends = await provider.dividends('AAPL')
         assert prices[0]['close'] == 100 and prices[0]['currency'] is None
         assert dividends[0]['dividend'] == 0.5 and dividends[0]['currency'] is None
-    assert calls.count('/stable/profile') == 1
+    assert calls.count('/stable/profile') == 0
