@@ -630,7 +630,14 @@ def _derive_period(period: dict) -> None:
 
 
 def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
-    observations = extract_observations(raw)
+    # JSON object member order is not evidence: PostgreSQL JSONB does not
+    # preserve it. Traverse concept/unit groups deterministically before
+    # emitting first-seen diagnostics. Keep each original observation array
+    # ordered, and retain warnings themselves (including their order) in the
+    # immutable hash. This reproduces the retained version-6 source snapshots
+    # without changing source facts, selection rules or persisted hashes.
+    observations = sorted(extract_observations(raw),
+                          key=lambda obs: (obs["taxonomy"], obs["concept"], obs["unit"]))
     warnings: list[dict] = []
     valid = []
     seen = set()
@@ -822,8 +829,10 @@ def normalize_company_facts(raw: dict, cik: str | int | None = None) -> dict:
                     "provider": "sec", "cik": identifier.zfill(10), "accession_number": accession,
                     "form": obs.get("form"), "filed": obs.get("filed"), "url": url,
                 }
+    from app.valuation.dividend_disclosures import common_dividend_disclosures
     return {
         "normalization_version": NORMALIZATION_VERSION,
+        "reviewed_disclosures": common_dividend_disclosures(observations, annual, identifier),
         "annual": sorted(annual, key=lambda period: period["end_date"], reverse=True),
         "quarterly": sorted(quarterly.values(), key=lambda period: period["end_date"], reverse=True),
         "currency": "USD",

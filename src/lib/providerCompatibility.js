@@ -303,6 +303,7 @@ export function adaptProviderStock({
       ...(annual?.source_references ?? []),
     ],
     financialRetrievedAt: annual?.retrieved_at,
+    financialImport: annual?.financial_import ?? null,
     updatedLabel: latest.periodEnd
       ? `Latest annual period ended ${latest.periodEnd}`
       : "Annual financial statements unavailable",

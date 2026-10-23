@@ -12,6 +12,7 @@ from app.repositories.financial_repository import parse_instant
 from app.services.market_access import market_access_call, capability_snapshot
 from app.providers.market_data import FmpMarketDataProvider
 from app.providers.currency import resolve_quote_currency
+from app.providers.permitted_use import require_public_data
 
 
 def combined_status(*statuses):
@@ -29,7 +30,8 @@ class CompanyService:
         self.registry = registry
 
     async def _market_data(self, method, identity, *args):
-        return await market_access_call(self.market, self.cache, self.settings, method, identity, *args)
+        require_public_data(None, self.market.name)
+        return require_public_data(await market_access_call(self.market, self.cache, self.settings, method, identity, *args))
 
     async def search(self, query, limit, offset=0, listing_status=None):
         if self.registry is not None:
@@ -95,6 +97,7 @@ class CompanyService:
         return payload, result
 
     async def market_quote(self, ticker, financial_currency=None, identity=None):
+        require_public_data(None, self.market.name)
         identity = identity or {"ticker": ticker}
         result = await self.cache.get_or_load(f"market:{self.market.name}:quote:{cache_scope(identity)}",
                                              self.settings.market_cache_ttl_seconds, self.market.name,
@@ -173,7 +176,7 @@ class CompanyService:
         if company.get("cik"):
             try:
                 company_id = self.repository.save_company(company)
-                if market:
+                if market and self.repository.market_owner_matches(company_id, company):
                     self.repository.save_market(company_id, {**market, "security_identity": security_identity(company)})
             except ApiError as error:
                 if error.code != "incompatible_financial_identity":

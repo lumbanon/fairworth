@@ -144,6 +144,11 @@ def generate_assumptions(inputs: dict, overrides: dict | None = None, policy=Non
 
     latest = inputs.get("values", {})
     reporting_period = inputs.get("reporting_period")
+    if number(latest.get("dividend_per_share")) is not None:
+        set_value("dividend_per_share", latest["dividend_per_share"], "reported_input",
+                  "Exact declared common dividend per share for the selected annual period; not issuer cash dividends divided by weighted shares.",
+                  "Preserve the standardized common-share declaration; future payment and sustainability require explicit analyst assumptions.", reporting_period,
+                  [_warning("dividend_per_share", "declared_dividend_baseline", "Declared dividends differ from cash paid. A stable payout and future growth are scenario assumptions; buybacks are excluded.")])
     for key in ("shares", "debt", "cash", "book_equity"):
         observed = number(latest.get(key))
         if observed is not None:

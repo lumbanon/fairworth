@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     fmp_access_review_id: str = Field(default="initial", min_length=1, max_length=64)
     fmp_daily_request_budget: int = Field(default=50, ge=1, le=250)
     fmp_minimum_request_interval_seconds: float = Field(default=1, ge=1, le=60)
+    # Local CLI only; saving these settings never enables/connects the public API.
+    ibkr_host: str = "127.0.0.1"
+    ibkr_port: int | None = Field(default=None, ge=1, le=65535)
+    ibkr_client_id: int = Field(default=68, ge=1, le=2147483647)
+    ibkr_timeout_seconds: float = Field(default=15, ge=1, le=30)
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     sec_cache_ttl_seconds: int = Field(default=21600, ge=1)
     company_cache_ttl_seconds: int = Field(default=86400, ge=1)
@@ -72,6 +77,19 @@ class Settings(BaseSettings):
     @classmethod
     def empty_optional_research_setting(cls, value):
         return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("ibkr_port", mode="before")
+    @classmethod
+    def optional_ibkr_port(cls, value):
+        return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("ibkr_host")
+    @classmethod
+    def local_ibkr_host(cls, value):
+        from ipaddress import ip_address
+        if not ip_address(value).is_loopback:
+            raise ValueError("IBKR_HOST must be a literal loopback IP address.")
+        return value
 
     @field_validator("cors_origins")
     @classmethod

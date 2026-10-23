@@ -21,24 +21,37 @@ export default function useProviderValuation(company) {
   const [sensitivitySelection, setSensitivitySelection] = useState("pe");
   const [defaultsAttempt, setDefaultsAttempt] = useState(0);
   const [calculationAttempt, setCalculationAttempt] = useState(0);
+  const [datedIntrinsic, setDatedIntrinsic] = useState(false);
+  const [evidenceAsOf, setEvidenceAsOf] = useState("");
   const data = useMemo(() => state.response ? adaptProviderValuation(state.response) : emptyProviderValuation(), [state.response]);
   const initialDefaults = state.defaults ?? {};
   const weights = configuredWeights ?? data.configuredWeights;
   const enabled = enabledOverrides ?? Object.fromEntries(providerModelIds.map((id) => [id, data.enabledModels.includes(id)]));
-  const validationErrors = providerInputErrors(overrides.base, { bear: overrides.bear, bull: overrides.bull }, configuredWeights, manualPrice);
+  const datedKeys = ["dividend_growth", "cost_of_equity", "stable_dividend_confirmed"];
+  const effectiveOverrides = datedIntrinsic
+    ? Object.fromEntries(providerScenarioNames.map((name) => [name, Object.fromEntries(Object.entries(overrides[name]).filter(([key]) => datedKeys.includes(key)))]))
+    : overrides;
+  const validationErrors = providerInputErrors(effectiveOverrides.base, { bear: effectiveOverrides.bear, bull: effectiveOverrides.bull }, datedIntrinsic ? null : configuredWeights, datedIntrinsic ? null : manualPrice);
+  if (datedIntrinsic) {
+    if (!/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(evidenceAsOf) || !Number.isFinite(Date.parse(evidenceAsOf))) validationErrors.push("Enter a dated evidence timestamp with a timezone, within the original listing and issuer proof interval.");
+    if (!Number.isFinite(effectiveOverrides.base.dividend_growth) || !Number.isFinite(effectiveOverrides.base.cost_of_equity) || effectiveOverrides.base.stable_dividend_confirmed !== true) validationErrors.push("Dated intrinsic analysis requires explicit dividend growth, required return and a sustainable-dividend assumption.");
+  }
   const request = {
-    assumptions: overrides.base,
-    scenario_overrides: { bear: overrides.bear, bull: overrides.bull },
-    ...(configuredWeights ? { weights: configuredWeights } : {}),
-    ...(enabledOverrides ? { enabled_models: Object.keys(enabledOverrides).filter((id) => enabledOverrides[id]) } : {}),
-    manual_market_price: manualPrice === null ? null : { value: manualPrice, currency: company.currency },
-    sensitivity: sensitivityChoices[sensitivitySelection],
+    assumptions: effectiveOverrides.base,
+    scenario_overrides: { bear: effectiveOverrides.bear, bull: effectiveOverrides.bull },
+    ...(datedIntrinsic ? { context: "dated_intrinsic", evidence_as_of: evidenceAsOf, enabled_models: ["dividend"] } : {
+      ...(configuredWeights ? { weights: configuredWeights } : {}),
+      ...(enabledOverrides ? { enabled_models: Object.keys(enabledOverrides).filter((id) => enabledOverrides[id]) } : {}),
+    }),
+    manual_market_price: datedIntrinsic || manualPrice === null ? null : { value: manualPrice, currency: company.currency },
+    sensitivity: datedIntrinsic ? null : sensitivityChoices[sensitivitySelection],
   };
   const requestKey = JSON.stringify(request);
-  const ready = state.defaults !== null;
+  const ready = state.defaults !== null || datedIntrinsic;
   const validInputs = validationErrors.length === 0;
 
   useEffect(() => {
+    if (datedIntrinsic) return;
     const controller = new AbortController();
     loadValuationDefaults(company.ticker, { signal: controller.signal, instrumentId: company.instrumentId, listingId: company.listingId })
       .then((response) => {
@@ -50,7 +63,7 @@ export default function useProviderValuation(company) {
         if (!controller.signal.aborted) setState({ status: "error", response: null, defaults: null, error });
       });
     return () => controller.abort();
-  }, [company.ticker, company.identity, company.instrumentId, company.listingId, defaultsAttempt]);
+  }, [company.ticker, company.identity, company.instrumentId, company.listingId, defaultsAttempt, datedIntrinsic]);
 
   useEffect(() => {
     if (!ready || !validInputs) return;
@@ -82,6 +95,8 @@ export default function useProviderValuation(company) {
     confidence: null, diagnostics: null, dataCompleteness: null,
     publication: null,
     independence: null,
+    intrinsic: null,
+    marketComparison: null,
   }])) : data.scenarios;
   return {
     ...data,
@@ -107,6 +122,13 @@ export default function useProviderValuation(company) {
     setWeights: (update) => setConfiguredWeights((previous) => typeof update === "function" ? update(previous ?? weights) : update),
     manualPrice,
     setManualPrice,
+    ...(datedIntrinsic ? { comparisonPrice: null, market: { ...data.market, price: null, source_type: "unavailable", label: "No market comparison in dated intrinsic mode" } } : {}),
+    datedIntrinsic,
+    setDatedIntrinsic,
+    evidenceAsOf,
+    setEvidenceAsOf,
+    datedAssumptions: overrides.base,
+    editDatedAssumption: (key, value) => setOverrides((previous) => ({ ...previous, base: { ...previous.base, [key]: value } })),
     sensitivitySelection,
     setSensitivitySelection,
     editAssumption: (key, value) => setOverrides((previous) => ({ ...previous, [activeScenario]: { ...previous[activeScenario], [key]: value } })),

@@ -109,7 +109,9 @@ def _context(observation, *, filing=True):
         # Filing-context labels are not separate economic observations. Keep
         # fy/fp/frame in the immutable key, but never let a metadata relabeling
         # hide a changed amount in the exact same filing and financial period.
-        fields += ("accn", "filed", "form")
+        # Accession establishes the original filing. Relabeling filed/form
+        # metadata cannot turn a conflicting value into a different filing.
+        fields += ("accn",)
     return tuple(str(observation.get(field) or "") for field in fields)
 
 
@@ -117,7 +119,7 @@ def _example(observation):
     return {key: observation.get(key) for key in ("taxonomy", "concept", "unit", "start", "end", "accn", "filed", "form", "value")}
 
 
-def _target(connection, ticker, cik, instrument_id, listing_id):
+def _target(connection, ticker, cik, instrument_id, listing_id, *, issuer_owned=False):
     query = (select(SecurityListing.id.label("listing_id"), SecurityListing.ticker,
                     SecurityListing.instrument_id, SecurityInstrument.issuer_id, SecurityIssuer.cik,
                     SecurityListing.exchange_mic, SecurityListing.identity_status, SecurityListing.listing_status)
@@ -134,18 +136,25 @@ def _target(connection, ticker, cik, instrument_id, listing_id):
     target = rows[0]
     if normalize_cik(target["cik"]) != cik:
         raise ValueError("Original SEC evidence does not belong to the selected registered issuer.")
+    if issuer_owned:
+        digits = str(int(cik))
+        forms = [digits.zfill(width) for width in range(len(digits), 11)]
+        matches = connection.execute(select(SecurityIssuer.id).where(SecurityIssuer.cik.in_(forms))).scalars().all()
+        if matches != [target["issuer_id"]]:
+            raise ValueError("Equivalent SEC identifiers have ambiguous stable issuer ownership; explicit reconciliation is required.")
     owners = [dict(row) for row in connection.execute(select(Company.id, Company.ticker, Company.issuer_id, Company.cik)
               .where(or_(Company.ticker == ticker, Company.issuer_id == target["issuer_id"])).limit(1001)).mappings()]
     if len(owners) > 1000:
         raise ValueError("Ownership inventory exceeded its bounded scope.")
-    selected = [row for row in owners if row["ticker"] == ticker and row["issuer_id"] == target["issuer_id"]]
+    selected = [row for row in owners if row["issuer_id"] == target["issuer_id"]
+                and (issuer_owned or row["ticker"] == ticker)]
     if len(selected) > 1 or any(normalize_cik(row["cik"]) != cik for row in selected):
         raise ValueError("Existing financial ownership conflicts with the exact registered issuer.")
     return target, owners, selected[0]["id"] if selected else None
 
 
 def audit_financial_import(connection, raw, source, *, ticker, as_of, sec_cache_ttl_seconds,
-                           instrument_id=None, listing_id=None):
+                           instrument_id=None, listing_id=None, issuer_owned=False):
     """Inventory exact potential writes using SELECT only; never call ingestion."""
     ticker, cik, clock = validate_ticker(ticker), normalize_cik(raw.get("cik")), instant(as_of)
     retrieved = instant(source.get("retrieved_at"))
@@ -153,7 +162,7 @@ def audit_financial_import(connection, raw, source, *, ticker, as_of, sec_cache_
         raise ValueError("Audited original source identity, content and acquisition clock are required.")
     if not isinstance(sec_cache_ttl_seconds, int) or isinstance(sec_cache_ttl_seconds, bool) or sec_cache_ttl_seconds <= 0:
         raise ValueError("The existing configured SEC cache TTL must be explicit.")
-    target, owners, company_id = _target(connection, ticker, cik, instrument_id, listing_id)
+    target, owners, company_id = _target(connection, ticker, cik, instrument_id, listing_id, issuer_owned=issuer_owned)
     observations = extract_observations(raw)
     if len(observations) > MAX_OBSERVATIONS:
         raise ValueError("Source observation budget exceeded.")

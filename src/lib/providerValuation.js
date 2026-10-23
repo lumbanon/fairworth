@@ -141,6 +141,8 @@ export function adaptProviderValuation(response, expectedTicker) {
       dataCompleteness: scenario.data_completeness ?? (name === "base" ? response.data_completeness : null) ?? null,
       publication: scenario.publication ?? (name === "base" ? response.financial_coverage?.publication : null) ?? null,
       independence: scenario.independence ?? (name === "base" ? response.financial_coverage?.independence : null) ?? null,
+      intrinsic: scenario.intrinsic ?? (name === "base" ? response.financial_coverage?.intrinsic : null) ?? null,
+      marketComparison: scenario.market_comparison ?? (name === "base" ? response.financial_coverage?.market_comparison : null) ?? null,
     }];
   }));
   const reverse = response.reverse_dcf ?? {};
@@ -190,6 +192,8 @@ export function emptyProviderValuation() {
       diagnostics: null, dataCompleteness: null,
       publication: null,
       independence: null,
+      intrinsic: null,
+      marketComparison: null,
     }])),
     defaults: {}, suggestedWeights: {}, configuredWeights: {}, enabledModels: [],
     market: { price: null, source_type: "unavailable" }, comparisonPrice: null,

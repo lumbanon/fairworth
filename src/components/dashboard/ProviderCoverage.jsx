@@ -5,6 +5,7 @@ const statusLabels = { available: "Available", missing_evidence: "Missing eviden
 
 export default function ProviderCoverage({ company }) {
   const coverage = company.coverage;
+  const imported = company.financialImport;
   if (!coverage?.stages) {
     const warnings = (company.warnings ?? []).filter((warning) => warning.field === "coverage");
     return warnings.length ? <section className="research-section provider-coverage" aria-labelledby="company-coverage-heading"><h2 id="company-coverage-heading">Company analysis coverage</h2>{warnings.map((warning, index) => <p className="research-warning" role="status" key={index}>{warning.message}</p>)}</section> : null;
@@ -17,6 +18,7 @@ export default function ProviderCoverage({ company }) {
   const freshness = coverage.stages.freshness;
   return <section className="research-section provider-coverage" aria-labelledby="company-coverage-heading">
     <div className="research-section-heading"><div><h2 id="company-coverage-heading">Company analysis coverage</h2><p>Finding a security does not guarantee that its financial evidence supports a valuation.</p></div></div>
+    {imported && <details className="research-original-diagnostics" data-testid="financial-import-evidence"><summary>Imported SEC financial evidence</summary><p>Financial statements belong to the reporting issuer; security share-class compatibility is assessed separately.</p><dl className="provider-record-metadata"><div><dt>Import batch</dt><dd>{imported.import_batch_id || "Unavailable"}</dd></div><div><dt>Financial owner</dt><dd>{imported.financial_owner_ticker || "Unavailable"} · CIK {imported.cik || "Unavailable"}</dd></div><div><dt>Original source retrieved</dt><dd>{imported.original_retrieved_at || "Unavailable"}</dd></div><div><dt>Imported</dt><dd>{imported.imported_at || "Unavailable"}</dd></div><div><dt>Original source hash</dt><dd>{imported.source_sha256 || "Unavailable"}</dd></div></dl><p className="research-caption">Import time does not refresh the original financial observation or its currentness.</p></details>}
     <p className="research-caption">{[identity.exchange, `Security form: ${securityFormLabel(identity)}`, identity.share_class && `Share class ${identity.share_class}`, `Issuer category: ${issuerCategoryLabel(identity)}`].filter(Boolean).join(" · ")}</p>
     <p className="provider-listing-summary"><strong>{verification.label}</strong>{verification.observed_on && <span>Listing observed: {verification.observed_on}</span>}</p>
     {identity.proof_expiry?.issuer_linkage && <p className="provider-listing-summary" data-testid="issuer-linkage-verification"><strong>{issuerLinkage.label}</strong>{issuerLinkage.observed_on && <span>Issuer linkage observed: {issuerLinkage.observed_on}</span>}</p>}

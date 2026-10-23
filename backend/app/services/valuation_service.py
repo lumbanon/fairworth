@@ -99,8 +99,19 @@ class ValuationService:
             return inputs
 
     async def calculate(self, ticker, request=None, instrument_id=None, listing_id=None):
-        inputs = await self.inputs(ticker, **scope_kwargs(instrument_id, listing_id))
+        request = request or ValuationRequest()
+        if request.context == "dated_intrinsic":
+            from app.services.dated_valuation_inputs import build_dated_inputs
+            from app.valuation.dated_intrinsic import request_scope
+            request_scope(request)
+            registry = getattr(self.companies, "registry", None)
+            if registry is None:
+                raise ApiError("dated_security_registry_required", "The explicit historical workflow requires retained registry and imported financial evidence.", 422)
+            inputs = await run_in_threadpool(build_dated_inputs, registry, self.financials.repository, self.settings,
+                                             ticker, instrument_id, listing_id)
+        else:
+            inputs = await self.inputs(ticker, **scope_kwargs(instrument_id, listing_id))
         try:
-            return await asyncio.wait_for(run_in_threadpool(calculate_with_coverage, inputs, request or ValuationRequest(), self.policy), timeout=self.settings.valuation_calculation_timeout_seconds)
+            return await asyncio.wait_for(run_in_threadpool(calculate_with_coverage, inputs, request, self.policy), timeout=self.settings.valuation_calculation_timeout_seconds)
         except TimeoutError:
             raise ApiError("valuation_timeout", "The bounded valuation calculation exceeded its time limit.", 503) from None

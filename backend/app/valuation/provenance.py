@@ -8,6 +8,7 @@ POLICY_TYPES = {"policy", "benchmark", "benchmark_assumption", "policy_estimate"
 USER_TYPES = {"user", "user_override", "user_assumption"}
 FACT_TYPES = {"reported", "reported_input", "market_observation"}
 FINANCIAL_FIELDS = {
+    "dividend_per_share": ["declared_common_dividend_per_share"],
     "shares": ["weighted_average_diluted_shares"], "debt": ["total_debt"], "cash": ["cash_and_cash_equivalents"],
     "book_equity": ["shareholders_equity"], "revenue_growth": ["revenue"], "forecast_revenue": ["revenue"],
     "earnings_growth": ["diluted_eps", "weighted_average_diluted_shares"], "forward_eps": ["diluted_eps"],
