@@ -69,7 +69,7 @@ def _fact(field: str, raw: Any, period: dict, currency: str | None, retrieved_at
     """Check explicit unit, period, and source metadata before accepting a fact."""
     value = number(raw)
     records = deepcopy(period.get("provenance", {}).get(field, []))
-    unit = "shares" if "shares" in field else f"{currency}/shares" if field in ("basic_eps", "diluted_eps") else currency
+    unit = "shares" if "shares" in field else f"{currency}/shares" if field in ("basic_eps", "diluted_eps", "declared_common_dividend_per_share") else currency
     kind = METRIC_DEFINITIONS.get(field, ((), None, "duration"))[2]
     if field in {"total_debt", "preferred_equity", "other_nonoperating_assets"}:
         kind = "instant"
@@ -207,6 +207,17 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
     for source, target in ALIASES.items():
         values[target] = values.get(source)
     values.update(dict.fromkeys(UNSUPPORTED))
+    declarations = normalized.get("reviewed_disclosures") or {}
+    if latest and declarations.get("version") == "common-dividend-disclosure-1" and str(declarations.get("cik") or "").zfill(10) == str(company.get("cik") or "").zfill(10):
+        matches = [record for record in declarations.get("annual_common_dividends", [])
+                   if record.get("period") == {key: latest.get(key) for key in ("fiscal_year", "fiscal_period", "start_date", "end_date")}
+                   and record.get("economic_scope") == "declared_cash_dividend_per_common_share"]
+        if len(matches) == 1:
+            record = matches[0]
+            facts["declared_common_dividend_per_share"] = _fact("declared_common_dividend_per_share", record.get("value"),
+                {**latest, "provenance": {"declared_common_dividend_per_share": record.get("provenance", [])}}, currency, retrieved_at)
+            facts["declared_common_dividend_per_share"].update(economic_scope=record["economic_scope"],
+                disclosure_version=declarations["version"], limitations=deepcopy(record.get("limitations", [])))
     shares, income, eps = (values.get(key) for key in ("shares", "net_income", "trailing_eps"))
     multiple = company.get("has_multiple_share_classes") is True
     unknown_class = ((company.get("has_multiple_share_classes") is None
@@ -231,6 +242,8 @@ def build_valuation_inputs(profile: dict, normalized: dict, retrieved_at: Any = 
         warnings.append(_warning("shares", "share_class_basis_unverified", "Company-level share and EPS facts cannot be assigned to this quoted class without explicit basis confirmation."))
     elif shares is not None:
         warnings.append(_warning("shares", "historical_diluted_share_denominator", "The model denominator is the annual diluted weighted-average share count, an explicitly dated historical modeling assumption, not current shares outstanding."))
+    if share_basis:
+        values["dividend_per_share"] = facts.get("declared_common_dividend_per_share", {}).get("value")
     if (values.get("ebit") is not None and values.get("depreciation_and_amortization") is not None
             and math.isfinite(values["ebit"] + values["depreciation_and_amortization"])):
         values["ebitda"] = values["ebit"] + values["depreciation_and_amortization"]

@@ -464,3 +464,24 @@ split access returned HTTP 402. No current default valuation or independent
 second model became eligible. Original historical AAPL/MSFT illustrations remain
 reproducible. Raw acquisitions stay ignored, and no application financial data
 was imported. Further acquisition or material import requires separate approval.
+
+## Phase 6.8 financial import and dated intrinsic research
+
+The [Phase 6.8 report](docs/phase68-real-financial-data-and-valuation.md) documents
+the guarded SEC preview/apply workflow, immutable source caches, optional local
+IBKR adapter and real-evidence MSFT dividend scenario. The
+[application import preview](docs/phase68-sec-import-preview.md) is read-only;
+its additive audit migration and material writes require separate approval.
+Applying a new filing preserves original facts, snapshots and source clocks.
+
+The explicit dated-intrinsic workflow reads approved imports without provider
+requests. Growth, required return and payout sustainability remain user scenario
+assumptions; a historical intrinsic result does not establish a current quote or
+default valuation. The replay command in the report can demonstrate this path
+using public maintained excerpts and a disposable test database.
+
+[IBKR feasibility](docs/phase68-ibkr-feasibility.md) and the
+[bounded connection proposal](docs/phase68-ibkr-live-proposal.md) describe required
+configuration and rights. The official SDK is optional and not downloaded
+automatically. IBKR stays local-only, disconnected by default and excluded from
+public API responses, shared caches and AI exports. No trading API is provided.

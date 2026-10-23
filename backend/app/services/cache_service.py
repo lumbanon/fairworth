@@ -13,6 +13,7 @@ from sqlalchemy import delete, select, update
 from app.core.database import as_utc, utcnow
 from app.models import CacheEntry
 from app.providers.base import ProviderError
+from app.providers.permitted_use import require_public_data
 
 
 @dataclass
@@ -107,13 +108,20 @@ class CacheService:
 
     def _read(self, key):
         with self.session_factory() as session:
-            return session.get(CacheEntry, key)
+            entry = session.get(CacheEntry, key)
+            if entry:
+                require_public_data(entry.payload, entry.provider)
+            return entry
 
     def _read_fresh(self, key):
         with self.session_factory() as session:
-            return session.scalar(select(CacheEntry).where(CacheEntry.key == key, CacheEntry.expires_at > utcnow()))
+            entry = session.scalar(select(CacheEntry).where(CacheEntry.key == key, CacheEntry.expires_at > utcnow()))
+            if entry:
+                require_public_data(entry.payload, entry.provider)
+            return entry
 
     def _write(self, key, payload, ttl, provider, retrieved_at=None, *, owner=None):
+        require_public_data(payload, provider)
         now = as_utc(retrieved_at) if retrieved_at is not None else utcnow()
         with self.session_factory.begin() as session:
             if owner is not None:

@@ -1,6 +1,7 @@
 import { dollars, percent, direction } from "@/lib/financialFormatting";
 import { providerClassificationLabel, providerPublicationLabel } from "@/lib/providerValuation";
 import { formatObservationDate } from "@/lib/researchPresentation";
+import ProviderIntrinsicValue from "./ProviderIntrinsicValue";
 
 export default function ValuationSummary({ company, valuation }) {
   const { summary, scenarios, activeScenario } = valuation;
@@ -72,6 +73,7 @@ export default function ValuationSummary({ company, valuation }) {
           <small>(Fair value − price) / fair value × 100</small>
         </div>
       </div>
+      {valuation.providerMode && <ProviderIntrinsicValue valuation={valuation} />}
       {valuation.providerMode && valuation.publication?.result_type === "historical_illustration" && <p className="research-warning" data-testid="historical-valuation-warning">This illustrative calculation does not satisfy current publication requirements. Review its dated evidence and unresolved checks below. Calculating it today does not refresh its sources or establish a previously published valuation.</p>}
       {valuation.providerMode && summary.count === 1 && Number.isFinite(summary.fairValue) && <p className="research-warning provider-single-model-warning" data-testid="single-model-coverage-warning"><strong>Single-model estimate.</strong> Coverage is limited to one contributing model; this is not a robust multi-model consensus. Review its assumptions and the data-quality limitations below.</p>}
       {valuation.providerMode && summary.composition?.length > 0 && <div className="provider-valuation-composition" aria-label="Weighted estimate composition">

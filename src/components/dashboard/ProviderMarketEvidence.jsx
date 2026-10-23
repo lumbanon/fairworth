@@ -43,5 +43,6 @@ export default function ProviderMarketEvidence({ company }) {
         </details>)}
       </>}
     </details>}
+    <details className="research-original-diagnostics" data-testid="ibkr-personal-use-status"><summary>Optional IBKR personal research</summary><p>IBKR is not connected through this website. Its optional local tool requires separate connection approval, compatible API subscriptions and applicable non-display permissions.</p><p className="research-caption">Personally subscribed quotes and derived results stay in local research. Public mode does not publish IBKR data or provide trading access.</p></details>
   </div>;
 }

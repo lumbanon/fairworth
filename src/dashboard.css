@@ -1482,6 +1482,21 @@
   font-size: 13px;
   color: #444444;
 }
+.provider-intrinsic-evidence {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+.provider-intrinsic-evidence h3 {
+  margin-bottom: 8px;
+  color: #111111;
+  font-size: 16px;
+  font-weight: 600;
+}
+.provider-intrinsic-evidence .provider-record-metadata dd,
+[data-testid="financial-import-evidence"] .provider-record-metadata dd {
+  overflow-wrap: anywhere;
+}
 .research-financial-provenance li {
   padding: 8px 0;
 }

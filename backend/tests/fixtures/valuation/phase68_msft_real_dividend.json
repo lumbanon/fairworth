@@ -1,0 +1,310 @@
+{
+  "fixture_version": "phase68-msft-real-common-dividend-1",
+  "data_mode": "retained_public_sec_excerpt",
+  "source": {
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+    "sha256": "f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f",
+    "bytes": 4881196,
+    "retrieved_at": "2026-10-20T12:01:53.080073+00:00"
+  },
+  "raw": {
+    "cik": 789019,
+    "entityName": "MICROSOFT CORPORATION",
+    "facts": {
+      "us-gaap": {
+        "CommonStockDividendsPerShareDeclared": {
+          "label": "Common Stock, Dividends, Per Share, Declared",
+          "description": "Aggregate dividends declared during the period for each share of common stock outstanding.",
+          "units": {
+            "USD/shares": [
+              {
+                "start": "2023-07-01",
+                "end": "2024-06-30",
+                "val": 3,
+                "accn": "0000950170-24-087843",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2024-07-30"
+              },
+              {
+                "start": "2024-07-01",
+                "end": "2025-06-30",
+                "val": 3.32,
+                "accn": "0000950170-25-100235",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2025-07-30"
+              },
+              {
+                "start": "2025-07-01",
+                "end": "2026-06-30",
+                "val": 3.64,
+                "accn": "0001193125-26-323660",
+                "fy": 2026,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026"
+              }
+            ]
+          }
+        },
+        "EarningsPerShareDiluted": {
+          "label": "Earnings Per Share, Diluted",
+          "description": "The amount of net income (loss) for the period available to each share of common stock or common unit outstanding during the reporting period and to each share or unit that would have been outstanding assuming the issuance of common shares or units for all dilutive potential common shares or units outstanding during the reporting period.",
+          "units": {
+            "USD/shares": [
+              {
+                "start": "2023-07-01",
+                "end": "2024-06-30",
+                "val": 11.8,
+                "accn": "0000950170-24-087843",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2024-07-30"
+              },
+              {
+                "start": "2024-07-01",
+                "end": "2025-06-30",
+                "val": 13.64,
+                "accn": "0000950170-25-100235",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2025-07-30"
+              },
+              {
+                "start": "2025-07-01",
+                "end": "2026-06-30",
+                "val": 17.95,
+                "accn": "0001193125-26-323660",
+                "fy": 2026,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026"
+              }
+            ]
+          }
+        },
+        "WeightedAverageNumberOfDilutedSharesOutstanding": {
+          "label": "Weighted Average Number of Shares Outstanding, Diluted",
+          "description": "The average number of shares or units issued and outstanding that are used in calculating diluted EPS or earnings per unit (EPU), determined based on the timing of issuance of shares or units in the period.",
+          "units": {
+            "shares": [
+              {
+                "start": "2023-07-01",
+                "end": "2024-06-30",
+                "val": 7469000000,
+                "accn": "0000950170-24-087843",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2024-07-30"
+              },
+              {
+                "start": "2024-07-01",
+                "end": "2025-06-30",
+                "val": 7465000000,
+                "accn": "0000950170-25-100235",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2025-07-30"
+              },
+              {
+                "start": "2025-07-01",
+                "end": "2026-06-30",
+                "val": 7453000000,
+                "accn": "0001193125-26-323660",
+                "fy": 2026,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026"
+              }
+            ]
+          }
+        },
+        "NetIncomeLoss": {
+          "label": "Net Income (Loss) Attributable to Parent",
+          "description": "The portion of profit or loss for the period, net of income taxes, which is attributable to the parent.",
+          "units": {
+            "USD": [
+              {
+                "start": "2023-07-01",
+                "end": "2024-06-30",
+                "val": 88136000000,
+                "accn": "0000950170-24-087843",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2024-07-30"
+              },
+              {
+                "start": "2024-07-01",
+                "end": "2025-06-30",
+                "val": 101832000000,
+                "accn": "0000950170-25-100235",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2025-07-30"
+              },
+              {
+                "start": "2025-07-01",
+                "end": "2026-06-30",
+                "val": 133749000000,
+                "accn": "0001193125-26-323660",
+                "fy": 2026,
+                "fp": "FY",
+                "form": "10-K",
+                "filed": "2026-07-29",
+                "frame": "CY2026"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "profile": {
+    "key": "sec:company:MSFT",
+    "provider": "sec-edgar",
+    "payload": {
+      "cik": "0000789019",
+      "sic": "7372",
+      "name": "MICROSOFT CORP",
+      "sector": null,
+      "ticker": "MSFT",
+      "currency": null,
+      "exchange": "Nasdaq",
+      "industry": "Services-Prepackaged Software",
+      "provider": "sec",
+      "warnings": [],
+      "description": null,
+      "has_multiple_share_classes": false,
+      "share_class_basis_verified": false
+    },
+    "retrieved_at": "2026-10-15 07:27:52.469851+00:00",
+    "expires_at": "2026-10-16 07:27:52.469851+00:00",
+    "sha256": "5b0fdc622233f5dfd2e8480a4a4bd53b5a5a06b17dd94c3551b73c9da11fa0a5"
+  },
+  "registry": [
+    {
+      "records": [
+        {
+          "ticker": "MSFT",
+          "display_symbol": "MSFT",
+          "name": "Microsoft Corporation - Common Stock",
+          "security_description": "Microsoft Corporation - Common Stock",
+          "exchange": "NASDAQ",
+          "exchange_mic": "XNAS",
+          "source_record_key": "MSFT|NASDAQ",
+          "source_security_identifier": null,
+          "source_record_hash": "851a6881fb2a535cf3d53408b94aadbfd966939b856d77ca7cf6816febbfb72e",
+          "original_record": {
+            "Symbol": "MSFT",
+            "Security Name": "Microsoft Corporation - Common Stock",
+            "Market Category": "Q",
+            "Test Issue": "N",
+            "Financial Status": "N",
+            "Round Lot Size": "40",
+            "ETF": "N",
+            "NextShares": "N"
+          },
+          "instrument_type": "common_stock",
+          "security_form": "common_stock",
+          "share_class": null,
+          "listing_status": "active",
+          "identity_status": "reference_only",
+          "symbol_aliases": [],
+          "classification_evidence": {
+            "provider": "nasdaq-trader",
+            "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+            "description": "Microsoft Corporation - Common Stock",
+            "ETF": "N",
+            "parser_version": "nasdaq-directory-1",
+            "type_verified": true
+          },
+          "warnings": [
+            "Directory membership does not prove uninterrupted trading or a listing commencement date."
+          ],
+          "source_refs": [
+            {
+              "provider": "nasdaq-trader",
+              "url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+              "observed_on": "2026-10-21",
+              "record_hash": "851a6881fb2a535cf3d53408b94aadbfd966939b856d77ca7cf6816febbfb72e",
+              "scope": "Dated directory membership and explicit security description; issuer CIK not provided."
+            }
+          ]
+        }
+      ],
+      "provenance": {
+        "source": "nasdaq-trader-nasdaqlisted",
+        "source_kind": "listing_authority",
+        "as_of": "2026-10-21",
+        "published_at": "1021202603:03",
+        "source_timezone": null,
+        "retrieved_at": "2026-10-21T07:49:40.169888+00:00",
+        "source_url": "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+        "content_hash": "3a66dfb733cb67c2c9be8a83890be1121cd6fd49847f76c1c22426902ca2ed39",
+        "complete_scope": false,
+        "scope": "Dated non-test directory membership; omitted securities are not inferred delisted.",
+        "rights": "Local audited use; public display and redistribution rights require operator confirmation.",
+        "version": "nasdaq-directory-1",
+        "quality": {
+          "input_rows": 5617,
+          "accepted_rows": 5609,
+          "excluded_test_issues": 8,
+          "unsupported_symbol_count": 0,
+          "unsupported_symbols": []
+        },
+        "notes": [
+          "Source footer timezone is undocumented; publication is preserved without an invented UTC offset.",
+          "Directory symbols are source identifiers, not permanent security identifiers."
+        ]
+      }
+    },
+    {
+      "records": [
+        {
+          "ticker": "MSFT",
+          "name": "MICROSOFT CORP",
+          "cik": "0000789019",
+          "exchange": "Nasdaq",
+          "instrument_type": "unknown",
+          "listing_status": "unknown",
+          "identity_status": "reference_only",
+          "source_refs": [
+            {
+              "provider": "sec-edgar",
+              "url": "https://www.sec.gov/files/company_tickers_exchange.json",
+              "scope": "SEC registrant/ticker reference; security type and active listing unverified."
+            }
+          ]
+        }
+      ],
+      "provenance": {
+        "source": "sec-edgar-reference",
+        "as_of": "2026-10-21",
+        "source_url": "https://www.sec.gov/files/company_tickers_exchange.json",
+        "retrieved_at": "2026-10-21T07:49:43.854147+00:00",
+        "content_hash": "6c29e2e3db973d4479875164603c2434f81ad22e14c9f1694999aca9cca246cb",
+        "complete_scope": false
+      }
+    }
+  ],
+  "evidence_as_of": "2026-10-21T15:05:00Z",
+  "audit_clock": "2026-10-22T06:51:30Z",
+  "limitations": [
+    "Exact selected public SEC observations; original document hash binds the previously acquired full companyfacts source. This excerpt is not the complete filing.",
+    "The profile is retained SEC adapter output, dated 15 October. Its single listed ticker does not prove absence of unlisted classes.",
+    "A common dividend declared per share is not cash paid, verified sustainability, current shares, or a current fair value.",
+    "No FMP responses or personal broker data are redistributed."
+  ]
+}

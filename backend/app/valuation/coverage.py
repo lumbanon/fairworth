@@ -203,6 +203,8 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
             model["eligibility"]["blockers"] = model_blockers(inputs, model)
         case.setdefault("data_completeness", {}).update(reporting_periods=deepcopy(periods), compatibility=deepcopy(checks))
         case["publication"] = publication_status(inputs, case, checks, clock)
+        from app.valuation.intrinsic import intrinsic_presentation
+        case["intrinsic"], case["market_comparison"] = intrinsic_presentation(inputs, case, result.get("market", {}), checks, clock)
         case["independence"] = build_independence(inputs, case["models"], case["summary"], case["assumptions"])
     base = result["scenarios"]["base"]
     result["data_completeness"] = deepcopy(base["data_completeness"])
@@ -237,6 +239,7 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
         "published_fair_value": base["publication"]["result_type"] == "current_eligible",
     }
     result["financial_coverage"] = {"methodology_version": VERSION, "as_of": clock.isoformat(),
+        "intrinsic": deepcopy(base["intrinsic"]), "market_comparison": deepcopy(base["market_comparison"]),
         "publication": deepcopy(base["publication"]),
         "independence": deepcopy(base["independence"]),
         "identity": security_identity(company), "stages": {key: {"status": "available" if value else "unavailable"} for key, value in stages.items()},
@@ -260,6 +263,9 @@ def enrich_valuation_coverage(inputs, valuation, *, as_of=None):
 
 
 def calculate_with_coverage(inputs, request=None, policy=None):
+    if request is not None and request.context == "dated_intrinsic":
+        from app.valuation.dated_intrinsic import prepare_dated_intrinsic
+        inputs = prepare_dated_intrinsic(inputs, request)
     return enrich_valuation_coverage(inputs, calculate_valuation(inputs, request, policy))
 
 

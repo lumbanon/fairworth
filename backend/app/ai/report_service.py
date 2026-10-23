@@ -16,6 +16,7 @@ from app.ai.client import input_size
 from app.ai.evidence import stable_snapshot_id, same_security
 from app.ai.bindings import binding_catalog
 from app.core.exceptions import ApiError
+from app.providers.permitted_use import require_public_data
 from sqlalchemy.engine import make_url
 
 
@@ -58,7 +59,10 @@ class ResearchService:
 
     async def _context(self, ticker, valuation, instrument_id=None, listing_id=None):
         scope = {key: value for key, value in (("instrument_id", instrument_id), ("listing_id", listing_id)) if value is not None}
-        package = sanitize(await self.assembler.assemble(ticker, valuation, **scope), self.private_values)
+        # Privacy/licensing classification is validated before sanitization or
+        # export; stripping a private source label cannot authorize transmission.
+        package = require_public_data(await self.assembler.assemble(ticker, valuation, **scope))
+        package = sanitize(package, self.private_values)
         if package["ticker"] != ticker:
             raise ApiError("ai_identity_mismatch", "The research evidence does not match this company.", 502)
         identity = package.get("identity")

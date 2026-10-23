@@ -5,7 +5,7 @@ from app.services.cache_service import CachedResult
 from app.services.company_service import combined_status, warning
 from app.services.metrics import calculate_metrics
 from app.services.normalization import NORMALIZATION_VERSION, extract_observations, normalize_company_facts
-from app.core.database import as_utc
+from app.core.database import as_utc, utcnow
 from app.repositories.financial_repository import parse_instant
 
 
@@ -34,7 +34,8 @@ class FinancialService:
             raise ApiError(gate[0], gate[1], 422)
         if not company.get("cik"):
             raise ApiError("missing_cik", "Financial statements require a verified SEC issuer mapping.", 422)
-        company_id = self.repository.save_company(company)
+        imported = self.repository.imported_dataset(company.get("issuer_id"), company["cik"])
+        company_id = imported["company_id"] if imported else self.repository.save_company(company)
 
         async def load():
             async def raw_load():
@@ -57,8 +58,19 @@ class FinancialService:
                 "expires_at": as_utc(raw.expires_at).isoformat() if raw.expires_at is not None else None}
             return CachedResult(normalized, raw.status, raw.retrieved_at, raw.warnings, expires_at=raw.expires_at)
 
-        result = await self.cache.get_or_load(f"sec:financials:{company['cik']}:{cache_scope(company)}:v{NORMALIZATION_VERSION}", self.settings.sec_cache_ttl_seconds,
-                                             "sec-edgar", load)
+        if imported:
+            payload = imported["payload"]
+            payload["_source_cache_provenance"] = {"retrieved_at": imported["retrieved_at"].isoformat(),
+                "expires_at": imported["expires_at"].isoformat() if imported["expires_at"] else None}
+            payload["_import_provenance"] = imported["provenance"]
+            fresh = imported["expires_at"] is not None and imported["expires_at"] > utcnow()
+            notes = [] if fresh else [warning("financial_source", "imported_financial_source_stale",
+                "Imported SEC evidence retains its original retrieval and expiry; the import did not renew financial currentness.")]
+            result = CachedResult(payload, "fresh" if fresh else "stale", imported["retrieved_at"], notes,
+                                  expires_at=imported["expires_at"])
+        else:
+            result = await self.cache.get_or_load(f"sec:financials:{company['cik']}:{cache_scope(company)}:v{NORMALIZATION_VERSION}", self.settings.sec_cache_ttl_seconds,
+                                                 "sec-edgar", load)
         source_clock = result.payload.get("_source_cache_provenance") or {}
         source_retrieved, source_expiry = parse_instant(source_clock.get("retrieved_at")), parse_instant(source_clock.get("expires_at"))
         result.expires_at = (min(as_utc(result.expires_at), as_utc(source_expiry))
@@ -80,7 +92,7 @@ class FinancialService:
             status = combined_status(status, "partial")
         return {"ticker": company["ticker"], "identity": security_identity(company), "currency": result.payload.get("currency"), "period": period, "periods": periods,
                 "status": status, "warnings": warnings, "source_references": result.payload.get("source_references", []),
-                "retrieved_at": result.retrieved_at}
+                "retrieved_at": result.retrieved_at, "financial_import": result.payload.get("_import_provenance")}
 
     async def metrics(self, ticker, period, limit, instrument_id=None, listing_id=None):
         company, result, warnings, status = await self.dataset(ticker, **scope_kwargs(instrument_id, listing_id))
@@ -90,7 +102,8 @@ class FinancialService:
         warnings.extend(computed.get("warnings", []))
         periods = sorted(computed.get("periods", []), key=lambda item: item["end_date"], reverse=True)[:limit]
         return {"ticker": company["ticker"], "identity": security_identity(company), "periods": periods, "retrieved_at": result.retrieved_at,
-                "status": combined_status(status, "partial" if warnings else "fresh"), "warnings": warnings}
+                "status": combined_status(status, "partial" if warnings else "fresh"), "warnings": warnings,
+                "financial_import": result.payload.get("_import_provenance")}
 
     async def data_status(self, ticker, instrument_id=None, listing_id=None):
         company, result, warnings, status = await self.dataset(ticker, **scope_kwargs(instrument_id, listing_id))

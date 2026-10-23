@@ -14,6 +14,7 @@ class FinancialResponse(Envelope):
     periods: list[FinancialPeriod]
     source_references: list[dict] = Field(default_factory=list)
     retrieved_at: datetime
+    financial_import: dict | None = None
 
 
 class MetricsResponse(Envelope):
@@ -21,6 +22,7 @@ class MetricsResponse(Envelope):
     identity: dict | None = None
     periods: list[FinancialPeriod]
     retrieved_at: datetime
+    financial_import: dict | None = None
 
 
 class DataStatusResponse(Envelope):

@@ -131,6 +131,8 @@ class SensitivityRequest(StrictModel):
 
 
 class ValuationRequest(StrictModel):
+    context: Literal["default", "dated_intrinsic"] = "default"
+    evidence_as_of: datetime | None = None
     assumptions: dict[str, Any] = Field(default_factory=dict, max_length=70)
     scenario_overrides: dict[str, dict[str, Any]] = Field(default_factory=dict, max_length=3)
     weights: dict[ModelId, float] = Field(default_factory=dict, max_length=11)
@@ -138,6 +140,14 @@ class ValuationRequest(StrictModel):
     manual_market_price: ManualPrice | None = None
     sensitivity: SensitivityRequest | None = None
     discount_rates: DiscountRateInputs | None = None
+
+    @model_validator(mode="after")
+    def explicit_evidence_clock(self):
+        if self.context == "dated_intrinsic" and (self.evidence_as_of is None or self.evidence_as_of.tzinfo is None):
+            raise ValueError("Dated intrinsic scenarios require a timezone-aware evidence_as_of.")
+        if self.context == "default" and self.evidence_as_of is not None:
+            raise ValueError("An evidence_as_of is only valid for an explicitly dated intrinsic scenario.")
+        return self
 
     @field_validator("assumptions")
     @classmethod
@@ -229,6 +239,8 @@ class ScenarioResult(ApiModel):
     data_completeness: dict[str, Any] = Field(default_factory=dict)
     publication: dict[str, Any] = Field(default_factory=dict)
     independence: dict[str, Any] = Field(default_factory=dict)
+    intrinsic: dict[str, Any] = Field(default_factory=dict)
+    market_comparison: dict[str, Any] = Field(default_factory=dict)
 
 
 class ValuationResponse(ApiModel):

@@ -23,7 +23,9 @@ def eligibility(model_id, inputs, values, overridden=()):
     company, basis = inputs.get("company", {}), inputs.get("basis", {})
     reasons, warnings, missing = [], [], list(missing_inputs(model_id, values))
     unsuitable = False
-    instrument_gate = applicability(company)
+    dated_scope = inputs.get("dated_intrinsic_scope") or {}
+    historical_company = dated_scope.get("historical_identity")
+    instrument_gate = applicability(historical_company if dated_scope.get("status") == "verified" and model_id == "dividend" and isinstance(historical_company, dict) else company)
     if instrument_gate:
         code, message = instrument_gate
         reasons.append(code)

@@ -23,11 +23,21 @@ export default function ProviderValuationStatus({ company, valuation }) {
       {valuation.status === "calculating" && <p role="status">Updating Python valuation… The previous result is shown until recalculation completes.</p>}
       {valuation.error && <div role="alert" className="research-warning"><p>{valuation.error.message}</p><p>Valuation results are unavailable. No demonstration calculations have been substituted.</p><Button variant="outline" size="sm" onClick={valuation.retry}>Retry valuation request</Button></div>}
       {valuation.validationErrors.length > 0 && <div role="alert" className="research-warning">{valuation.validationErrors.map((error, index) => <p key={index}>{error}</p>)}</div>}
+      <details className="provider-confidence" data-testid="dated-intrinsic-controls"><summary>Dated intrinsic analysis using imported financial evidence</summary>
+        <p className="research-caption">An optional historical dividend scenario reads approved SEC imports and archived security proofs. It uses your explicit assumptions, requires no quote, and does not count as an automatic or current valuation.</p>
+        <label className="research-caption"><input type="checkbox" checked={valuation.datedIntrinsic ?? false} onChange={(event) => valuation.setDatedIntrinsic(event.target.checked)} /> Use dated intrinsic analysis</label>
+        {valuation.datedIntrinsic && <div className="assumption-grid">
+          <div className="assumption-field"><label htmlFor="dated-evidence-as-of">Evidence as-of timestamp</label><Input id="dated-evidence-as-of" value={valuation.evidenceAsOf} placeholder="YYYY-MM-DDTHH:mm:ssZ" onChange={(event) => valuation.setEvidenceAsOf(event.target.value)} /><p className="assumption-explanation">Use the original interval in the approved import's archived reference attachment. Current-publication proofs are shown separately. The server verifies exact sources and identity; entering a past date cannot create proof.</p></div>
+          <div className="assumption-field"><label htmlFor="dated-dividend-growth">Dividend growth assumption (%)</label><Input id="dated-dividend-growth" type="number" step="any" value={Number.isFinite(valuation.datedAssumptions.dividend_growth) ? valuation.datedAssumptions.dividend_growth * 100 : ""} onChange={(event) => valuation.editDatedAssumption("dividend_growth", event.target.value === "" ? "" : Number(event.target.value) / 100)} /></div>
+          <div className="assumption-field"><label htmlFor="dated-required-return">Required return assumption (%)</label><Input id="dated-required-return" type="number" step="any" value={Number.isFinite(valuation.datedAssumptions.cost_of_equity) ? valuation.datedAssumptions.cost_of_equity * 100 : ""} onChange={(event) => valuation.editDatedAssumption("cost_of_equity", event.target.value === "" ? "" : Number(event.target.value) / 100)} /></div>
+          <div className="assumption-field"><label htmlFor="dated-sustainable-dividend">Sustainable dividend assumption</label><select id="dated-sustainable-dividend" value={typeof valuation.datedAssumptions.stable_dividend_confirmed === "boolean" ? String(valuation.datedAssumptions.stable_dividend_confirmed) : ""} onChange={(event) => valuation.editDatedAssumption("stable_dividend_confirmed", event.target.value === "true")}><option value="">Not assumed</option><option value="true">Yes · explicit user assumption</option><option value="false">No</option></select><p className="assumption-explanation">A scenario assumption, not a reported sustainability fact. Only the dividend model and these forecast assumptions are used in dated mode.</p></div>
+        </div>}
+      </details>
       <div className="assumption-grid">
         <div className="assumption-field">
           <label htmlFor="manual-market-price">User-provided market price<span aria-hidden="true">{company.currency || "Currency unavailable"}</span></label>
           <Input id="manual-market-price" type="number" min="0" step="any" value={valuation.manualPrice ?? ""}
-            disabled={!/^[A-Z]{3}$/.test(company.currency ?? "")}
+            disabled={valuation.datedIntrinsic || !/^[A-Z]{3}$/.test(company.currency ?? "")}
             aria-invalid={valuation.manualPrice !== null && (!Number.isFinite(valuation.manualPrice) || valuation.manualPrice <= 0)}
             aria-describedby="manual-market-price-help"
             onChange={(event) => valuation.setManualPrice(event.target.value === "" ? null : Number(event.target.value))} />
